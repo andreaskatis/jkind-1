@@ -8,7 +8,7 @@ public class SubrangeIntType extends Type {
 	final public BigInteger high;
 	
 	public SubrangeIntType(Location location, BigInteger low, BigInteger high) {
-		super("int");
+		super("subrange [" + low + ", " + high + "] of int");
 		this.location = location;
 		this.low = low;
 		this.high = high;

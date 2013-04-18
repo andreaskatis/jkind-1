@@ -7,6 +7,7 @@ import jkind.lustre.Equation;
 import jkind.lustre.Expr;
 import jkind.lustre.Node;
 import jkind.lustre.SubrangeIntType;
+import jkind.lustre.Type;
 import jkind.lustre.VarDecl;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
@@ -24,9 +25,17 @@ public class Lustre2Sexps {
 
 	private void createDefinitions(Node node) {
 		for (VarDecl decl : Util.getVarDecls(node)) {
-			Sexp type = new Cons("->", new Symbol("nat"), new Symbol(decl.type.name));
+			Sexp type = new Cons("->", new Symbol("nat"), new Symbol(getBaseType(decl.type).name));
 			Sexp def = new Cons("define", new Symbol("$" + decl.id), new Symbol("::"), type);
 			definitions.add(def);
+		}
+	}
+	
+	private Type getBaseType(Type type) {
+		if (type instanceof SubrangeIntType) {
+			return Type.INT;
+		} else {
+			return type;
 		}
 	}
 
