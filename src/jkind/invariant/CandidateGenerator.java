@@ -42,9 +42,6 @@ public class CandidateGenerator {
 				addCandidate(new Cons("not", s), "not " + id);
 			} else if (type instanceof SubrangeIntType) {
 				SubrangeIntType subrange = (SubrangeIntType) type;
-				addCandidate(Util.subrangeConstraint(id, Util.I, subrange),
-						"(" + subrange.low + " <= " + id + " and " + id + " <= " + subrange.high + ")");
-
 				Sexp s = new Cons("$" + id, Util.I);
 				for (BigInteger r = subrange.low; r.compareTo(subrange.high) <= 0; r = r.add(BigInteger.ONE)) {
 					addCandidate(new Cons("=", s, Sexp.fromBigInt(r)), "(" + id + " = " + r + ")");

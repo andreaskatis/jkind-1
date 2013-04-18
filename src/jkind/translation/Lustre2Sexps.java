@@ -44,9 +44,9 @@ public class Lustre2Sexps {
 		for (Equation eq : node.equations) {
 			conjuncts.add(equation2Sexp(eq, Util.I));
 		}
-		for (VarDecl input : node.inputs) {
-			if (input.type instanceof SubrangeIntType) {
-				conjuncts.add(Util.subrangeConstraint(input.id, Util.I, (SubrangeIntType) input.type));
+		for (VarDecl varDecl : Util.getVarDecls(node)) {
+			if (varDecl.type instanceof SubrangeIntType) {
+				conjuncts.add(Util.subrangeConstraint(varDecl.id, Util.I, (SubrangeIntType) varDecl.type));
 			}
 		}
 		for (Expr assertion : node.assertions) {
