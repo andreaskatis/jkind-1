@@ -12,11 +12,14 @@ import jkind.lustre.VarDecl;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.sexp.Symbol;
+import jkind.solvers.Lambda;
+import jkind.solvers.StreamDecl;
+import jkind.solvers.StreamDef;
 import jkind.util.Util;
 
 public class Lustre2Sexps {
-	private Sexp transition;
-	private List<Sexp> definitions = new ArrayList<Sexp>();
+	private StreamDef transition;
+	private List<StreamDecl> declarations = new ArrayList<StreamDecl>();
 
 	public Lustre2Sexps(Node node) {
 		createDefinitions(node);
@@ -25,9 +28,7 @@ public class Lustre2Sexps {
 
 	private void createDefinitions(Node node) {
 		for (VarDecl decl : Util.getVarDecls(node)) {
-			Sexp type = new Cons("->", new Symbol("nat"), new Symbol(getBaseType(decl.type).name));
-			Sexp def = new Cons("define", new Symbol("$" + decl.id), new Symbol("::"), type);
-			definitions.add(def);
+			declarations.add(new StreamDecl("$" + decl.id, getBaseType(decl.type)));
 		}
 	}
 	
@@ -40,34 +41,43 @@ public class Lustre2Sexps {
 	}
 
 	private void createTransition(Node node) {
+		Expr2SexpVisitor visitor = new Expr2SexpVisitor(Util.I);
 		List<Sexp> conjuncts = new ArrayList<Sexp>();
+		
 		for (Equation eq : node.equations) {
-			conjuncts.add(equation2Sexp(eq, Util.I));
+			conjuncts.add(equation2Sexp(eq, Util.I, visitor));
 		}
+
 		for (VarDecl varDecl : Util.getVarDecls(node)) {
 			if (varDecl.type instanceof SubrangeIntType) {
-				conjuncts.add(Util.subrangeConstraint(varDecl.id, Util.I, (SubrangeIntType) varDecl.type));
+				conjuncts.add(Util.subrangeConstraint(varDecl.id, Util.I,
+						(SubrangeIntType) varDecl.type));
 			}
 		}
+		
 		for (Expr assertion : node.assertions) {
 			conjuncts.add(assertion.accept(new Expr2SexpVisitor(Util.I)));
 		}
+		
+		if (visitor.hasSideConditions()) {
+			declarations.addAll(visitor.getSideConditionDeclarations());
+			conjuncts.addAll(visitor.getSideConditions());
+		}
 
-		Sexp lambda = Util.lambdaI(new Cons("and", conjuncts));
-		Sexp tType = new Cons("->", new Symbol("nat"), new Symbol("bool"));
-		transition = new Cons("define", Keywords.T, new Symbol("::"), tType, lambda);
+		Lambda lambda = new Lambda(Util.I, new Cons("and", conjuncts));
+		transition = new StreamDef(Keywords.T, Type.BOOL, lambda);
 	}
 
-	private Sexp equation2Sexp(Equation eq, Symbol iSym) {
-		Sexp body = eq.expr.accept(new Expr2SexpVisitor(iSym));
+	private Sexp equation2Sexp(Equation eq, Symbol iSym, Expr2SexpVisitor visitor) {
+		Sexp body = eq.expr.accept(visitor);
 		return new Cons("=", new Cons("$" + eq.lhs.get(0).id, iSym), body);
 	}
 
-	public Sexp getTransition() {
+	public StreamDef getTransition() {
 		return transition;
 	}
 
-	public List<Sexp> getDefinitions() {
-		return definitions;
+	public List<StreamDecl> getDeclarations() {
+		return declarations;
 	}
 }

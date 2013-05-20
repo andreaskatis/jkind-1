@@ -2,32 +2,43 @@ package jkind.processes;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jkind.JKindException;
 import jkind.invariant.Candidate;
 import jkind.invariant.CandidateGenerator;
 import jkind.invariant.Graph;
 import jkind.invariant.Invariant;
+import jkind.lustre.Type;
 import jkind.processes.messages.InvariantMessage;
 import jkind.processes.messages.Message;
 import jkind.processes.messages.StopMessage;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
-import jkind.sexp.Symbol;
 import jkind.solvers.Model;
 import jkind.solvers.NumericValue;
 import jkind.solvers.Result;
 import jkind.solvers.SatResult;
+import jkind.solvers.StreamDecl;
+import jkind.solvers.StreamDef;
+import jkind.solvers.VarDecl;
 import jkind.translation.Keywords;
 import jkind.translation.Specification;
 
 public class InvariantProcess extends Process {
 	private InductiveProcess inductiveProcess;
+	private Map<String, StreamDef> definitions;
+	private Map<String, StreamDecl> declarations;
 
 	public InvariantProcess(Specification spec) {
 		super("Invariant", spec, null);
-		setScratch(spec.filename + ".yc_inv");
+		definitions = new HashMap<String, StreamDef>();
+		declarations = new HashMap<String, StreamDecl>();
+		for (StreamDecl decl : spec.translation.getDeclarations()) {
+			declarations.put(decl.getId().toString(), decl);
+		}
 	}
 
 	public void setInductiveProcess(InductiveProcess inductiveProcess) {
@@ -37,7 +48,7 @@ public class InvariantProcess extends Process {
 	@Override
 	protected void initializeSolver() {
 		super.initializeSolver();
-		solver.send(new Cons("define", Keywords.N, new Symbol("::"), new Symbol("nat")));
+		solver.send(new VarDecl(Keywords.N, Type.INT));
 	}
 
 	@Override
@@ -92,8 +103,8 @@ public class InvariantProcess extends Process {
 
 	private void defineCandidates(List<Candidate> candidates) {
 		for (Candidate candidate : candidates) {
-			solver.send(candidate.getDeclaration());
-			solver.send(candidate.getDefinition());
+			definitions.put(candidate.def.getId().toString(), candidate.def);
+			solver.send(candidate.def);
 		}
 	}
 
@@ -110,13 +121,20 @@ public class InvariantProcess extends Process {
 			result = solver.query(graph.toInvariant(Sexp.fromInt(k - 1)));
 
 			if (result instanceof SatResult) {
-				Model model = ((SatResult) result).getModel();
+				Model model = getModel(result);
 				graph.refine(model, BigInteger.valueOf(k - 1));
 				debug("Base step refinement, graph size = " + graph.size());
 			}
 		} while (!graph.isTrivial() && result instanceof SatResult);
 
 		solver.pop();
+	}
+
+	private Model getModel(Result result) {
+		Model model = ((SatResult) result).getModel();
+		model.setDefinitions(definitions);
+		model.setDeclarations(declarations);
+		return model;
 	}
 
 	private void assertBaseTransition(int i) {
@@ -137,7 +155,7 @@ public class InvariantProcess extends Process {
 			result = solver.query(getInductiveQuery(k, graph));
 
 			if (result instanceof SatResult) {
-				Model model = ((SatResult) result).getModel();
+				Model model = getModel(result);
 				BigInteger index = getN(model).add(BigInteger.valueOf(k));
 				graph.refine(model, index);
 				debug("Inductive step refinement, graph size = " + graph.size());
