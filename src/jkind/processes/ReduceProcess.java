@@ -29,12 +29,6 @@ public class ReduceProcess extends Process {
 	}
 
 	@Override
-	protected void initializeSolver() {
-		super.initializeSolver();
-		declareN();
-	}
-
-	@Override
 	public void main() {
 		waitForMessage();
 	}
@@ -138,7 +132,7 @@ public class ReduceProcess extends Process {
 	private Sexp getUnsatCoreQuery(int k, Collection<Invariant> irreducible) {
 		List<Sexp> hyps = new ArrayList<Sexp>();
 		for (int i = 0; i <= k; i++) {
-			hyps.add(new Cons(Keywords.T, getInductiveIndex(i)));
+			hyps.add(new Cons(Keywords.TI, getInductiveIndex(i)));
 			if (i < k) {
 				hyps.add(Util.conjoinInvariants(irreducible, getInductiveIndex(i)));
 			}

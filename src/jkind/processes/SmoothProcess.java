@@ -74,7 +74,7 @@ public class SmoothProcess extends Process {
 	}
 
 	private void assertTransition(int k) {
-		solver.send(new Cons("assert", new Cons(Keywords.T, Sexp.fromInt(k - 1))));
+		solver.send(new Cons("assert", new Cons(Keywords.TB, Sexp.fromInt(k - 1))));
 	}
 
 	private void assertDeltaCost(int k, Set<String> relevant) {

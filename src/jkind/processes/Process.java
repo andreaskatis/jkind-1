@@ -110,16 +110,12 @@ public abstract class Process implements Runnable {
 
 		solver.initialize();
 		solver.send(spec.translation.getDeclarations());
+		solver.send(spec.translation.getBaseTransition());
 		if (inductive) {
 			solver.send(spec.translation.getInductiveTransition());
-		} else {
-			solver.send(spec.translation.getBaseTransition());
+			solver.send(new VarDecl(Keywords.N, Type.INT));
+			solver.send(new Cons("assert", new Cons(">=", Keywords.N, Sexp.fromInt(0))));
 		}
-	}
-	
-	protected void declareN() {
-		solver.send(new VarDecl(Keywords.N, Type.INT));
-		solver.send(new Cons("assert", new Cons(">=", Keywords.N, Sexp.fromInt(0))));
 	}
 
 	public Throwable getThrowable() {

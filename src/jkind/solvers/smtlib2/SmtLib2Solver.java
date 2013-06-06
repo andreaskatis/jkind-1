@@ -130,7 +130,8 @@ public abstract class SmtLib2Solver extends Solver {
 				debug("; " + name + ": " + line);
 				if (line == null) {
 					throw new JKindException(name + " terminated unexpectedly");
-				} else if (line.contains("define-fun " + Keywords.T + " ")) {
+				} else if (line.contains("define-fun " + Keywords.TB + " ")
+						|| line.contains("define-fun " + Keywords.TI + " ")) {
 					// No need to parse the transition relation
 				} else if (line.contains("error \"") || line.contains("Error:")) {
 					// Flush the output since errors span multiple lines

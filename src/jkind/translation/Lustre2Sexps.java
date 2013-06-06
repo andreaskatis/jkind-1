@@ -64,13 +64,13 @@ public class Lustre2Sexps {
 		}
 
 		Lambda lambda = new Lambda(Util.I, new Cons("and", conjuncts));
-		baseTransition = new StreamDef(Keywords.T, Type.BOOL, lambda);
+		baseTransition = new StreamDef(Keywords.TB, Type.BOOL, lambda);
 	}
 
 
 	private void createInductiveTransition(Node node) {
 		List<Sexp> conjuncts = new ArrayList<Sexp>();
-		conjuncts.add(baseTransition.getBody());
+		conjuncts.add(new Cons(Keywords.TB, Util.I));
 		
 		for (VarDecl varDecl : Util.getVarDecls(node)) {
 			if (varDecl.type instanceof SubrangeIntType) {
@@ -80,7 +80,7 @@ public class Lustre2Sexps {
 		}
 		
 		Lambda lambda = new Lambda(Util.I, new Cons("and", conjuncts));
-		inductiveTransition = new StreamDef(Keywords.T, Type.BOOL, lambda);
+		inductiveTransition = new StreamDef(Keywords.TI, Type.BOOL, lambda);
 	}
 
 	

@@ -44,12 +44,6 @@ public class InvariantProcess extends Process {
 	}
 
 	@Override
-	protected void initializeSolver() {
-		super.initializeSolver();
-		declareN();
-	}
-
-	@Override
 	public void main() {
 		try {
 			Graph graph = createGraph();
@@ -136,7 +130,7 @@ public class InvariantProcess extends Process {
 	}
 
 	private void assertBaseTransition(int i) {
-		solver.send(new Cons("assert", new Cons(Keywords.T, Sexp.fromInt(i))));
+		solver.send(new Cons("assert", new Cons(Keywords.TB, Sexp.fromInt(i))));
 	}
 
 	private Graph refineInductiveStep(int k, Graph original) {
@@ -165,7 +159,7 @@ public class InvariantProcess extends Process {
 	}
 
 	private void assertInductiveTransition(int k) {
-		solver.send(new Cons("assert", new Cons(Keywords.T, getInductiveIndex(k))));
+		solver.send(new Cons("assert", new Cons(Keywords.TI, getInductiveIndex(k))));
 	}
 
 	private Sexp getInductiveIndex(int offset) {

@@ -59,11 +59,6 @@ public class InductiveProcess extends Process {
 		sendStop();
 	}
 
-	protected void initializeSolver() {
-		super.initializeSolver();
-		declareN();
-	}
-
 	private void processMessagesAndWait(int k) {
 		try {
 			while (!incoming.isEmpty() || k > kLimit) {
@@ -105,7 +100,7 @@ public class InductiveProcess extends Process {
 	}
 
 	private void assertTransitionAndInvariants(int offset) {
-		solver.send(new Cons("assert", new Cons(Keywords.T, getIndex(offset))));
+		solver.send(new Cons("assert", new Cons(Keywords.TI, getIndex(offset))));
 		assertInvariants(invariants, offset);
 	}
 
