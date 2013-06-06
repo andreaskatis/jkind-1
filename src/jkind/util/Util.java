@@ -1,5 +1,6 @@
 package jkind.util;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,17 +50,25 @@ public class Util {
 	}
 
 	public static Sexp subrangeConstraint(String id, Sexp index, SubrangeIntType subrange) {
+		/**
+		 * It seems to be more efficient for the SMT solvers if we explode a
+		 * subrange into equalities rather than treating it as two inequalities
+		 */
+
 		Sexp var = new Cons("$" + id, index);
-		Sexp low = new Cons("<=", Sexp.fromBigInt(subrange.low), var);
-		Sexp high = new Cons("<=", var, Sexp.fromBigInt(subrange.high));
-		return new Cons("and", low, high);
+		List<Sexp> choices = new ArrayList<Sexp>();
+		for (BigInteger i = subrange.low; i.compareTo(subrange.high) <= 0; i = i
+				.add(BigInteger.ONE)) {
+			choices.add(new Cons("=", Sexp.fromBigInt(i), var));
+		}
+		return new Cons("or", choices);
 	}
 
 	public static Sexp conjoin(Collection<? extends Sexp> fns, Sexp i) {
 		if (fns.isEmpty()) {
 			return new Symbol("true");
 		}
-		
+
 		List<Sexp> args = new ArrayList<Sexp>();
 		for (Sexp fn : fns) {
 			args.add(new Cons(fn, i));
@@ -74,18 +83,18 @@ public class Util {
 		}
 		return conjoin(symbols, i);
 	}
-	
+
 	public static Sexp conjoinInvariants(Collection<Invariant> invariants, Sexp i) {
 		if (invariants.isEmpty()) {
 			return new Symbol("true");
 		}
-		
+
 		List<Sexp> sexps = new ArrayList<Sexp>();
 		for (Invariant invariant : invariants) {
 			sexps.add(invariant.instantiate(i));
 		}
 		return new Cons("and", sexps);
 	}
-	
+
 	final public static Symbol I = new Symbol("i");
 }
