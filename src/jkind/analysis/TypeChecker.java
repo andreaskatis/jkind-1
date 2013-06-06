@@ -325,7 +325,11 @@ public class TypeChecker implements ExprVisitor<Type> {
 
 		switch (e.op) {
 		case NEGATIVE:
-			if (isIntBased(type)) {
+			if (type instanceof SubrangeIntType) {
+				SubrangeIntType subrange = (SubrangeIntType) type;
+				return new SubrangeIntType(Location.NULL, subrange.high.negate(), subrange.low.negate());
+			}
+			if (type == Type.INT) {
 				return Type.INT;
 			}
 			if (type == Type.REAL) {
