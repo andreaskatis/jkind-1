@@ -46,6 +46,13 @@ public class Eval {
 				}
 				return BoolValue.TRUE;
 			}
+		} else if (fn.equals("or"))	{
+			for (Sexp arg : sexp.args) {
+				if (isTrue(eval(arg))) {
+					return BoolValue.TRUE;
+				}
+				return BoolValue.FALSE;
+			}
 		}
 		
 		List<Value> args = new ArrayList<Value>();
