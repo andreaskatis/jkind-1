@@ -34,7 +34,7 @@ public class InductiveProcess extends Process {
 	private InvariantProcess invariantProcess;
 
 	public InductiveProcess(Specification spec, Director director) {
-		super("Inductive", spec, director);
+		super("Inductive", true, spec, director);
 	}
 
 	public void setBaseProcess(BaseProcess baseProcess) {

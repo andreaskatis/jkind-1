@@ -25,7 +25,7 @@ public class BaseProcess extends Process {
 	private InductiveProcess inductiveProcess;
 
 	public BaseProcess(Specification spec, Director director) {
-		super("Base", spec, director);
+		super("Base", false, spec, director);
 	}
 
 	public void setInductiveProcess(InductiveProcess inductiveProcess) {

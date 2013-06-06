@@ -32,11 +32,13 @@ public abstract class Process implements Runnable {
 	protected int kMax = Settings.n;
 
 	private String name;
+	private boolean inductive;
 	private PrintWriter scratch;
 	private Throwable throwable;
 
-	public Process(String name, Specification spec, Director director) {
+	public Process(String name, boolean inductive, Specification spec, Director director) {
 		this.name = name;
+		this.inductive = inductive;
 		this.spec = spec;
 		this.director = director;
 		this.properties = new ArrayList<String>(spec.node.properties);
@@ -108,7 +110,11 @@ public abstract class Process implements Runnable {
 
 		solver.initialize();
 		solver.send(spec.translation.getDeclarations());
-		solver.send(spec.translation.getTransition());
+		if (inductive) {
+			solver.send(spec.translation.getInductiveTransition());
+		} else {
+			solver.send(spec.translation.getBaseTransition());
+		}
 	}
 	
 	protected void declareN() {

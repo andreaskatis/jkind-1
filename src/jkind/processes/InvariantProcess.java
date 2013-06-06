@@ -31,7 +31,7 @@ public class InvariantProcess extends Process {
 	private Map<String, StreamDecl> declarations;
 
 	public InvariantProcess(Specification spec) {
-		super("Invariant", spec, null);
+		super("Invariant", true, spec, null);
 		definitions = new HashMap<String, StreamDef>();
 		declarations = new HashMap<String, StreamDecl>();
 		for (StreamDecl decl : spec.translation.getDeclarations()) {

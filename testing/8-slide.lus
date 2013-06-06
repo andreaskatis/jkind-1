@@ -3,7 +3,7 @@
 --   INVALID PROPERTIES: [prop]
 -- K = 19
 
-type loc = int; -- subrange [-1, 8] of int, but that slows analysis down
+type loc = subrange [-1, 8] of int;
 
 const OFF : loc = -1; -- An invalid location, used to mark edges
 

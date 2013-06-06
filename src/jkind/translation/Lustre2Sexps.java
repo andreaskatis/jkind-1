@@ -18,7 +18,8 @@ import jkind.solvers.StreamDef;
 import jkind.util.Util;
 
 public class Lustre2Sexps {
-	private StreamDef transition;
+	private StreamDef baseTransition;
+	private StreamDef inductiveTransition;
 	private List<StreamDecl> declarations = new ArrayList<StreamDecl>();
 
 	public Lustre2Sexps(Node node) {
@@ -41,6 +42,11 @@ public class Lustre2Sexps {
 	}
 
 	private void createTransition(Node node) {
+		createBaseTransition(node);
+		createInductiveTransition(node);
+	}
+
+	private void createBaseTransition(Node node) {
 		Expr2SexpVisitor visitor = new Expr2SexpVisitor(Util.I);
 		List<Sexp> conjuncts = new ArrayList<Sexp>();
 		
@@ -48,15 +54,8 @@ public class Lustre2Sexps {
 			conjuncts.add(equation2Sexp(eq, Util.I, visitor));
 		}
 
-		for (VarDecl varDecl : Util.getVarDecls(node)) {
-			if (varDecl.type instanceof SubrangeIntType) {
-				conjuncts.add(Util.subrangeConstraint(varDecl.id, Util.I,
-						(SubrangeIntType) varDecl.type));
-			}
-		}
-		
 		for (Expr assertion : node.assertions) {
-			conjuncts.add(assertion.accept(new Expr2SexpVisitor(Util.I)));
+			conjuncts.add(assertion.accept(visitor));
 		}
 		
 		if (visitor.hasSideConditions()) {
@@ -65,16 +64,37 @@ public class Lustre2Sexps {
 		}
 
 		Lambda lambda = new Lambda(Util.I, new Cons("and", conjuncts));
-		transition = new StreamDef(Keywords.T, Type.BOOL, lambda);
+		baseTransition = new StreamDef(Keywords.T, Type.BOOL, lambda);
 	}
 
+
+	private void createInductiveTransition(Node node) {
+		List<Sexp> conjuncts = new ArrayList<Sexp>();
+		conjuncts.add(baseTransition.getBody());
+		
+		for (VarDecl varDecl : Util.getVarDecls(node)) {
+			if (varDecl.type instanceof SubrangeIntType) {
+				conjuncts.add(Util.subrangeConstraint(varDecl.id, Util.I,
+						(SubrangeIntType) varDecl.type));
+			}
+		}
+		
+		Lambda lambda = new Lambda(Util.I, new Cons("and", conjuncts));
+		inductiveTransition = new StreamDef(Keywords.T, Type.BOOL, lambda);
+	}
+
+	
 	private Sexp equation2Sexp(Equation eq, Symbol iSym, Expr2SexpVisitor visitor) {
 		Sexp body = eq.expr.accept(visitor);
 		return new Cons("=", new Cons("$" + eq.lhs.get(0).id, iSym), body);
 	}
 
-	public StreamDef getTransition() {
-		return transition;
+	public StreamDef getBaseTransition() {
+		return baseTransition;
+	}
+	
+	public StreamDef getInductiveTransition() {
+		return inductiveTransition;
 	}
 
 	public List<StreamDecl> getDeclarations() {

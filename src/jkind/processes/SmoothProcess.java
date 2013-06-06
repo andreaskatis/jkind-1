@@ -18,7 +18,7 @@ import jkind.translation.Specification;
 
 public class SmoothProcess extends Process {
 	public SmoothProcess(Specification spec, Director director) {
-		super("Smoothing", spec, director);
+		super("Smoothing", false, spec, director);
 	}
 
 	@Override

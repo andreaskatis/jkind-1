@@ -25,7 +25,7 @@ import jkind.util.Util;
 
 public class ReduceProcess extends Process {
 	public ReduceProcess(Specification spec, Director director) {
-		super("Reduction", spec, director);
+		super("Reduction", true, spec, director);
 	}
 
 	@Override
