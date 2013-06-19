@@ -3,6 +3,7 @@ package jkind.translation;
 import java.util.ArrayList;
 import java.util.List;
 
+import jkind.invariant.CombinatorialInfo;
 import jkind.lustre.Equation;
 import jkind.lustre.Expr;
 import jkind.lustre.Node;
@@ -72,8 +73,9 @@ public class Lustre2Sexps {
 		List<Sexp> conjuncts = new ArrayList<Sexp>();
 		conjuncts.add(new Cons(Keywords.TB, Util.I));
 		
+		CombinatorialInfo info = new CombinatorialInfo(node);
 		for (VarDecl varDecl : Util.getVarDecls(node)) {
-			if (varDecl.type instanceof SubrangeIntType) {
+			if (varDecl.type instanceof SubrangeIntType && !info.isCombinatorial(varDecl.id)) {
 				conjuncts.add(Util.subrangeConstraint(varDecl.id, Util.I,
 						(SubrangeIntType) varDecl.type));
 			}
