@@ -49,12 +49,7 @@ public class Util {
 		return nodeTable;
 	}
 
-	public static Sexp subrangeConstraint(String id, Sexp index, SubrangeIntType subrange) {
-		/**
-		 * It seems to be more efficient for the SMT solvers if we explode a
-		 * subrange into equalities rather than treating it as two inequalities
-		 */
-
+	public static Sexp explodedSubrangeConstraint(String id, Sexp index, SubrangeIntType subrange) {
 		Sexp var = new Cons("$" + id, index);
 		List<Sexp> choices = new ArrayList<Sexp>();
 		for (BigInteger i = subrange.low; i.compareTo(subrange.high) <= 0; i = i
@@ -62,6 +57,13 @@ public class Util {
 			choices.add(new Cons("=", Sexp.fromBigInt(i), var));
 		}
 		return new Cons("or", choices);
+	}
+
+	public static Sexp compactSubrangeConstraint(String id, Sexp index, SubrangeIntType subrange) {
+		Sexp var = new Cons("$" + id, index);
+		Sexp low = new Cons("<=", Sexp.fromBigInt(subrange.low), var);
+		Sexp high = new Cons("<=", var, Sexp.fromBigInt(subrange.high));
+		return new Cons("and", low, high);
 	}
 
 	public static Sexp conjoin(Collection<? extends Sexp> fns, Sexp i) {

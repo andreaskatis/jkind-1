@@ -57,7 +57,7 @@ public class Lustre2Sexps {
 
 		for (VarDecl input : node.inputs) {
 			if (input.type instanceof SubrangeIntType) {
-				conjuncts.add(Util.subrangeConstraint(input.id, Util.I,
+				conjuncts.add(Util.compactSubrangeConstraint(input.id, Util.I,
 						(SubrangeIntType) input.type));
 			}
 		}
@@ -82,7 +82,7 @@ public class Lustre2Sexps {
 		CombinatorialInfo info = new CombinatorialInfo(node);
 		for (VarDecl varDecl : Util.getVarDecls(node)) {
 			if (varDecl.type instanceof SubrangeIntType && !info.isCombinatorial(varDecl.id)) {
-				conjuncts.add(Util.subrangeConstraint(varDecl.id, Util.I,
+				conjuncts.add(Util.explodedSubrangeConstraint(varDecl.id, Util.I,
 						(SubrangeIntType) varDecl.type));
 			}
 		}
