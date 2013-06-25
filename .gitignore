@@ -4,3 +4,6 @@ bin
 *.yc
 *.yc
 *.smt2
+*.xls
+*.log
+*.csv
