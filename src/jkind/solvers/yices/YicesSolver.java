@@ -41,11 +41,7 @@ public class YicesSolver extends Solver {
 	}
 
 	@Override
-	public void send(Sexp sexp) {
-		send(sexp.toString());
-	}
-
-	private void send(String str) {
+	protected void send(String str) {
 		debug(str);
 		try {
 			toSolver.append(str);
@@ -69,7 +65,8 @@ public class YicesSolver extends Solver {
 
 	@Override
 	public void send(StreamDef def) {
-		Sexp argType = new Cons(def.getArg(), new Symbol("::"), new Symbol("int"));
+		Sexp argType = new Cons(def.getArg(), new Symbol("::"), new Symbol(
+				"int"));
 		Sexp type = new Cons("->", new Symbol("int"), type(def.getType()));
 		Sexp lambda = new Cons("lambda", argType, def.getBody());
 		send(new Cons("define", def.getId(), new Symbol("::"), type, lambda));
@@ -162,7 +159,8 @@ public class YicesSolver extends Solver {
 					 */
 
 					if (seenContextError) {
-						throw new JKindException("Lustre program is inconsistent");
+						throw new JKindException(
+								"Lustre program is inconsistent");
 					}
 					seenContextError = true;
 					continue;
@@ -182,7 +180,8 @@ public class YicesSolver extends Solver {
 		}
 	}
 
-	private static Result parseYices(String string) throws IOException, RecognitionException {
+	private Result parseYices(String string) throws IOException,
+			RecognitionException {
 		CharStream stream = new ANTLRInputStream(string);
 		YicesLexer lexer = new YicesLexer(stream);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -208,7 +207,7 @@ public class YicesSolver extends Solver {
 		}
 
 		ParseTreeWalker walker = new ParseTreeWalker();
-		ResultExtractorListener extractor = new ResultExtractorListener();
+		ResultExtractorListener extractor = new ResultExtractorListener(this);
 		walker.walk(extractor, ctx);
 		return extractor.getResult();
 	}

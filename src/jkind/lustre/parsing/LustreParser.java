@@ -20,16 +20,16 @@ public class LustreParser extends Parser {
 		T__25=17, T__24=18, T__23=19, T__22=20, T__21=21, T__20=22, T__19=23, 
 		T__18=24, T__17=25, T__16=26, T__15=27, T__14=28, T__13=29, T__12=30, 
 		T__11=31, T__10=32, T__9=33, T__8=34, T__7=35, T__6=36, T__5=37, T__4=38, 
-		T__3=39, T__2=40, T__1=41, T__0=42, REAL=43, BOOL=44, INT=45, ID=46, WS=47, 
-		SL_COMMENT=48, ML_COMMENT=49, MAIN=50, ERROR=51;
+		T__3=39, T__2=40, T__1=41, T__0=42, REAL=43, BOOL=44, INT=45, ID=46, QUOTED_ID=47, 
+		WS=48, SL_COMMENT=49, ML_COMMENT=50, MAIN=51, ERROR=52;
 	public static final String[] tokenNames = {
 		"<INVALID>", "']'", "'subrange'", "'of'", "','", "'-'", "'['", "'node'", 
-		"'*'", "'or'", "'not'", "':'", "'('", "'if'", "'int'", "'<'", "'var'", 
+		"'*'", "'or'", "':'", "'('", "'not'", "'if'", "'int'", "'<'", "'var'", 
 		"'<='", "'and'", "'let'", "'tel'", "'else'", "'->'", "'xor'", "'pre'", 
 		"'bool'", "')'", "'=>'", "'+'", "'<>'", "'--%PROPERTY'", "'='", "';'", 
 		"'div'", "'const'", "'>'", "'type'", "'then'", "'returns'", "'/'", "'>='", 
-		"'assert'", "'real'", "REAL", "BOOL", "INT", "ID", "WS", "SL_COMMENT", 
-		"ML_COMMENT", "MAIN", "ERROR"
+		"'assert'", "'real'", "REAL", "BOOL", "INT", "ID", "QUOTED_ID", "WS", 
+		"SL_COMMENT", "ML_COMMENT", "MAIN", "ERROR"
 	};
 	public static final int
 		RULE_program = 0, RULE_typedef = 1, RULE_constant = 2, RULE_node = 3, 
@@ -209,9 +209,9 @@ public class LustreParser extends Parser {
 			setState(43); match(ID);
 			setState(46);
 			_la = _input.LA(1);
-			if (_la==11) {
+			if (_la==10) {
 				{
-				setState(44); match(11);
+				setState(44); match(10);
 				setState(45); type();
 				}
 			}
@@ -281,7 +281,7 @@ public class LustreParser extends Parser {
 			{
 			setState(52); match(7);
 			setState(53); match(ID);
-			setState(54); match(12);
+			setState(54); match(11);
 			setState(56);
 			_la = _input.LA(1);
 			if (_la==ID) {
@@ -292,7 +292,7 @@ public class LustreParser extends Parser {
 
 			setState(58); match(26);
 			setState(59); match(38);
-			setState(60); match(12);
+			setState(60); match(11);
 			setState(62);
 			_la = _input.LA(1);
 			if (_la==ID) {
@@ -317,11 +317,11 @@ public class LustreParser extends Parser {
 			setState(78);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << 12) | (1L << 30) | (1L << 41) | (1L << ID))) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << 11) | (1L << 30) | (1L << 41) | (1L << ID))) != 0)) {
 				{
 				setState(76);
 				switch (_input.LA(1)) {
-				case 12:
+				case 11:
 				case ID:
 					{
 					setState(73); equation();
@@ -463,7 +463,7 @@ public class LustreParser extends Parser {
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
-			setState(101); match(11);
+			setState(101); match(10);
 			setState(102); type();
 			}
 		}
@@ -745,9 +745,9 @@ public class LustreParser extends Parser {
 				setState(132); lhs();
 				}
 				break;
-			case 12:
+			case 11:
 				{
-				setState(133); match(12);
+				setState(133); match(11);
 				setState(134); lhs();
 				setState(135); match(26);
 				}
@@ -992,7 +992,7 @@ public class LustreParser extends Parser {
 				_localctx = new NotExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(154); match(10);
+				setState(154); match(12);
 				setState(155); expr(11);
 				}
 				break;
@@ -1049,10 +1049,10 @@ public class LustreParser extends Parser {
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(162); match(ID);
-				setState(163); match(12);
+				setState(163); match(11);
 				setState(172);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << 5) | (1L << 10) | (1L << 12) | (1L << 13) | (1L << 24) | (1L << REAL) | (1L << BOOL) | (1L << INT) | (1L << ID))) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << 5) | (1L << 11) | (1L << 12) | (1L << 13) | (1L << 24) | (1L << REAL) | (1L << BOOL) | (1L << INT) | (1L << ID))) != 0)) {
 					{
 					setState(164); expr(0);
 					setState(169);
@@ -1095,7 +1095,7 @@ public class LustreParser extends Parser {
 				_localctx = new ParenExprContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(182); match(12);
+				setState(182); match(11);
 				setState(183); expr(0);
 				setState(184); match(26);
 				}
@@ -1258,7 +1258,7 @@ public class LustreParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\2\3\65\u00d9\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b"+
+		"\2\3\66\u00d9\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b"+
 		"\4\t\t\t\4\n\t\n\4\13\t\13\4\f\t\f\4\r\t\r\4\16\t\16\3\2\3\2\3\2\7\2 "+
 		"\n\2\f\2\16\2#\13\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\3\3\3\4\3\4\3\4\3\4\5"+
 		"\4\61\n\4\3\4\3\4\3\4\3\4\3\5\3\5\3\5\3\5\5\5;\n\5\3\5\3\5\3\5\3\5\5\5"+
@@ -1280,39 +1280,39 @@ public class LustreParser extends Parser {
 		"\2\35 \5\6\4\2\36 \5\b\5\2\37\34\3\2\2\2\37\35\3\2\2\2\37\36\3\2\2\2 "+
 		"#\3\2\2\2!\37\3\2\2\2!\"\3\2\2\2\"$\3\2\2\2#!\3\2\2\2$%\7\1\2\2%\3\3\2"+
 		"\2\2&\'\7&\2\2\'(\7\60\2\2()\7!\2\2)*\5\16\b\2*+\7\"\2\2+\5\3\2\2\2,-"+
-		"\7$\2\2-\60\7\60\2\2./\7\r\2\2/\61\5\16\b\2\60.\3\2\2\2\60\61\3\2\2\2"+
+		"\7$\2\2-\60\7\60\2\2./\7\f\2\2/\61\5\16\b\2\60.\3\2\2\2\60\61\3\2\2\2"+
 		"\61\62\3\2\2\2\62\63\7!\2\2\63\64\5\32\16\2\64\65\7\"\2\2\65\7\3\2\2\2"+
-		"\66\67\7\t\2\2\678\7\60\2\28:\7\16\2\29;\5\n\6\2:9\3\2\2\2:;\3\2\2\2;"+
-		"<\3\2\2\2<=\7\34\2\2=>\7(\2\2>@\7\16\2\2?A\5\n\6\2@?\3\2\2\2@A\3\2\2\2"+
-		"AB\3\2\2\2BC\7\34\2\2CH\7\"\2\2DE\7\22\2\2EF\5\n\6\2FG\7\"\2\2GI\3\2\2"+
+		"\66\67\7\t\2\2\678\7\60\2\28:\7\r\2\29;\5\n\6\2:9\3\2\2\2:;\3\2\2\2;<"+
+		"\3\2\2\2<=\7\34\2\2=>\7(\2\2>@\7\r\2\2?A\5\n\6\2@?\3\2\2\2@A\3\2\2\2A"+
+		"B\3\2\2\2BC\7\34\2\2CH\7\"\2\2DE\7\22\2\2EF\5\n\6\2FG\7\"\2\2GI\3\2\2"+
 		"\2HD\3\2\2\2HI\3\2\2\2IJ\3\2\2\2JP\7\25\2\2KO\5\26\f\2LO\5\22\n\2MO\5"+
 		"\24\13\2NK\3\2\2\2NL\3\2\2\2NM\3\2\2\2OR\3\2\2\2PN\3\2\2\2PQ\3\2\2\2Q"+
 		"S\3\2\2\2RP\3\2\2\2SU\7\26\2\2TV\7\"\2\2UT\3\2\2\2UV\3\2\2\2V\t\3\2\2"+
 		"\2W\\\5\f\7\2XY\7\"\2\2Y[\5\f\7\2ZX\3\2\2\2[^\3\2\2\2\\Z\3\2\2\2\\]\3"+
 		"\2\2\2]\13\3\2\2\2^\\\3\2\2\2_d\7\60\2\2`a\7\6\2\2ac\7\60\2\2b`\3\2\2"+
-		"\2cf\3\2\2\2db\3\2\2\2de\3\2\2\2eg\3\2\2\2fd\3\2\2\2gh\7\r\2\2hi\5\16"+
+		"\2cf\3\2\2\2db\3\2\2\2de\3\2\2\2eg\3\2\2\2fd\3\2\2\2gh\7\f\2\2hi\5\16"+
 		"\b\2i\r\3\2\2\2jx\7\20\2\2kl\7\4\2\2lm\7\b\2\2mn\5\20\t\2no\7\6\2\2op"+
 		"\5\20\t\2pq\7\3\2\2qr\7\5\2\2rs\7\20\2\2sx\3\2\2\2tx\7\33\2\2ux\7,\2\2"+
 		"vx\7\60\2\2wj\3\2\2\2wk\3\2\2\2wt\3\2\2\2wu\3\2\2\2wv\3\2\2\2x\17\3\2"+
 		"\2\2y{\7\7\2\2zy\3\2\2\2z{\3\2\2\2{|\3\2\2\2|}\7/\2\2}\21\3\2\2\2~\177"+
 		"\7 \2\2\177\u0080\7\60\2\2\u0080\u0081\7\"\2\2\u0081\23\3\2\2\2\u0082"+
 		"\u0083\7+\2\2\u0083\u0084\5\32\16\2\u0084\u0085\7\"\2\2\u0085\25\3\2\2"+
-		"\2\u0086\u008c\5\30\r\2\u0087\u0088\7\16\2\2\u0088\u0089\5\30\r\2\u0089"+
+		"\2\u0086\u008c\5\30\r\2\u0087\u0088\7\r\2\2\u0088\u0089\5\30\r\2\u0089"+
 		"\u008a\7\34\2\2\u008a\u008c\3\2\2\2\u008b\u0086\3\2\2\2\u008b\u0087\3"+
 		"\2\2\2\u008c\u008d\3\2\2\2\u008d\u008e\7!\2\2\u008e\u008f\5\32\16\2\u008f"+
 		"\u0090\7\"\2\2\u0090\27\3\2\2\2\u0091\u0096\7\60\2\2\u0092\u0093\7\6\2"+
 		"\2\u0093\u0095\7\60\2\2\u0094\u0092\3\2\2\2\u0095\u0098\3\2\2\2\u0096"+
 		"\u0094\3\2\2\2\u0096\u0097\3\2\2\2\u0097\31\3\2\2\2\u0098\u0096\3\2\2"+
 		"\2\u0099\u009a\b\16\1\2\u009a\u009b\7\32\2\2\u009b\u00bd\5\32\16\2\u009c"+
-		"\u009d\7\f\2\2\u009d\u00bd\5\32\16\2\u009e\u009f\7\7\2\2\u009f\u00bd\5"+
-		"\32\16\2\u00a0\u00bd\7\60\2\2\u00a1\u00bd\7/\2\2\u00a2\u00bd\7-\2\2\u00a3"+
-		"\u00bd\7.\2\2\u00a4\u00a5\7\60\2\2\u00a5\u00ae\7\16\2\2\u00a6\u00ab\5"+
-		"\32\16\2\u00a7\u00a8\7\6\2\2\u00a8\u00aa\5\32\16\2\u00a9\u00a7\3\2\2\2"+
-		"\u00aa\u00ad\3\2\2\2\u00ab\u00a9\3\2\2\2\u00ab\u00ac\3\2\2\2\u00ac\u00af"+
+		"\u009d\7\16\2\2\u009d\u00bd\5\32\16\2\u009e\u009f\7\7\2\2\u009f\u00bd"+
+		"\5\32\16\2\u00a0\u00bd\7\60\2\2\u00a1\u00bd\7/\2\2\u00a2\u00bd\7-\2\2"+
+		"\u00a3\u00bd\7.\2\2\u00a4\u00a5\7\60\2\2\u00a5\u00ae\7\r\2\2\u00a6\u00ab"+
+		"\5\32\16\2\u00a7\u00a8\7\6\2\2\u00a8\u00aa\5\32\16\2\u00a9\u00a7\3\2\2"+
+		"\2\u00aa\u00ad\3\2\2\2\u00ab\u00a9\3\2\2\2\u00ab\u00ac\3\2\2\2\u00ac\u00af"+
 		"\3\2\2\2\u00ad\u00ab\3\2\2\2\u00ae\u00a6\3\2\2\2\u00ae\u00af\3\2\2\2\u00af"+
 		"\u00b0\3\2\2\2\u00b0\u00bd\7\34\2\2\u00b1\u00b2\7\17\2\2\u00b2\u00b3\5"+
 		"\32\16\2\u00b3\u00b4\7\'\2\2\u00b4\u00b5\5\32\16\2\u00b5\u00b6\7\27\2"+
-		"\2\u00b6\u00b7\5\32\16\2\u00b7\u00bd\3\2\2\2\u00b8\u00b9\7\16\2\2\u00b9"+
+		"\2\u00b6\u00b7\5\32\16\2\u00b7\u00bd\3\2\2\2\u00b8\u00b9\7\r\2\2\u00b9"+
 		"\u00ba\5\32\16\2\u00ba\u00bb\7\34\2\2\u00bb\u00bd\3\2\2\2\u00bc\u0099"+
 		"\3\2\2\2\u00bc\u009c\3\2\2\2\u00bc\u009e\3\2\2\2\u00bc\u00a0\3\2\2\2\u00bc"+
 		"\u00a1\3\2\2\2\u00bc\u00a2\3\2\2\2\u00bc\u00a3\3\2\2\2\u00bc\u00a4\3\2"+

@@ -6,15 +6,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import jkind.JKindException;
+import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
+import jkind.sexp.Symbol;
+import jkind.util.BiMap;
+import jkind.util.Util;
 
 public abstract class Solver {
 	public abstract void initialize();
 	
-	public abstract void send(Sexp sexp);
+	protected abstract void send(String str);
+	
+	public void send(Sexp sexp) {
+		send(encode(sexp).toString());
+	}
+
 	public abstract void send(StreamDecl decl);
 	public abstract void send(StreamDef def);
 	public abstract void send(VarDecl decl);
@@ -28,8 +38,7 @@ public abstract class Solver {
 	
 	public abstract void push();
 	public abstract void pop();
-	
-	
+
 	/** Backend */
 	
 	protected Process process;
@@ -78,7 +87,58 @@ public abstract class Solver {
 		}
 	}
 	
+	/** Encoding for quoted ids */
 	
+	protected BiMap<Symbol, Symbol> encoding = new BiMap<>();
+	
+	protected Sexp encode(Sexp sexp) {
+		if (sexp instanceof Cons) {
+			Cons cons = (Cons) sexp;
+			return new Cons(encode(cons.head), encodeList(cons.args));
+		} else if (sexp instanceof Symbol) {
+			Symbol symbol = (Symbol) sexp;
+			return encode(symbol);
+		} else {
+			throw new IllegalArgumentException("Unknown sexp");
+		}
+	}
+	
+	private List<Sexp> encodeList(List<Sexp> list) {
+		List<Sexp> result = new ArrayList<>();
+		for (Sexp sexp : list) {
+			result.add(encode(sexp));
+		}
+		return result;
+	}
+	
+	protected Symbol encode(Symbol original) {
+		if (encoding.containsKey(original)) {
+			return encoding.get(original);
+		} else if (Util.isQuotedStream(original.sym)) {
+			Symbol encoded = new Symbol(convertQuotedStream(original.sym));
+			encoding.put(original, encoded);
+			return encoded;
+		} else {
+			return original;
+		}
+	}
+	
+	final private String QUOTED_ID_PREFIX = "%quoted";
+	private int quotedIdCounter = 0;
+
+	protected String convertQuotedStream(String qid) {
+		return "$" + QUOTED_ID_PREFIX + quotedIdCounter++;
+	}
+	
+	public String decode(String encoded) {
+		Symbol sym = new Symbol(encoded);
+		if (encoding.containsValue(sym)) {
+			return encoding.inverse().get(sym).sym;
+		} else {
+			return encoded;
+		}
+	}
+
 	/** Debugging */
 	
 	protected PrintWriter debug;

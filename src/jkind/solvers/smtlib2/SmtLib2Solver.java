@@ -37,11 +37,6 @@ public abstract class SmtLib2Solver extends Solver {
 		this.name = name;
 	}
 
-	@Override
-	public void send(Sexp sexp) {
-		send(sexp.toString());
-	}
-
 	protected void send(String str) {
 		debug(str);
 		try {
@@ -182,7 +177,7 @@ public abstract class SmtLib2Solver extends Solver {
 			throw new JKindException("Error parsing " + name + " output");
 		}
 
-		return ModelExtractor.getModel(ctx);
+		return new ModelExtractor(this).getModel(ctx);
 	}
 
 	@Override

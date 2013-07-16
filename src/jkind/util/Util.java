@@ -88,4 +88,16 @@ public class Util {
 	}
 	
 	final public static Symbol I = new Symbol("i");
+	
+	public static boolean isQuotedId(String id) {
+		return id.startsWith("q\"");
+	}
+	
+	public static String getUnquotedId(String qid) {
+		return qid.substring(2, qid.length() - 1).replaceAll("\"\"", "\"");
+	}
+	
+	public static boolean isQuotedStream(String id) {
+		return id.startsWith("$q\"");
+	}
 }
