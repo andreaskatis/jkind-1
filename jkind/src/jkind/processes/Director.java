@@ -69,6 +69,7 @@ public class Director {
 		this.spec = spec;
 		this.writer = getWriter(spec);
 		this.remainingProperties.addAll(spec.node.properties);
+		this.remainingProperties.addAll(spec.node.eventuallies);
 
 		this.declarations = new HashMap<>();
 		for (StreamDecl decl : spec.translation.getDeclarations()) {
@@ -97,6 +98,7 @@ public class Director {
 
 		long startTime = System.currentTimeMillis();
 		long timeout = startTime + ((long) settings.timeout) * 1000;
+		handleLiveness();
 		while (System.currentTimeMillis() < timeout && !remainingProperties.isEmpty()
 				&& someThreadAlive() && !someProcessFailed()) {
 			processMessages(startTime);
@@ -117,6 +119,12 @@ public class Director {
 		writer.end();
 		printSummary();
 		reportFailures();
+	}
+
+	private void handleLiveness() {
+		remainingProperties.removeAll(spec.node.eventuallies);
+		writer.writeLiveness(spec.node.eventuallies);
+		validProperties.addAll(spec.node.eventuallies);
 	}
 
 	private boolean someThreadAlive() {
@@ -155,8 +163,7 @@ public class Director {
 			Output.println("  JAVA KIND");
 			Output.println("==========================================");
 			Output.println();
-			Output.println("There are " + remainingProperties.size()
-					+ " properties to be checked.");
+			Output.println("There are " + remainingProperties.size() + " properties to be checked.");
 			Output.println("PROPERTIES TO BE CHECKED: " + remainingProperties);
 			Output.println();
 		}

@@ -128,4 +128,8 @@ public class XmlWriter extends Writer {
 		}
 		out.println("  </Property>");
 	}
+
+	@Override
+	public void writeLiveness(List<String> props) {
+	}
 }

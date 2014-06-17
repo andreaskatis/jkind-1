@@ -13,13 +13,16 @@ import jkind.lustre.VarDecl;
 
 public class LustreSlicer {
 	public static Node slice(Node node, DependencyMap depMap) {
-		return sliceByKeep(node, getPropertyDependencies(node, depMap));
+		return sliceByKeep(node, getPropertyAndEventuallyDependencies(node, depMap));
 	}
 
-	private static Set<String> getPropertyDependencies(Node node, DependencyMap depMap) {
+	private static Set<String> getPropertyAndEventuallyDependencies(Node node, DependencyMap depMap) {
 		Set<String> keep = new HashSet<>();
 		for (String prop : node.properties) {
 			keep.addAll(depMap.get(prop));
+		}
+		for (String eventually : node.eventuallies) {
+			keep.addAll(depMap.get(eventually));
 		}
 		return keep;
 	}
@@ -31,7 +34,7 @@ public class LustreSlicer {
 		List<Equation> equations = sliceEquations(node.equations, keep);
 		List<Expr> assertions = sliceAssertions(node.assertions, keep);
 		return new Node(node.location, node.id, inputs, outputs, locals, equations,
-				node.properties, assertions);
+				node.properties, node.eventuallies, assertions);
 	}
 
 	private static List<VarDecl> sliceVarDecls(List<VarDecl> decls, Set<String> keep) {

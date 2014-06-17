@@ -183,6 +183,13 @@ public class PrettyPrintVisitor implements AstVisitor<Void, Void> {
 			}
 			newline();
 		}
+		
+		if (!node.eventuallies.isEmpty()) {
+			for (String eventually : node.eventuallies) {
+				eventually(eventually);
+			}
+			newline();
+		}
 
 		write("tel;");
 		return null;
@@ -242,6 +249,13 @@ public class PrettyPrintVisitor implements AstVisitor<Void, Void> {
 		newline();
 	}
 
+	private void eventually(String s) {
+		write("  --%EVENTUALLY ");
+		write(s);
+		write(";");
+		newline();
+	}
+	
 	public void expr(Expr e) {
 		e.accept(this);
 	}

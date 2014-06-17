@@ -2,6 +2,7 @@ package jkind.writers;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import jkind.invariant.Invariant;
 import jkind.results.Counterexample;
@@ -41,6 +42,29 @@ public class ConsoleWriter extends Writer {
 		System.out.println();
 	}
 
+	@Override
+	public void writeLiveness(List<String> props) {
+		writeLine();
+		String text = "";
+		switch (new Random().nextInt(4)) {
+		case 0:
+			text = "YEAH, SURE, WHATEVER: ";
+			break;
+		case 1:
+			text = "EVENTUALLY? OK, WHY NOT: ";
+			break;
+		case 2:
+			text = "YOU DON'T CARE SO WHY SHOULD I: ";
+			break;
+		case 3:
+			text = "JUST KEEP WAITING: ";
+			break;
+		}
+		System.out.println(text + props);
+		writeLine();
+		System.out.println();
+	}
+	
 	@Override
 	public void writeInvalid(String prop, Counterexample cex, double runtime) {
 		writeLine();

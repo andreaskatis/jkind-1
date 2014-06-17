@@ -12,6 +12,7 @@ import jkind.lustre.ArrayType;
 import jkind.lustre.Equation;
 import jkind.lustre.Expr;
 import jkind.lustre.IdExpr;
+import jkind.lustre.Location;
 import jkind.lustre.Node;
 import jkind.lustre.RecordAccessExpr;
 import jkind.lustre.RecordExpr;
@@ -46,8 +47,8 @@ public class FlattenCompoundVariables extends AstMapVisitor {
 		List<VarDecl> outputs = flattenVarDecls(node.outputs);
 		List<VarDecl> locals = flattenVarDecls(node.locals);
 		List<Equation> equations = flattenLeftHandSide(node.equations);
-		Node flattened = new Node(node.id, inputs, outputs, locals, equations, node.properties,
-				node.assertions);
+		Node flattened = new Node(Location.NULL, node.id, inputs, outputs, locals, equations,
+				node.properties, node.eventuallies, node.assertions);
 
 		Map<String, Expr> map = createExpandedVariables(Util.getVarDecls(node));
 		return new SubstitutionVisitor(map).visit(flattened);

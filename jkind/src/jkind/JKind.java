@@ -1,5 +1,8 @@
 package jkind;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jkind.analysis.Level;
 import jkind.analysis.StaticAnalyzer;
 import jkind.lustre.Node;
@@ -21,7 +24,7 @@ public class JKind {
 			StaticAnalyzer.check(program, nonlinear);
 
 			Node main = Translate.translate(program);
-			DependencyMap dependencyMap = new DependencyMap(main, main.properties);
+			DependencyMap dependencyMap = new DependencyMap(main, append(main.properties, main.eventuallies));
 			main = LustreSlicer.slice(main, dependencyMap);
 			Specification spec = new Specification(filename, main, dependencyMap);
 			new Director(settings, spec).run();
@@ -30,5 +33,12 @@ public class JKind {
 			t.printStackTrace();
 			System.exit(-1);
 		}
+	}
+
+	private static List<String> append(List<String> a, List<String> b) {
+		List<String> result = new ArrayList<>();
+		result.addAll(a);
+		result.addAll(b);
+		return result;
 	}
 }

@@ -60,4 +60,8 @@ public class ExcelWriter extends Writer {
 			properties.add(new UnknownProperty(prop, inductiveCounterexamples.get(prop)));
 		}
 	}
+
+	@Override
+	public void writeLiveness(List<String> props) {
+	}
 }

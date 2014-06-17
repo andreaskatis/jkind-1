@@ -28,14 +28,16 @@ public class InlineNodeCalls extends ExprMapVisitor {
 
 		List<VarDecl> locals = append(main.locals, inliner.newLocals);
 		List<String> properties = append(main.properties, inliner.newProperties);
+		List<String> eventuallies = append(main.eventuallies, inliner.newEventuallies);
 
 		return new Node(main.location, main.id, main.inputs, main.outputs, locals, equations,
-				properties, assertions);
+				properties, eventuallies, assertions);
 	}
 
 	private final Map<String, Node> nodeTable;
 	private final List<VarDecl> newLocals = new ArrayList<>();
 	private final List<String> newProperties = new ArrayList<>();
+	private final List<String> newEventuallies = new ArrayList<>();
 	private final Map<String, Integer> usedPrefixes = new HashMap<>();
 	private final Queue<Equation> queue = new ArrayDeque<>();
 	private final Map<String, Expr> inlinedCalls = new HashMap<>();
@@ -85,6 +87,7 @@ public class InlineNodeCalls extends ExprMapVisitor {
 		createInputEquations(node.inputs, e.args, translation);
 		createAssignmentEquations(prefix, node.equations, translation);
 		accumulateProperties(node.properties, translation);
+		accumulateEventuallies(node.eventuallies, translation);
 
 		List<IdExpr> result = new ArrayList<>();
 		for (VarDecl decl : node.outputs) {
@@ -143,6 +146,12 @@ public class InlineNodeCalls extends ExprMapVisitor {
 	private void accumulateProperties(List<String> properties, Map<String, IdExpr> translation) {
 		for (String property : properties) {
 			newProperties.add(translation.get(property).id);
+		}
+	}
+
+	private void accumulateEventuallies(List<String> eventuallies, Map<String, IdExpr> translation) {
+		for (String eventually : eventuallies) {
+			newProperties.add(translation.get(eventually).id);
 		}
 	}
 

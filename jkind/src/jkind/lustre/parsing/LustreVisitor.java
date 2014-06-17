@@ -131,18 +131,18 @@ public interface LustreVisitor<T> extends ParseTreeVisitor<T> {
 	T visitEnumType(@NotNull LustreParser.EnumTypeContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link LustreParser#preExpr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitPreExpr(@NotNull LustreParser.PreExprContext ctx);
-
-	/**
 	 * Visit a parse tree produced by {@link LustreParser#negateExpr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitNegateExpr(@NotNull LustreParser.NegateExprContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link LustreParser#preExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPreExpr(@NotNull LustreParser.PreExprContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link LustreParser#realType}.
@@ -234,6 +234,13 @@ public interface LustreVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitTypedef(@NotNull LustreParser.TypedefContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link LustreParser#eventually}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEventually(@NotNull LustreParser.EventuallyContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link LustreParser#main}.

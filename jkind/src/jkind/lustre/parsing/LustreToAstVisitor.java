@@ -54,6 +54,7 @@ import jkind.lustre.parsing.LustreParser.CondactExprContext;
 import jkind.lustre.parsing.LustreParser.ConstantContext;
 import jkind.lustre.parsing.LustreParser.EnumTypeContext;
 import jkind.lustre.parsing.LustreParser.EquationContext;
+import jkind.lustre.parsing.LustreParser.EventuallyContext;
 import jkind.lustre.parsing.LustreParser.ExprContext;
 import jkind.lustre.parsing.LustreParser.IdExprContext;
 import jkind.lustre.parsing.LustreParser.IfThenElseExprContext;
@@ -133,11 +134,12 @@ public class LustreToAstVisitor extends LustreBaseVisitor<Object> {
 		List<VarDecl> locals = varDecls(ctx.local);
 		List<Equation> equations = equations(ctx.equation());
 		List<String> properties = properties(ctx.property());
+		List<String> eventuallies = eventuallies(ctx.eventually());
 		List<Expr> assertions = assertions(ctx.assertion());
 		if (!ctx.main().isEmpty()) {
 			main = id;
 		}
-		return new Node(loc(ctx), id, inputs, outputs, locals, equations, properties, assertions);
+		return new Node(loc(ctx), id, inputs, outputs, locals, equations, properties, eventuallies, assertions);
 	}
 
 	private List<VarDecl> varDecls(VarDeclListContext listCtx) {
@@ -181,6 +183,14 @@ public class LustreToAstVisitor extends LustreBaseVisitor<Object> {
 			props.add(ctx.ID().getText());
 		}
 		return props;
+	}
+
+	private List<String> eventuallies(List<EventuallyContext> ctxs) {
+		List<String> eventuallies = new ArrayList<>();
+		for (EventuallyContext ctx : ctxs) {
+			eventuallies.add(ctx.ID().getText());
+		}
+		return eventuallies;
 	}
 
 	private List<Expr> assertions(List<AssertionContext> ctxs) {
