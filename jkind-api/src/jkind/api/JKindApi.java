@@ -15,7 +15,6 @@ import jkind.SolverOption;
 import jkind.api.results.JKindResult;
 import jkind.api.xml.JKindXmlFileInputStream;
 import jkind.api.xml.XmlParseThread;
-import jkind.lustre.Program;
 import jkind.util.Util;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -24,27 +23,13 @@ import org.xml.sax.SAXException;
 /**
  * The primary interface to JKind.
  */
-public class JKindApi {
-	private Integer timeout = null;
-	private Integer n = null;
-	private boolean inductiveCounterexamples = false;
-	private boolean reduceInvariants = false;
-	private boolean smoothCounterexamples = false;
-	private boolean intervalGeneralization = false;
-	private SolverOption solver = null;
-
-	/**
-	 * Set a maximum run time for entire execution
-	 * 
-	 * @param timeout
-	 *            A positive timeout in seconds
-	 */
-	public void setTimeout(int timeout) {
-		if (timeout <= 0) {
-			throw new JKindException("Timeout must be positive");
-		}
-		this.timeout = timeout;
-	}
+public class JKindApi extends CommonKindApi {
+	protected Integer n = null;
+	protected boolean inductiveCounterexamples = false;
+	protected boolean reduceInvariants = false;
+	protected boolean smoothCounterexamples = false;
+	protected boolean intervalGeneralization = false;
+	protected SolverOption solver = null;
 
 	/**
 	 * Set a maximum value for k in k-induction algorithm
@@ -98,42 +83,6 @@ public class JKindApi {
 	/**
 	 * Run JKind on a Lustre program
 	 * 
-	 * @param program
-	 *            Lustre program
-	 * @param result
-	 *            Place to store results as they come in
-	 * @param monitor
-	 *            Used to check for cancellation
-	 * @throws jkind.JKindException
-	 */
-	public void execute(Program program, JKindResult result, IProgressMonitor monitor) {
-		execute(program.toString(), result, monitor);
-	}
-
-	/**
-	 * Run JKind on a Lustre program
-	 * 
-	 * @param program
-	 *            Lustre program as text
-	 * @param result
-	 *            Place to store results as they come in
-	 * @param monitor
-	 *            Used to check for cancellation
-	 * @throws jkind.JKindException
-	 */
-	public void execute(String program, JKindResult result, IProgressMonitor monitor) {
-		File lustreFile = null;
-		try {
-			lustreFile = writeLustreFile(program);
-			execute(lustreFile, result, monitor);
-		} finally {
-			safeDelete(lustreFile);
-		}
-	}
-
-	/**
-	 * Run JKind on a Lustre program
-	 * 
 	 * @param lustreFile
 	 *            File containing Lustre program
 	 * @param result
@@ -142,6 +91,7 @@ public class JKindApi {
 	 *            Used to check for cancellation
 	 * @throws jkind.JKindException
 	 */
+	@Override
 	public void execute(File lustreFile, JKindResult result, IProgressMonitor monitor) {
 		File xmlFile = null;
 		try {
@@ -157,24 +107,6 @@ public class JKindApi {
 			throw new JKindException(result.getText(), t);
 		} finally {
 			safeDelete(xmlFile);
-		}
-	}
-
-	private static File writeLustreFile(String program) {
-		File file = null;
-		try {
-			file = File.createTempFile("jkind-api", ".lus");
-			Util.writeToFile(program, file);
-			return file;
-		} catch (IOException e) {
-			safeDelete(file);
-			throw new JKindException("Cannot write to file: " + file, e);
-		}
-	}
-
-	private static void safeDelete(File file) {
-		if (file != null && file.exists()) {
-			file.delete();
 		}
 	}
 

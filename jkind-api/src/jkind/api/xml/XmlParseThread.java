@@ -1,6 +1,7 @@
 package jkind.api.xml;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -13,12 +14,12 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class XmlParseThread extends Thread {
-	private final JKindXmlFileInputStream xmlStream;
+	private final InputStream xmlStream;
 	private Throwable throwable;
 	private SAXParser parser;
 	private XmlHandler handler;
 
-	public XmlParseThread(JKindXmlFileInputStream xmlStream, JKindResult result)
+	public XmlParseThread(InputStream xmlStream, JKindResult result)
 			throws ParserConfigurationException, SAXException {
 		super("Xml Parse");
 		this.xmlStream = xmlStream;
