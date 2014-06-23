@@ -67,16 +67,20 @@ public class XmlHandler extends DefaultHandler {
 			readK = true;
 		} else if (qName.equals("Counterexample")) {
 			cex = new Counterexample(k);
-		} else if (qName.equals("Signal")) {
+		} else if (qName.equals("Signal") || qName.equals("stream")) {
 			signal = new Signal<>(attributes.getValue("name"));
 			type = attributes.getValue("type");
 			if (type.contains("subrange")) {
 				type = "int";
 			}
 			cex.addSignal(signal);
-		} else if (qName.equals("Value")) {
+		} else if (qName.equals("Value") || qName.equals("value")) {
 			readValue = true;
-			time = Integer.parseInt(attributes.getValue("time"));
+			String timeString = attributes.getValue("time");
+			if (timeString == null) {
+				timeString = attributes.getValue("state");
+			}
+			time = Integer.parseInt(timeString);
 		} else if (qName.equals("Interval")) {
 			Interval interval = readInterval(attributes.getValue("low"),
 					attributes.getValue("high"));
@@ -142,6 +146,7 @@ public class XmlHandler extends DefaultHandler {
 				break;
 
 			case "falsifiable":
+			case "invalid":
 				prop = new InvalidProperty(propertyName, cex, runtime);
 				break;
 

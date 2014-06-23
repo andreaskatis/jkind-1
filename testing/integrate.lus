@@ -18,6 +18,6 @@ let
 
   --%PROPERTY prop1;
 
-  prop2 = integ(x) + integ(y) = integ(x + y);
+  prop2 = integ(x) + integ(y) = integ(x + y) -> integ(x) = integ(y);
   --%PROPERTY prop2;
 tel;
