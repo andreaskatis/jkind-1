@@ -8,23 +8,38 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import jkind.api.Backend;
 import jkind.api.results.JKindResult;
 
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 public class XmlParseThread extends Thread {
 	private final InputStream xmlStream;
 	private Throwable throwable;
 	private SAXParser parser;
-	private XmlHandler handler;
+	private DefaultHandler handler;
 
-	public XmlParseThread(InputStream xmlStream, JKindResult result)
+	public XmlParseThread(InputStream xmlStream, JKindResult result, Backend backend)
 			throws ParserConfigurationException, SAXException {
 		super("Xml Parse");
 		this.xmlStream = xmlStream;
 		parser = SAXParserFactory.newInstance().newSAXParser();
-		handler = new XmlHandler(result);
+
+		switch (backend) {
+		case JKIND:
+			handler = new JKindXmlHandler(result);
+			break;
+
+		case KIND2:
+		case KIND2WEB:
+			handler = new Kind2XmlHandler(result);
+			break;
+
+		default:
+			throw new IllegalArgumentException();
+		}
 	}
 
 	@Override

@@ -116,7 +116,7 @@ public class JKindApi extends CommonKindApi {
 		ProcessBuilder builder = getJKindProcessBuilder(lustreFile);
 		Process process = null;
 		try (JKindXmlFileInputStream xmlStream = new JKindXmlFileInputStream(xmlFile)) {
-			XmlParseThread parseThread = new XmlParseThread(xmlStream, result);
+			XmlParseThread parseThread = new XmlParseThread(xmlStream, result, Backend.JKIND);
 
 			try {
 				result.start();

@@ -49,8 +49,8 @@ public class Kind2Api extends CommonKindApi {
 
 		try {
 			result.start();
-			process = builder.start();
-			parseThread = new XmlParseThread(process.getInputStream(), result);
+			process = builder.start();			
+			parseThread = new XmlParseThread(process.getInputStream(), result, Backend.KIND2);
 			parseThread.start();
 			code = process.waitFor();
 		} finally {
