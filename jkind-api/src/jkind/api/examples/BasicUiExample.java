@@ -17,6 +17,7 @@ import jkind.api.results.Status;
 import jkind.api.ui.AnalysisResultTable;
 import jkind.results.Counterexample;
 import jkind.results.InvalidProperty;
+import jkind.results.ValidProperty;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -138,7 +139,11 @@ public class BasicUiExample {
 					@Override
 					public void run() {
 						int todo;
-						new JKindApi().execute(file, result, monitor);
+						JKindApi api = new JKindApi();
+								api.setReduceInvariants();
+						api.execute(file, result, monitor);
+						System.out.println();
+						System.out.println();
 					}
 				}.start();
 			}
