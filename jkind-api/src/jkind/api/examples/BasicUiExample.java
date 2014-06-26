@@ -140,10 +140,8 @@ public class BasicUiExample {
 					public void run() {
 						int todo;
 						JKindApi api = new JKindApi();
-								api.setReduceInvariants();
+						api.setIntervalGeneralization();
 						api.execute(file, result, monitor);
-						System.out.println();
-						System.out.println();
 					}
 				}.start();
 			}
