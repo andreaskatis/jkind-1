@@ -16,11 +16,11 @@ import java.util.regex.Pattern;
 public class Kind2WebInputStream extends InputStream {
 	public static void main(String[] args) throws Exception {
 		URI uri = new URI("http://kind.cs.uiowa.edu:8181/");
-		Kind2WebInputStream stream = new Kind2WebInputStream(uri, getLustre());
-		LineInputStream lines = new LineInputStream(stream);
-		String line;
-		while ((line = lines.readLine()) != null) {
-			System.out.print(line);
+		try (LineInputStream lines = new LineInputStream(new Kind2WebInputStream(uri, getLustre()))) {
+			String line;
+			while ((line = lines.readLine()) != null) {
+				System.out.print(line);
+			}
 		}
 	}
 

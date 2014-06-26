@@ -3,7 +3,7 @@ package jkind.api.xml;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class LineInputStream {
+public class LineInputStream implements AutoCloseable {
 	private final InputStream source;
 
 	public LineInputStream(InputStream source) {
@@ -27,5 +27,10 @@ public class LineInputStream {
 		} else {
 			return buffer.toString();
 		}
+	}
+
+	@Override
+	public void close() throws Exception {
+		source.close();
 	}
 }

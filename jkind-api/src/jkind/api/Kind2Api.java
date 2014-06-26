@@ -9,7 +9,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import jkind.JKindException;
 import jkind.api.results.JKindResult;
-import jkind.api.xml.XmlParseThread;
+import jkind.api.xml.Kind2XmlParseThread;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.xml.sax.SAXException;
@@ -44,13 +44,13 @@ public class Kind2Api extends CommonKindApi {
 			throws IOException, InterruptedException, ParserConfigurationException, SAXException {
 		ProcessBuilder builder = getKind2ProcessBuilder(lustreFile);
 		Process process = null;
-		XmlParseThread parseThread = null;
+		Kind2XmlParseThread parseThread = null;
 		int code = 0;
 
 		try {
 			result.start();
 			process = builder.start();			
-			parseThread = new XmlParseThread(process.getInputStream(), result, Backend.KIND2);
+			parseThread = new Kind2XmlParseThread(process.getInputStream(), result);
 			parseThread.start();
 			code = process.waitFor();
 		} finally {

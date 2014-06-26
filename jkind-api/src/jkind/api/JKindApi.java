@@ -14,7 +14,7 @@ import jkind.JKindException;
 import jkind.SolverOption;
 import jkind.api.results.JKindResult;
 import jkind.api.xml.JKindXmlFileInputStream;
-import jkind.api.xml.XmlParseThread;
+import jkind.api.xml.JKindXmlParseThread;
 import jkind.util.Util;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -116,7 +116,7 @@ public class JKindApi extends CommonKindApi {
 		ProcessBuilder builder = getJKindProcessBuilder(lustreFile);
 		Process process = null;
 		try (JKindXmlFileInputStream xmlStream = new JKindXmlFileInputStream(xmlFile)) {
-			XmlParseThread parseThread = new XmlParseThread(xmlStream, result, Backend.JKIND);
+			JKindXmlParseThread parseThread = new JKindXmlParseThread(xmlStream, result);
 
 			try {
 				result.start();
