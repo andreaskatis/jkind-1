@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.parsers.ParserConfigurationException;
-
 import jkind.JKindException;
 import jkind.SolverOption;
 import jkind.api.results.JKindResult;
@@ -18,7 +16,6 @@ import jkind.api.xml.JKindXmlParseThread;
 import jkind.util.Util;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.xml.sax.SAXException;
 
 /**
  * The primary interface to JKind.
@@ -111,8 +108,7 @@ public class JKindApi extends CommonKindApi {
 	}
 
 	private void callJKind(File lustreFile, File xmlFile, JKindResult result,
-			IProgressMonitor monitor) throws IOException, InterruptedException,
-			ParserConfigurationException, SAXException {
+			IProgressMonitor monitor) throws IOException, InterruptedException {
 		ProcessBuilder builder = getJKindProcessBuilder(lustreFile);
 		Process process = null;
 		try (JKindXmlFileInputStream xmlStream = new JKindXmlFileInputStream(xmlFile)) {

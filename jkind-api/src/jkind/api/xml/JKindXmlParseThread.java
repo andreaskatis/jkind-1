@@ -168,7 +168,7 @@ public class JKindXmlParseThread extends Thread {
 	private Signal<Value> getSignal(Element signalElement) {
 		String name = signalElement.getAttribute("name");
 		String type = signalElement.getAttribute("type");
-		if (type.contains("subrange")) {
+		if (type.contains("subrange ")) {
 			type = "int";
 		}
 

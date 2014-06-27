@@ -10,14 +10,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jkind.api.JKindApi;
-import jkind.api.Kind2Api;
 import jkind.api.results.JKindResult;
 import jkind.api.results.PropertyResult;
 import jkind.api.results.Status;
 import jkind.api.ui.AnalysisResultTable;
 import jkind.results.Counterexample;
 import jkind.results.InvalidProperty;
-import jkind.results.ValidProperty;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -140,7 +138,6 @@ public class BasicUiExample {
 					public void run() {
 						int todo;
 						JKindApi api = new JKindApi();
-						api.setIntervalGeneralization();
 						api.execute(file, result, monitor);
 					}
 				}.start();
