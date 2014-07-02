@@ -10,15 +10,20 @@ import jkind.invariant.Invariant;
 import jkind.lustre.Node;
 import jkind.results.Counterexample;
 import jkind.results.InvalidProperty;
+import jkind.results.InvalidRealizability;
 import jkind.results.Property;
+import jkind.results.Realizability;
 import jkind.results.UnknownProperty;
 import jkind.results.ValidProperty;
+import jkind.results.ValidRealizability;
 import jkind.results.layout.NodeLayout;
 
 public class ExcelWriter extends Writer {
 	final private File file;
 	final private Node node;
 	final private List<Property> properties = new ArrayList<>();
+	final private List<Realizability> realizabilities = new ArrayList<>();
+
 
 	public ExcelWriter(String filename, Node node) {
 		this.file = new File(filename);
@@ -59,5 +64,22 @@ public class ExcelWriter extends Writer {
 		for (String prop : props) {
 			properties.add(new UnknownProperty(prop, inductiveCounterexamples.get(prop)));
 		}
+	}
+	
+	@Override
+	public void writeValidRealizability(List<String> reals, int k, double runtime, List<Invariant> invariants) {
+		List<String> invariantsText = new ArrayList<>();
+		for (Invariant invariant : invariants) {
+			invariantsText.add(invariant.toString());
+		}
+
+		for (String real : reals) {
+			realizabilities.add(new ValidRealizability(real, k, runtime, invariantsText));
+		}
+	}
+
+	@Override
+	public void writeInvalidRealizability(String real, Counterexample cex, double runtime) {
+		realizabilities.add(new InvalidRealizability(real, cex, runtime));
 	}
 }

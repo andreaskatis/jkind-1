@@ -1,0 +1,36 @@
+-- This example illustrates the use of arrays
+
+-- Note that pre(A)[i] would mean pre A[i] which is pre (A[i])
+-- Instead we must use (pre A)[i]
+
+-- Expected outcome:
+--   VALID PROPERTIES: [ok1]
+--   INVALID PROPERTIES: [cex3, cex1, cex2]
+
+
+node main(i, j : int) returns ();
+var
+  A, B : int[5];
+  C : int[2][3];
+  D : int[20];
+  ok1 : bool;
+  cex1, cex2, cex3 : bool;
+let
+  A = [0,0,0,0,0] -> (pre A)[i := j];
+
+  cex1 = not (A[0] = 0 and A[1] = 1 and A[2] = 2 and A[3] = 3 and A[4] = 4);
+  --%PROPERTY cex1;
+  
+  B = [1,2,3,4,5] -> (pre B)[i := (pre B)[j]];
+
+  ok1 = not (B[0] = 5 and B[1] = 4 and B[2] = 3 and B[3] = 2 and B[4] = 1);
+  --%PROPERTY ok1;
+
+  C = [[1, 2], [3, 4], [5, 6]] -> (pre C)[i := (pre C)[i][j := 0]];
+  cex2 = C <> [[0, 0], [0, 0], [0, 0]];
+  --%PROPERTY cex2;
+
+  D = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19];
+  cex3 = (D <> D);
+  --%PROPERTY cex3;
+tel;

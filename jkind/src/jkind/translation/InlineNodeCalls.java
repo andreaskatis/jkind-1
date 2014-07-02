@@ -30,7 +30,7 @@ public class InlineNodeCalls extends ExprMapVisitor {
 		List<String> properties = append(main.properties, inliner.newProperties);
 
 		return new Node(main.location, main.id, main.inputs, main.outputs, locals, equations,
-				properties, assertions);
+				properties, assertions, main.realizabilities);
 	}
 
 	private final Map<String, Node> nodeTable;

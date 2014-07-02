@@ -59,6 +59,9 @@ public class Main {
 		case "-benchmark":
 			Benchmark.main(subArgs);
 			break;
+		case "-realizability":
+			Realizability.main(subArgs);
+			break;
 
 		default:
 			Output.error("unknown entry point: " + entryPoint);

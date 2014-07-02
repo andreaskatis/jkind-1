@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import jkind.JKindException;
@@ -17,6 +18,7 @@ public abstract class Solver {
 	public abstract void send(Sexp sexp);
 	public abstract void send(StreamDecl decl);
 	public abstract void send(StreamDef def);
+	public abstract void send(GeneralizedStreamDef def);
 	public abstract void send(VarDecl decl);
 	
 	public abstract Label weightedAssert(Sexp sexp, int weight);
@@ -25,6 +27,8 @@ public abstract class Solver {
 	
 	public abstract Result query(Sexp sexp);
 	public abstract Result maxsatQuery(Sexp sexp);
+	public abstract Result realizability_query(ArrayList<jkind.lustre.VarDecl> outs, Sexp k);
+
 	
 	public abstract void push();
 	public abstract void pop();

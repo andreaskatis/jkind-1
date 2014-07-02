@@ -31,7 +31,7 @@ public class LustreSlicer {
 		List<Equation> equations = sliceEquations(node.equations, keep);
 		List<Expr> assertions = sliceAssertions(node.assertions, keep);
 		return new Node(node.location, node.id, inputs, outputs, locals, equations,
-				node.properties, assertions);
+				node.properties, assertions, node.realizabilities);
 	}
 
 	private static List<VarDecl> sliceVarDecls(List<VarDecl> decls, Set<String> keep) {

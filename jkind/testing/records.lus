@@ -1,0 +1,47 @@
+-- This example exercises the flattening of records
+--
+-- Expected output:
+-- VALID PROPERTIES: [lemma, ok1]
+-- INVALID PROPERTIES: [cex1, cex2] (K = 11)
+
+type point = struct { x : int; y : int };
+type weighted_point = struct { weight : real; p : point };
+
+type large = struct { a : int; b : int; c : int; d : int; e : int };
+
+node main(delta1, delta2 : subrange [-1, 1] of int) returns ();
+var
+  wp1, wp2 : weighted_point;
+  lg : large;
+  ok1, cex1, cex2, lemma : bool;
+let
+  wp1 = weighted_point {
+          weight = 1.0 -> pre(wp2.weight);
+          p = point {
+            x = 0 -> pre(wp1.p.x) + 1;
+            y = 0 -> pre(wp1.p.y) + delta1}};
+  wp2 = weighted_point {
+          weight = 2.0 -> pre(wp1.weight);
+          p = point {
+            x = 0 -> pre(wp2.p.x) + 1;
+            y = 20 -> pre(wp2.p.y) + delta2}};
+
+  cex1 = not (wp1.p = wp2.p);
+  --%PROPERTY cex1;
+
+  -- This lemma is required for ok1
+  lemma = wp1.weight <> wp2.weight;
+  --%PROPERTY lemma;
+  
+  ok1 = wp1 <> wp2;
+  --%PROPERTY ok1;
+
+  lg = large { a = 0; b = 0; c = 0; d = 0; e = 0 } ->
+         if delta1 = 0 then
+           (pre lg){a := 10}{b := 20}
+         else
+           (pre lg){c := 30}{d := 40};
+           
+  cex2 = (lg.a = 0 or lg.c = 0);
+  --%PROPERTY cex2;
+tel;

@@ -47,6 +47,13 @@ public class XmlWriter extends Writer {
 			writeValid(prop, k, runtime, invariants);
 		}
 	}
+	
+	@Override
+	public void writeValidRealizability(List<String> reals, int k, double runtime, List<Invariant> invariants) {
+		for (String real : reals) {
+			writeValidRealizability(real, k, runtime, invariants);
+		}
+	}
 
 	public void writeValid(String prop, int k, double runtime, List<Invariant> invariants) {
 		out.println("  <Property name=\"" + prop + "\">");
@@ -71,6 +78,27 @@ public class XmlWriter extends Writer {
 		out.println("    <K>" + cex.getLength() + "</K>");
 		writeCounterexample(cex);
 		out.println("  </Property>");
+	}
+	
+	public void writeValidRealizability(String real, int k, double runtime, List<Invariant> invariants) {
+		out.println("  <Realizability name=\"" + real + "\">");
+		out.println("    <Runtime unit=\"sec\" timeout=\"false\">" + runtime + "</Runtime>");
+		out.println("    <Answer>valid</Answer>");
+		out.println("    <K>" + k + "</K>");
+		for (Invariant invariant : invariants) {
+			out.println("    <Invariant>" + invariant + "</Invariant>");
+		}
+		out.println("  </Realizability>");
+	}
+	
+	@Override
+	public void writeInvalidRealizability(String real, Counterexample cex, double runtime) {
+		out.println("  <Realizability name=\"" + real + "\">");
+		out.println("    <Runtime unit=\"sec\" timeout=\"false\">" + runtime + "</Runtime>");
+		out.println("    <Answer>falsifiable</Answer>");
+		out.println("    <K>" + cex.getLength() + "</K>");
+		writeCounterexample(cex);
+		out.println("  </Realizability>");
 	}
 
 	private void writeCounterexample(Counterexample cex) {

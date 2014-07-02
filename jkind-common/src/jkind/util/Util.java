@@ -163,6 +163,7 @@ public class Util {
 
 	public static <T> List<T> safeList(List<? extends T> original) {
 		if (original == null) {
+			System.out.println("is empty");
 			return Collections.emptyList();
 		} else {
 			return Collections.unmodifiableList(new ArrayList<>(original));

@@ -1,6 +1,7 @@
 package jkind.solvers.yices;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import jkind.JKindException;
@@ -9,6 +10,7 @@ import jkind.lustre.parsing.StdoutErrorListener;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.sexp.Symbol;
+import jkind.solvers.GeneralizedStreamDef;
 import jkind.solvers.Label;
 import jkind.solvers.Result;
 import jkind.solvers.Solver;
@@ -72,6 +74,14 @@ public class YicesSolver extends Solver {
 
 	@Override
 	public void send(StreamDef def) {
+		Sexp argType = new Cons(def.getArg(), new Symbol("::"), new Symbol("int"));
+		Sexp type = new Cons("->", new Symbol("int"), type(def.getType()));
+		Sexp lambda = new Cons("lambda", argType, def.getBody());
+		send(new Cons("define", def.getId(), new Symbol("::"), type, lambda));
+	}
+	
+	@Override
+	public void send(GeneralizedStreamDef def) {
 		Sexp argType = new Cons(def.getArg(), new Symbol("::"), new Symbol("int"));
 		Sexp type = new Cons("->", new Symbol("int"), type(def.getType()));
 		Sexp lambda = new Cons("lambda", argType, def.getBody());
@@ -223,5 +233,12 @@ public class YicesSolver extends Solver {
 	@Override
 	public void pop() {
 		send("(pop)");
+	}
+
+	@Override
+	public Result realizability_query(ArrayList<jkind.lustre.VarDecl> outs,
+			Sexp k) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
