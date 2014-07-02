@@ -26,16 +26,6 @@ public class CounterexampleSlicer {
 		}
 	}
 	
-	public Model slicereal(String real, Model model) {
-		if (model instanceof YicesModel) {
-			return slicereal(real, (YicesModel) model);
-		} else if (model instanceof SmtLib2Model) {
-			return slicereal(real, (SmtLib2Model) model);
-		} else {
-			throw new UnsupportedOperationException();
-		}
-	}
-	
 	public YicesModel slice(String prop, YicesModel model) {
 		Set<String> keep = dependencyMap.get(prop);
 		YicesModel sliced = new YicesModel();
@@ -55,16 +45,6 @@ public class CounterexampleSlicer {
 		SmtLib2Model sliced = new SmtLib2Model();
 		for (String fn : model.getFunctions()) {
 			if (fn.startsWith("$") && keep.contains(fn.substring(1))) {
-				sliced.addFunction(fn, model.getFunction(fn));
-			}
-		}
-		return sliced;
-	}
-	
-	public SmtLib2Model slicereal(String real, SmtLib2Model model) {
-		SmtLib2Model sliced = new SmtLib2Model();
-		for (String fn : model.getFunctions()) {
-			if (fn.startsWith("$")) {
 				sliced.addFunction(fn, model.getFunction(fn));
 			}
 		}

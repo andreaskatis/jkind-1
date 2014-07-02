@@ -118,7 +118,7 @@ public class RemoveCondacts {
 		inputs.add(new VarDecl(clock.id, NamedType.BOOL));
 		inputs.addAll(node.inputs);
 		return new Node(node.id, inputs, node.outputs, node.locals, node.equations,
-				node.properties, node.assertions,node.realizabilities);
+				node.properties, node.assertions);
 	}
 
 	private Node clockOutputs(Node node, IdExpr clock) {
@@ -143,7 +143,7 @@ public class RemoveCondacts {
 		}
 
 		return new Node(node.id, inputs, outputs, locals, equations, node.properties,
-				node.assertions,node.realizabilities);
+				node.assertions);
 	}
 
 	private Node clockArrowsAndPres(Node node, final IdExpr clock) {
@@ -189,7 +189,7 @@ public class RemoveCondacts {
 				BinaryOp.ARROW, new IfThenElseExpr(new UnaryExpr(UnaryOp.PRE, clock), new BoolExpr(
 						false), new UnaryExpr(UnaryOp.PRE, new IdExpr(init.id))))));
 		return new Node(node.id, node.inputs, node.outputs, locals, equations, node.properties,
-				node.assertions,node.realizabilities);
+				node.assertions);
 	}
 
 	private Node clockNodeCalls(Node node, final IdExpr clock) {
@@ -257,12 +257,12 @@ public class RemoveCondacts {
 		}
 
 		return new Node(node.id, node.inputs, node.outputs, locals, equations, properties,
-				node.assertions,node.realizabilities);
+				node.assertions);
 	}
 
 	private Node renameNode(Node node, String id) {
 		return new Node(id, node.inputs, node.outputs, node.locals, node.equations,
-				node.properties, node.assertions,node.realizabilities);
+				node.properties, node.assertions);
 	}
 
 	private Program getResult() {

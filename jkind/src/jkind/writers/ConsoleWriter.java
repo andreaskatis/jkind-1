@@ -66,31 +66,4 @@ public class ConsoleWriter extends Writer {
 			}
 		}
 	}
-	
-	@Override
-	public void writeValidRealizability(List<String> reals, int k, double runtime, List<Invariant> invariants) {
-		writeLine();
-		System.out.println("VALID REALIZABILITIES: " + reals + " || K = " + k + " || Time = " + runtime);
-		if (!invariants.isEmpty()) {
-			System.out.println("INVARIANTS:");
-			for (Invariant invariant : invariants) {
-				System.out.println("  " + invariant);
-			}
-		}
-		writeLine();
-		System.out.println();
-	}
-
-
-	@Override
-	public void writeInvalidRealizability(String real,
-			Counterexample cex, double runtime) {
-		writeLine();
-		System.out.println("INVALID REALIZABILITY: " + real + " || K = " + cex.getLength()
-				+ " || Time = " + runtime);
-		System.out.println(cex.toString(layout));
-		writeLine();
-		System.out.println();
-		
-	}
 }

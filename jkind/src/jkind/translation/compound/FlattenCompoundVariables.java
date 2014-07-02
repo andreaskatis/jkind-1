@@ -47,7 +47,7 @@ public class FlattenCompoundVariables extends AstMapVisitor {
 		List<VarDecl> locals = flattenVarDecls(node.locals);
 		List<Equation> equations = flattenLeftHandSide(node.equations);
 		Node flattened = new Node(node.id, inputs, outputs, locals, equations, node.properties,
-				node.assertions,node.realizabilities);
+				node.assertions);
 
 		Map<String, Expr> map = createExpandedVariables(Util.getVarDecls(node));
 		return new SubstitutionVisitor(map).visit(flattened);

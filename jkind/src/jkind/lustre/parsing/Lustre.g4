@@ -11,7 +11,7 @@ node:
   'returns' '(' output=varDeclList? ')' ';'
   ('var' local=varDeclList ';')?
   'let'
-    (equation | property | assertion | main | realizability)*
+    (equation | property | assertion | main)*
   'tel' ';'?
 ;
 
@@ -35,8 +35,6 @@ type: 'int'                                              # intType
 bound: '-'? INT;
 
 property: '--%PROPERTY' ID ';';
-
-realizability: '--%REALIZABILITY' '{' ID (',' ID)* '}' ';';
 
 main: '--%MAIN' ';'?;
 

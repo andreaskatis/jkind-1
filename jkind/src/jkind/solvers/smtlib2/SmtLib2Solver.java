@@ -1,8 +1,6 @@
 package jkind.solvers.smtlib2;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import jkind.JKindException;
 import jkind.lustre.Type;
@@ -10,7 +8,6 @@ import jkind.lustre.parsing.StdoutErrorListener;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.sexp.Symbol;
-import jkind.solvers.GeneralizedStreamDef;
 import jkind.solvers.Label;
 import jkind.solvers.Result;
 import jkind.solvers.SatResult;
@@ -76,25 +73,7 @@ public abstract class SmtLib2Solver extends Solver {
 		Sexp arg = new Cons(def.getArg(), new Symbol("Int"));
 		send(new Cons("define-fun", def.getId(), new Cons(arg), type(def.getType()), def.getBody()));
 	}
-	
-	@Override
-	public void send(GeneralizedStreamDef def) {
-		//for getArgs length sexp arg = new cons(def.getArg, new Symbol ("Int")
-		//args.add(arg)
-		List<Sexp> outputs = new ArrayList<>();
-		Sexp args = new Cons(def.getArg(), new Symbol("Int"));
-		for (jkind.lustre.VarDecl outs : def.getouts()){
-			if (outs.type.toString() == "int") {
-				outputs.add(new Cons(outs.id.toString(), new Symbol("Int")));
-			}
-			else if (outs.type.toString() == "bool") {
-				outputs.add(new Cons(outs.id.toString(), new Symbol("Bool")));
-			}
-		}
-		
-		send(new Cons("define-fun", def.getId(), new Cons(args, outputs), type(def.getType()),def.getBody()));
-	}
-	
+
 	@Override
 	public void send(VarDecl decl) {
 		send(new Cons("declare-fun", decl.id, new Symbol("()"), type(decl.type)));

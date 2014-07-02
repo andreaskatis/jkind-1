@@ -1,7 +1,5 @@
 // Generated from Lustre.g4 by ANTLR 4.2
-
 package jkind.lustre.parsing;
-
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -133,18 +131,18 @@ public interface LustreVisitor<T> extends ParseTreeVisitor<T> {
 	T visitEnumType(@NotNull LustreParser.EnumTypeContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link LustreParser#negateExpr}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNegateExpr(@NotNull LustreParser.NegateExprContext ctx);
-
-	/**
 	 * Visit a parse tree produced by {@link LustreParser#preExpr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitPreExpr(@NotNull LustreParser.PreExprContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link LustreParser#negateExpr}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNegateExpr(@NotNull LustreParser.NegateExprContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link LustreParser#realType}.
@@ -208,13 +206,6 @@ public interface LustreVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitVarDeclList(@NotNull LustreParser.VarDeclListContext ctx);
-
-	/**
-	 * Visit a parse tree produced by {@link LustreParser#realizability}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRealizability(@NotNull LustreParser.RealizabilityContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link LustreParser#property}.
