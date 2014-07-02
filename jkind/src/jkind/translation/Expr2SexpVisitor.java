@@ -1,6 +1,7 @@
 package jkind.translation;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 
 import jkind.lustre.ArrayAccessExpr;
 import jkind.lustre.ArrayExpr;
@@ -20,6 +21,7 @@ import jkind.lustre.RecordExpr;
 import jkind.lustre.RecordUpdateExpr;
 import jkind.lustre.TupleExpr;
 import jkind.lustre.UnaryExpr;
+import jkind.lustre.VarDecl;
 import jkind.lustre.visitors.ExprVisitor;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
@@ -27,10 +29,17 @@ import jkind.sexp.Symbol;
 
 public class Expr2SexpVisitor implements ExprVisitor<Sexp> {
 	final private Symbol iSym;
+	final private ArrayList<VarDecl> outputset;
 	private int offset = 0;
 
 	public Expr2SexpVisitor(Symbol iSym) {
 		this.iSym = iSym;
+		this.outputset = null;
+	}
+	
+	public Expr2SexpVisitor(Symbol iSym, ArrayList<VarDecl> outputset) {
+		this.iSym = iSym;
+		this.outputset = outputset;
 	}
 
 	@Override
@@ -90,6 +99,17 @@ public class Expr2SexpVisitor implements ExprVisitor<Sexp> {
 
 	@Override
 	public Sexp visit(IdExpr e) {
+		if (outputset !=null)
+		{	
+			for (VarDecl output : outputset) {
+				if (("$$"+e.id).equals(output.id) && (offset==0)) {
+					return new Symbol("$$"+e.id);
+				}
+				else{
+					continue;
+				}
+			}
+		}
 		return new Cons("$" + e.id, new Cons("+", iSym, Sexp.fromInt(offset)));
 	}
 

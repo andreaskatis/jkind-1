@@ -70,6 +70,7 @@ import jkind.lustre.parsing.LustreParser.ProgramContext;
 import jkind.lustre.parsing.LustreParser.PropertyContext;
 import jkind.lustre.parsing.LustreParser.RealExprContext;
 import jkind.lustre.parsing.LustreParser.RealTypeContext;
+import jkind.lustre.parsing.LustreParser.RealizabilityContext;
 import jkind.lustre.parsing.LustreParser.RecordAccessExprContext;
 import jkind.lustre.parsing.LustreParser.RecordExprContext;
 import jkind.lustre.parsing.LustreParser.RecordTypeContext;
@@ -134,10 +135,11 @@ public class LustreToAstVisitor extends LustreBaseVisitor<Object> {
 		List<Equation> equations = equations(ctx.equation());
 		List<String> properties = properties(ctx.property());
 		List<Expr> assertions = assertions(ctx.assertion());
+		List<String> realizabilities = realizabilities(ctx.realizability());
 		if (!ctx.main().isEmpty()) {
 			main = id;
 		}
-		return new Node(loc(ctx), id, inputs, outputs, locals, equations, properties, assertions);
+		return new Node(loc(ctx), id, inputs, outputs, locals, equations, properties, assertions, realizabilities);
 	}
 
 	private List<VarDecl> varDecls(VarDeclListContext listCtx) {
@@ -181,6 +183,18 @@ public class LustreToAstVisitor extends LustreBaseVisitor<Object> {
 			props.add(ctx.ID().getText());
 		}
 		return props;
+	}
+	
+	private List<String> realizabilities(List<RealizabilityContext> ctxs) {
+		List<String> reals = new ArrayList<>();
+		for (RealizabilityContext ctx : ctxs) {
+			List<String> ids = new ArrayList<>();
+			for (TerminalNode idctx : ctx.ID()){
+				ids.add(idctx.getText());
+			}
+			reals.add(ids.toString());
+		}
+		return reals;
 	}
 
 	private List<Expr> assertions(List<AssertionContext> ctxs) {

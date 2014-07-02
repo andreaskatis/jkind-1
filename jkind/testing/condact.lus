@@ -1,0 +1,75 @@
+-- This file exercises some properties of condacts.
+--
+-- Expected output:
+--   VALID PROPERTIES: [holds~condact~0.ok~clocked_property,
+--                      ok1, ok2, ok3, ok7, ok4, ok5, ok6]
+
+node integ(x : int) returns (sum : int);
+let
+  sum = x + (0 -> pre sum);
+tel;
+
+node historically(x : bool) returns (ok : bool);
+let
+  ok = x and (true -> pre ok);
+tel;
+
+node counter() returns (out : int);
+let
+  out = 0 -> 1 + pre out;
+tel;
+
+node double_counter() returns (out : int);
+let
+  out = counter() + counter();
+tel;
+
+node slow_counter() returns (out : int);
+var
+  toggle : bool;
+let
+  toggle = true -> not pre toggle;
+  out = condact(toggle, counter(), 0);  
+tel;
+
+node holds(x : bool) returns ();
+var
+  ok : bool;
+let
+  ok = x;
+  --%PROPERTY ok;
+tel;
+
+node main(x, y : int) returns ();
+var
+  toggle : bool;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7 : bool;
+let
+  toggle = true -> not pre toggle;
+  
+  ok1 = historically(toggle => x >= 0) =>
+            condact(toggle, integ(x), 0) >= 0;
+  --%PROPERTY ok1;
+
+  ok2 = condact(toggle, integ(x), 0) + condact(toggle, integ(y), 0) =
+          condact(toggle, integ(x + y), 0);
+  --%PROPERTY ok2;
+
+  ok3 = condact(toggle, double_counter(), 0) <= counter();
+  --%PROPERTY ok3;
+
+  ok4 = counter() <= 1 + condact(toggle, double_counter(), 0);
+  --%PROPERTY ok4;
+
+  ok5 = 4 * condact(toggle, slow_counter(), 0) <= counter();
+  --%PROPERTY ok5;
+
+  ok6 = counter() <= 4 * (1 + condact(toggle, slow_counter(), 0));
+  --%PROPERTY ok6;
+
+  ok7 = condact(toggle, integ(x), 0) + condact(not(toggle), integ(x), 0) = integ(x);
+  --%PROPERTY ok7;
+
+  -- This requires properly clocking subnode properties
+  () = condact(toggle, holds(toggle));
+tel;

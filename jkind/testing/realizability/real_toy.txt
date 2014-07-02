@@ -1,0 +1,31 @@
+node _MAIN(
+  Input2 : int;
+  Input1 : int;
+  Output : int
+) returns (
+
+);
+var
+  _TOTAL_COMP_HIST : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  __CONSIST_COUNTER : int;
+  __SYS_GUARANTEE_0 : bool;
+  _TOTAL_COMP_FINITE_CONSIST : bool;
+let
+  --%MAIN
+  _TOTAL_COMP_HIST = (true -> (true and pre _TOTAL_COMP_HIST));
+
+  _SYSTEM_ASSUMP_HIST = (((Input1 < 40) and true) -> (((Input1 < 40) and true) and pre _SYSTEM_ASSUMP_HIST));
+
+  __CONSIST_COUNTER = (0 -> (pre __CONSIST_COUNTER + 1));
+
+  __SYS_GUARANTEE_0 = ((_SYSTEM_ASSUMP_HIST and _TOTAL_COMP_HIST) => (Output = (Input1 + Input2)));
+
+  _TOTAL_COMP_FINITE_CONSIST = not (_TOTAL_COMP_HIST and (__CONSIST_COUNTER = 5));
+
+  --%PROPERTY __SYS_GUARANTEE_0;
+
+  --%REALIZABILITY {Input1, Input2};
+
+tel;
+

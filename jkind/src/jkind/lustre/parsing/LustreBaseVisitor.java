@@ -1,5 +1,7 @@
 // Generated from Lustre.g4 by ANTLR 4.2
+
 package jkind.lustre.parsing;
+
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -154,7 +156,7 @@ public class LustreBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitPreExpr(@NotNull LustreParser.PreExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitNegateExpr(@NotNull LustreParser.NegateExprContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -162,7 +164,7 @@ public class LustreBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitNegateExpr(@NotNull LustreParser.NegateExprContext ctx) { return visitChildren(ctx); }
+	@Override public T visitPreExpr(@NotNull LustreParser.PreExprContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -235,6 +237,14 @@ public class LustreBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitVarDeclList(@NotNull LustreParser.VarDeclListContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitRealizability(@NotNull LustreParser.RealizabilityContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}

@@ -18,4 +18,9 @@ public abstract class Writer {
 
 	public abstract void writeUnknown(List<String> props,
 			Map<String, Counterexample> inductiveCounterexamples);
+	
+	public abstract void writeValidRealizability(List<String> reals, int k, double runtime,
+			List<Invariant> invariants);
+	
+	public abstract void writeInvalidRealizability(String real, Counterexample cex, double runtime);
 }
