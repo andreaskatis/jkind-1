@@ -5,13 +5,11 @@ import java.util.List;
 
 public final class ValidRealizability extends Realizability {
 	private final int k;
-	private final double runtime;
 	private final List<String> invariants;
 
 	public ValidRealizability(String real, int k, double runtime, List<String> invariants) {
-		super(real);
+		super(real,runtime);
 		this.k = k;
-		this.runtime = runtime;
 		this.invariants = invariants;
 	}
 	

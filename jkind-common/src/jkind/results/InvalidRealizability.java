@@ -3,11 +3,9 @@ package jkind.results;
 
 public final class InvalidRealizability extends Realizability {
 		private final Counterexample cex;
-		private final double runtime;
 
 		public InvalidRealizability(String real, Counterexample cex, double runtime) {
-			super(real);
-			this.runtime = runtime;
+			super(real, runtime);
 			this.cex = cex;
 		}
 

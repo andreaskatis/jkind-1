@@ -8,9 +8,12 @@ import java.util.List;
 import jkind.JKindException;
 import jkind.results.Counterexample;
 import jkind.results.InvalidProperty;
+import jkind.results.InvalidRealizability;
 import jkind.results.Property;
+import jkind.results.Realizability;
 import jkind.results.UnknownProperty;
 import jkind.results.ValidProperty;
+import jkind.results.ValidRealizability;
 import jkind.results.layout.Layout;
 import jxl.Workbook;
 import jxl.format.CellFormat;
@@ -155,6 +158,55 @@ public class ExcelFormatter implements Closeable {
 			summarySheet.addHyperlink(new WritableHyperlink(1, summaryRow, "Unknown", cexSheet, 0,
 					0));
 		}
+		summaryRow++;
+	}
+	
+	public void writeReal(List<Realizability> realizabilities) {
+		try {
+			for (Realizability realizability : realizabilities) {
+				writeReal(realizability);
+			}
+		} catch (WriteException e) {
+			throw new JKindException("Error writing to Excel file", e);
+		}
+		
+	}
+	
+	private void writeReal(Realizability realizability) throws WriteException {
+		if (realizability instanceof ValidRealizability) {
+			write((ValidRealizability) realizability);
+		} else if (realizability instanceof InvalidRealizability) {
+			write((InvalidRealizability) realizability);
+		} else {
+			throw new IllegalArgumentException("Unknown realizability type: "
+					+ realizability.getClass().getSimpleName());
+		}
+	}
+
+	private void write(ValidRealizability realizability) throws WriteException {
+		String name = realizability.getName();
+		System.out.println(name);
+		int k = realizability.getK();
+		double runtime = realizability.getRuntime();
+
+		summarySheet.addCell(new Label(0, summaryRow, name.toString()));
+		summarySheet.addCell(new Label(1, summaryRow, "Valid"));
+		summarySheet.addCell(new Number(2, summaryRow, k));
+		summarySheet.addCell(new Number(3, summaryRow, runtime));
+		summaryRow++;
+	}
+	
+	private void write(InvalidRealizability realizability) throws WriteException {
+		String name = realizability.getName();
+		Counterexample cex = realizability.getCounterexample();
+		int length = cex.getLength();
+		double runtime = realizability.getRuntime();
+
+		WritableSheet cexSheet = writeCounterexample(name.toString(), cex);
+		summarySheet.addCell(new Label(0, summaryRow, name.toString()));
+		summarySheet.addHyperlink(new WritableHyperlink(1, summaryRow, "Invalid", cexSheet, 0, 0));
+		summarySheet.addCell(new Number(2, summaryRow, length));
+		summarySheet.addCell(new Number(3, summaryRow, runtime));
 		summaryRow++;
 	}
 
