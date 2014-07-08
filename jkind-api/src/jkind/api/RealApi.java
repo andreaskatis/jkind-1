@@ -130,7 +130,7 @@ public class RealApi {
 	private static File writeLustreFile(String program) {
 		File file = null;
 		try {
-			file = File.createTempFile("jkindrealizability-api", ".lus");
+			file = File.createTempFile("jrealizability-api", ".lus");
 			Util.writeToFile(program, file);
 			return file;
 		} catch (IOException e) {
