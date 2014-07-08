@@ -24,7 +24,7 @@ import org.xml.sax.SAXException;
 /**
  * The primary interface to Realizability checking Api.
  */
-public class RealApi {
+public class JRealizabilityApi {
 	private Integer timeout = null;
 	private Integer n = null;
 	private SolverOption solver = SolverOption.Z3;

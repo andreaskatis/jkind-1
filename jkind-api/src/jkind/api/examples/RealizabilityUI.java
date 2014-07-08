@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jkind.api.RealApi;
+import jkind.api.JRealizabilityApi;
 import jkind.api.results.JKindResultRealizability;
 import jkind.api.results.RealizabilityResult;
 import jkind.api.results.Status;
@@ -111,7 +111,7 @@ public class RealizabilityUI {
 				new Thread("Analysis") {
 					@Override
 					public void run() {
-						new RealApi().execute(file, result, monitor);
+						new JRealizabilityApi().execute(file, result, monitor);
 					}
 				}.start();
 			}

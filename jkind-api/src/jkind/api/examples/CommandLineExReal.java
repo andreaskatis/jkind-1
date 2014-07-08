@@ -2,7 +2,7 @@ package jkind.api.examples;
 
 import java.io.File;
 
-import jkind.api.RealApi;
+import jkind.api.JRealizabilityApi;
 import jkind.api.results.JKindResultRealizability;
 import jkind.api.results.RealizabilityResult;
 
@@ -41,7 +41,7 @@ public class CommandLineExReal {
 		 * This triggers the actual execution of analysis. Options can be set on
 		 * the JKindApi object if desired.
 		 */
-		new RealApi().execute(file, result, monitor);
+		new JRealizabilityApi().execute(file, result, monitor);
 
 		/*
 		 * Process some of the results
