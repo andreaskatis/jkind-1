@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import jkind.JKindException;
-import jkind.JKindSettings;
+import jkind.JRealizabilitySettings;
 import jkindreal.processes.messages.BaseStepMessage;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
 import jkindreal.processes.messages.MessageReal;
@@ -24,7 +24,7 @@ public class BaseProcessReal extends ProcessReal {
 	private InductiveProcessReal inductiveProcess;
 	private ProcessReal cexProcess;
 
-	public BaseProcessReal(Specification spec, JKindSettings settings, DirectorReal realDirector) {
+	public BaseProcessReal(Specification spec, JRealizabilitySettings settings, DirectorReal realDirector) {
 		super("Base", spec, settings, realDirector);
 	}
 

@@ -9,7 +9,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jkind.JKindException;
-import jkind.JKindSettings;
+import jkind.JRealizabilitySettings;
 import jkind.lustre.NamedType;
 import jkindreal.processes.messages.MessageReal;
 import jkind.sexp.Cons;
@@ -24,7 +24,7 @@ import jkind.translation.Specification;
 
 public abstract class ProcessReal implements Runnable {
 	protected Specification spec;
-	protected JKindSettings settings;
+	protected JRealizabilitySettings settings;
 	protected DirectorReal director;
 	protected List<String> properties;
 	protected List<String> realizabilities;
@@ -39,7 +39,7 @@ public abstract class ProcessReal implements Runnable {
 	// make it volatile
 	private volatile Throwable throwable;
 
-	public ProcessReal(String name, Specification spec, JKindSettings settings, DirectorReal director2) {
+	public ProcessReal(String name, Specification spec, JRealizabilitySettings settings, DirectorReal director2) {
 		this.name = name;
 		this.spec = spec;
 		this.settings = settings;

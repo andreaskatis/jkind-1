@@ -59,8 +59,8 @@ public class Main {
 		case "-benchmark":
 			Benchmark.main(subArgs);
 			break;
-		case "-realizability":
-			Realizability.main(subArgs);
+		case "-jrealizability":
+			JRealizability.main(subArgs);
 			break;
 
 		default:

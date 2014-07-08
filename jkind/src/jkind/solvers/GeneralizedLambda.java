@@ -10,10 +10,10 @@ import jkind.sexp.Symbol;
 
 public class GeneralizedLambda {
 	final private Symbol arg;
-	final private ArrayList<VarDecl> outs;
+	final private List<VarDecl> outs;
 	final private Sexp body;
 
-	public GeneralizedLambda(Symbol arg, ArrayList<VarDecl> outputs, Sexp body) {
+	public GeneralizedLambda(Symbol arg, List<VarDecl> outputs, Sexp body) {
 		this.arg = arg;
 		this.outs = outputs;
 		this.body = body;
@@ -29,7 +29,7 @@ public class GeneralizedLambda {
 		return arg;
 	}
 
-	public ArrayList<VarDecl> getouts() {
+	public List<VarDecl> getouts() {
 		return outs;
 	}
 

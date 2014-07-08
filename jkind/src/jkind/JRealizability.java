@@ -10,10 +10,10 @@ import jkind.translation.Specification;
 import jkind.translation.Translate;
 import jkindreal.processes.DirectorReal;
 
-public class Realizability {
+public class JRealizability {
 	public static void main(String[] args) {
 		try {
-			JKindSettings settings = JKindArgumentParser.parse(args);
+			JRealizabilitySettings settings = JRealizabilityArgumentParser.parse(args);
 			String filename = settings.filename;
 			Program program = Main.parseLustre(filename);
 			

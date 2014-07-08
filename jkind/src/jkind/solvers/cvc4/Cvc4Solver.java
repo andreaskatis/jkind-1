@@ -1,6 +1,6 @@
 package jkind.solvers.cvc4;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import jkind.lustre.VarDecl;
 import jkind.sexp.Sexp;
@@ -21,8 +21,9 @@ public class Cvc4Solver extends SmtLib2Solver {
 	}
 	
 	@Override
-	public Result realizability_query(ArrayList<VarDecl> outs, Sexp k) {
-		// TODO Auto-generated method stub
-		return null;
+	public Result realizability_query(List<VarDecl> outs, Sexp k) {
+		
+		throw new IllegalArgumentException("CVC4 not supported for realizability checks");
+		
 	}
 }

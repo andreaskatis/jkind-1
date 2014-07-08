@@ -1,7 +1,6 @@
 package jkind.solvers.yices;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import jkind.JKindException;
@@ -236,9 +235,8 @@ public class YicesSolver extends Solver {
 	}
 
 	@Override
-	public Result realizability_query(ArrayList<jkind.lustre.VarDecl> outs,
+	public Result realizability_query(List<jkind.lustre.VarDecl> outs,
 			Sexp k) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new IllegalArgumentException("Yices not supported for realizability checks");
 	}
 }

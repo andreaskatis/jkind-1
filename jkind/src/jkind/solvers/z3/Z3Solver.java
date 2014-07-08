@@ -1,6 +1,7 @@
 package jkind.solvers.z3;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import jkind.lustre.NamedType;
 import jkind.sexp.Cons;
@@ -12,6 +13,7 @@ import jkind.solvers.UnknownResult;
 import jkind.solvers.UnsatResult;
 import jkind.solvers.VarDecl;
 import jkind.solvers.smtlib2.SmtLib2Solver;
+import jkind.translation.Keywords;
 
 public class Z3Solver extends SmtLib2Solver {
 	public Z3Solver() {
@@ -48,7 +50,7 @@ public class Z3Solver extends SmtLib2Solver {
 		return result;
 	}
 	
-	public Result realizability_query(ArrayList<jkind.lustre.VarDecl> outputs, Sexp k) {
+	public Result realizability_query(List<jkind.lustre.VarDecl> outputs, Sexp k) {
 		Result result;
 		
 		ArrayList<Sexp> outset = new ArrayList<>();
@@ -60,7 +62,7 @@ public class Z3Solver extends SmtLib2Solver {
 		}
 		Symbol assum = new Symbol("assum" + assumCount++);
 		send(new VarDecl(assum, NamedType.BOOL));
-		send(new Cons("assert", new Cons("=>", assum,new Cons("and", new Cons("forall", new Cons(outset.get(0),outset.subList(1,outset.size())), new Cons("not", new Cons("and", new Cons("T_prime", outdecl), new Cons("P_prime", outdecl))))))));
+		send(new Cons("assert", new Cons("=>", assum,new Cons("and", new Cons("forall", new Cons(outset.get(0),outset.subList(1,outset.size())), new Cons("not", new Cons("and", new Cons(Keywords.T_prime, outdecl), new Cons(Keywords.P_prime, outdecl))))))));
 		send(new Cons("check-sat", assum));
 		send("(echo \"" + DONE + "\")");
 		if (isSat(readFromSolver())) {

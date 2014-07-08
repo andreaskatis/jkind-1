@@ -12,7 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jkind.JKindException;
-import jkind.JKindSettings;
+import jkind.JRealizabilitySettings;
 import jkind.invariant.Invariant;
 import jkind.lustre.Type;
 import jkind.lustre.values.Value;
@@ -36,7 +36,7 @@ import jkind.writers.Writer;
 import jkind.writers.XmlWriter;
 
 public class DirectorReal {
-	private JKindSettings settings;
+	private JRealizabilitySettings settings;
 	private Specification spec;
 	private Writer writer;
 
@@ -55,7 +55,7 @@ public class DirectorReal {
 
 	protected BlockingQueue<MessageReal> incoming = new LinkedBlockingQueue<>();
 
-	public DirectorReal(JKindSettings settings, Specification spec) {
+	public DirectorReal(JRealizabilitySettings settings, Specification spec) {
 		this.settings = settings;
 		this.spec = spec;
 		this.writer = getWriter(spec);

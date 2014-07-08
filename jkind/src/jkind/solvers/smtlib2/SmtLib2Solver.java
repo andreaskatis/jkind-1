@@ -84,12 +84,14 @@ public abstract class SmtLib2Solver extends Solver {
 		List<Sexp> outputs = new ArrayList<>();
 		Sexp args = new Cons(def.getArg(), new Symbol("Int"));
 		for (jkind.lustre.VarDecl outs : def.getouts()){
-			if (outs.type.toString() == "int") {
+			
+			outputs.add(new Cons(outs.id.toString(), type(outs.type)));
+			/*if (outs.type.toString() == "int") {
 				outputs.add(new Cons(outs.id.toString(), new Symbol("Int")));
 			}
 			else if (outs.type.toString() == "bool") {
 				outputs.add(new Cons(outs.id.toString(), new Symbol("Bool")));
-			}
+			}*/
 		}
 		
 		send(new Cons("define-fun", def.getId(), new Cons(args, outputs), type(def.getType()),def.getBody()));

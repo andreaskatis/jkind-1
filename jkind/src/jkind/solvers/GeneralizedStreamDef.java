@@ -1,6 +1,6 @@
 package jkind.solvers;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import jkind.lustre.Type;
 import jkind.lustre.VarDecl;
@@ -37,7 +37,7 @@ public class GeneralizedStreamDef {
 		return lambda.getArg();
 	}
 
-	public ArrayList<VarDecl> getouts(){
+	public List<VarDecl> getouts(){
 		return lambda.getouts();
 	}
 	

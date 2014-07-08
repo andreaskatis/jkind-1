@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jkind.JKindException;
-import jkind.JKindSettings;
+import jkind.JRealizabilitySettings;
 import jkind.invariant.Invariant;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
@@ -19,7 +19,6 @@ import jkind.translation.Specification;
 import jkind.util.SexpUtil;
 import jkindreal.processes.BaseProcessReal;
 import jkindreal.processes.DirectorReal;
-import jkindreal.processes.InvariantProcessReal;
 import jkindreal.processes.messages.BaseStepMessage;
 import jkindreal.processes.messages.InductiveCounterexampleMessageReal;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
@@ -30,10 +29,9 @@ public class InductiveProcessReal extends ProcessReal {
 	private int kLimit = 0;
 	private BaseProcessReal baseProcess;
 	private List<Invariant> invariants = new ArrayList<>();
-	private InvariantProcessReal invariantProcess;
 	//private ReduceProcess reduceProcess;
 
-	public InductiveProcessReal(Specification spec, JKindSettings settings, DirectorReal realDirector) {
+	public InductiveProcessReal(Specification spec, JRealizabilitySettings settings, DirectorReal realDirector) {
 		super("Inductive", spec, settings, realDirector);
 	}
 
@@ -41,9 +39,9 @@ public class InductiveProcessReal extends ProcessReal {
 		this.baseProcess = baseProcess2;
 	}
 
-	public void setInvariantProcess(InvariantProcessReal invariantProcess) {
-		this.invariantProcess = invariantProcess;
-	}
+	//public void setInvariantProcess(InvariantProcessReal invariantProcess) {
+	//	this.invariantProcess = invariantProcess;
+	//}
 	
 	//public void setReduceProcess(ReduceProcess reduceProcess) {
 	//	this.reduceProcess = reduceProcess;

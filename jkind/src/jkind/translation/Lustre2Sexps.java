@@ -162,7 +162,7 @@ public class Lustre2Sexps {
 		return declarations;
 	}
 	
-	public ArrayList<VarDecl> getOutputSet(){
+	public List<VarDecl> getOutputSet(){
 		return outputs;
 	}
 	
