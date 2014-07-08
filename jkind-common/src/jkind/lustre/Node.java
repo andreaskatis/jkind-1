@@ -39,12 +39,12 @@ public class Node extends Ast {
 	
 	public Node(String id, List<VarDecl> inputs, List<VarDecl> outputs, List<VarDecl> locals,
 			List<Equation> equations, List<String> properties, List<String> realizabilities) {
-		this(Location.NULL, id, inputs, outputs, locals, equations, properties, null, realizabilities);
+		this(Location.NULL, id, inputs, outputs, locals, equations, properties, null, null);
 	}
 
 	public Node(String id, List<VarDecl> inputs, List<VarDecl> outputs, List<VarDecl> locals,
 			List<Equation> equations, List<String> realizabilities) {
-		this(Location.NULL, id, inputs, outputs, locals, equations, null, null, realizabilities);
+		this(Location.NULL, id, inputs, outputs, locals, equations, null, null, null);
 	}
 
 	@Override
