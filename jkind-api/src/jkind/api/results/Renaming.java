@@ -5,10 +5,13 @@ import java.util.Map.Entry;
 import jkind.lustre.values.Value;
 import jkind.results.Counterexample;
 import jkind.results.InvalidProperty;
+import jkind.results.InvalidRealizability;
 import jkind.results.Property;
+import jkind.results.Realizability;
 import jkind.results.Signal;
 import jkind.results.UnknownProperty;
 import jkind.results.ValidProperty;
+import jkind.results.ValidRealizability;
 
 /**
  * An class for renaming and removing variables from analysis results
@@ -100,6 +103,63 @@ public abstract class Renaming {
 		}
 
 		return new UnknownProperty(name, rename(property.getInductiveCounterexample()));
+	}
+	
+	
+	/**
+	 * Rename realizability and signals (if present), possibly omitting some
+	 * 
+	 * @param realizability
+	 *            Realizability to be renamed
+	 * @return Renamed version of the realizability, or <code>null</code> if there is
+	 *         no renaming for the realizability
+	 */
+	public Realizability rename(Realizability realizability) {
+		if (realizability instanceof ValidRealizability) {
+			return rename((ValidRealizability) realizability);
+		} else if (realizability instanceof InvalidRealizability) {
+			return rename((InvalidRealizability) realizability);
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Rename valid realizability and signals (if present), possibly omitting some
+	 * 
+	 * Note: Invariants (if present) will not be renamed
+	 * 
+	 * @param realizability
+	 *            Realizability to be renamed
+	 * @return Renamed version of the realizability, or <code>null</code> if there is
+	 *         no renaming for the realizability
+	 */
+	public ValidRealizability rename(ValidRealizability realizability) {
+		String name = rename(realizability.getName());
+		if (name == null) {
+			return null;
+		}
+
+		return new ValidRealizability(name, realizability.getK(), realizability.getRuntime(),
+				realizability.getInvariants());
+	}
+
+	/**
+	 * Rename invalid realizability and signals (if present), possibly omitting some
+	 * 
+	 * @param realizability
+	 *            Realizability to be renamed
+	 * @return Renamed version of the realizability, or <code>null</code> if there is
+	 *         no renaming for the realizability
+	 */
+	public InvalidRealizability rename(InvalidRealizability realizability) {
+		String name = rename(realizability.getName());
+		if (name == null) {
+			return null;
+		}
+
+		return new InvalidRealizability(name, rename(realizability.getCounterexample()),
+				realizability.getRuntime());
 	}
 
 	/**

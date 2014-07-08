@@ -25,7 +25,7 @@ public abstract class AnalysisResultColumnViewer {
 	protected abstract ColumnViewer createViewer();
 	
 	public static enum Column {
-		PROPERTY, RESULT
+		PROPERTY, RESULT, REALIZABILITY
 	}
 	
 	public void update(Object element) {

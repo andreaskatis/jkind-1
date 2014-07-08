@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import jkind.api.results.AnalysisResult;
 import jkind.api.results.PropertyResult;
+import jkind.api.results.RealizabilityResult;
 import jkind.api.results.ResultsUtil;
 import jkind.api.results.Status;
 import jkind.api.ui.AnalysisResultColumnViewer.Column;
@@ -42,6 +43,25 @@ public class AnalysisResultLabelProvider extends ColumnLabelProvider {
 				default:
 					return pr.getStatus().toString() + " (" + pr.getElapsed() + "s)";
 				}
+			case REALIZABILITY:
+				break;
+			}
+		} else if (element instanceof RealizabilityResult) {
+			RealizabilityResult re = (RealizabilityResult) element;
+			switch (column) {
+			case PROPERTY:
+				break;
+			case REALIZABILITY:
+				return re.getName();
+			case RESULT:
+				switch (re.getStatus()) {
+				case WAITING:
+					return re.getStatus().toString();
+				case WORKING:
+					return re.getStatus().toString() + "... (" + re.getElapsed() + "s)";
+				default:
+					return re.getStatus().toString() + " (" + re.getElapsed() + "s)";
+				}
 			}
 		} else if (element instanceof AnalysisResult) {
 			AnalysisResult result = (AnalysisResult) element;
@@ -50,6 +70,8 @@ public class AnalysisResultLabelProvider extends ColumnLabelProvider {
 				return result.getName();
 			case RESULT:
 				return ResultsUtil.getMultiStatus(result).toString();
+			case REALIZABILITY:
+				return result.getName();
 			}
 		}
 
@@ -79,6 +101,14 @@ public class AnalysisResultLabelProvider extends ColumnLabelProvider {
 			if (element instanceof PropertyResult) {
 				PropertyResult pr = (PropertyResult) element;
 				return getStatusImage(pr.getStatus());
+			} else if (element instanceof AnalysisResult) {
+				AnalysisResult result = (AnalysisResult) element;
+				return getStatusImage(ResultsUtil.getMultiStatus(result).getOverallStatus());
+			}
+		} else if (column == Column.REALIZABILITY) {
+			if (element instanceof RealizabilityResult) {
+				RealizabilityResult re = (RealizabilityResult) element;
+				return getStatusImage(re.getStatus());
 			} else if (element instanceof AnalysisResult) {
 				AnalysisResult result = (AnalysisResult) element;
 				return getStatusImage(ResultsUtil.getMultiStatus(result).getOverallStatus());

@@ -6,7 +6,9 @@ import java.beans.PropertyChangeListener;
 import jkind.api.results.AnalysisResult;
 import jkind.api.results.CompositeAnalysisResult;
 import jkind.api.results.JKindResult;
+import jkind.api.results.JKindResultRealizability;
 import jkind.api.results.PropertyResult;
+import jkind.api.results.RealizabilityResult;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -41,6 +43,13 @@ public class AnalysisResultContentProvider implements ITreeContentProvider, Prop
 			for (PropertyResult pr : jKindResult.getPropertyResults()) {
 				pr.removePropertyChangeListener(this);
 			}
+		}
+		else if (result instanceof JKindResultRealizability) {
+			JKindResultRealizability jKindResult = (JKindResultRealizability) result;
+			jKindResult.removePropertyChangeListener(this);
+			for (RealizabilityResult re : jKindResult.getRealizabilityResults()) {
+				re.removePropertyChangeListener(this);
+			}
 		} else if (result instanceof CompositeAnalysisResult) {
 			CompositeAnalysisResult compositeResult = (CompositeAnalysisResult) result;
 			compositeResult.removePropertyChangeListener(this);
@@ -56,6 +65,12 @@ public class AnalysisResultContentProvider implements ITreeContentProvider, Prop
 			jKindResult.addPropertyChangeListener(this);
 			for (PropertyResult pr : jKindResult.getPropertyResults()) {
 				pr.addPropertyChangeListener(this);
+			}
+		} else if (result instanceof JKindResultRealizability) {
+			JKindResultRealizability jKindResult = (JKindResultRealizability) result;
+			jKindResult.addPropertyChangeListener(this);
+			for (RealizabilityResult re : jKindResult.getRealizabilityResults()) {
+				re.addPropertyChangeListener(this);
 			}
 		} else if (result instanceof CompositeAnalysisResult) {
 			CompositeAnalysisResult compositeResult = (CompositeAnalysisResult) result;
@@ -76,6 +91,9 @@ public class AnalysisResultContentProvider implements ITreeContentProvider, Prop
 		if (parentElement instanceof JKindResult) {
 			JKindResult result = (JKindResult) parentElement;
 			return result.getPropertyResults().toArray();
+		} else if (parentElement instanceof JKindResultRealizability) {
+			JKindResultRealizability result = (JKindResultRealizability) parentElement;
+			return result.getRealizabilityResults().toArray();
 		} else if (parentElement instanceof CompositeAnalysisResult) {
 			CompositeAnalysisResult result = (CompositeAnalysisResult) parentElement;
 			return result.getChildren().toArray();

@@ -6,6 +6,8 @@ public class ResultsUtil {
 			return ((CompositeAnalysisResult) result).getMultiStatus();
 		} else if (result instanceof JKindResult) {
 			return ((JKindResult) result).getMultiStatus();
+		} else if (result instanceof JKindResultRealizability) {
+			return((JKindResultRealizability) result).getMultiStatus();
 		} else {
 			return null;
 		}
