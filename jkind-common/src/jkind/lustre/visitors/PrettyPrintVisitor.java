@@ -186,8 +186,7 @@ public class PrettyPrintVisitor implements AstVisitor<Void, Void> {
 		
 		if (!node.realizabilities.isEmpty()) {
 			write("  --%REALIZABILITY ");
-			String set = node.realizabilities.toString();
-			set.replaceAll("\\[", "\\{").replaceAll("\\]", "\\}");
+			String set = node.realizabilities.toString().replaceAll("\\[", "\\{").replaceAll("\\]", "\\}");
 			write(set);
 			write(";");
 			newline();
