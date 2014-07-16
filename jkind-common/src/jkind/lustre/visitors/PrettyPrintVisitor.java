@@ -185,9 +185,12 @@ public class PrettyPrintVisitor implements AstVisitor<Void, Void> {
 		}
 		
 		if (!node.realizabilities.isEmpty()) {
-			for (String realizability : node.realizabilities) {
-				realizability(realizability);
-			}
+			write("  --%REALIZABILITY ");
+			String set = node.realizabilities.toString();
+			set.replaceAll("\\{", "\\[").replaceAll("\\}", "\\]");
+			write(set);
+			write(";");
+			newline();
 			newline();
 		}
 
@@ -244,13 +247,6 @@ public class PrettyPrintVisitor implements AstVisitor<Void, Void> {
 
 	private void property(String s) {
 		write("  --%PROPERTY ");
-		write(s);
-		write(";");
-		newline();
-	}
-	
-	private void realizability(String s) {
-		write("  --%REALIZABILITY ");
 		write(s);
 		write(";");
 		newline();
