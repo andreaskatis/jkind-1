@@ -188,6 +188,7 @@ public class PrettyPrintVisitor implements AstVisitor<Void, Void> {
 			for (String realizability : node.realizabilities) {
 				realizability(realizability);
 			}
+			newline();
 		}
 
 		write("tel;");
