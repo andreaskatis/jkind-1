@@ -101,12 +101,18 @@ public class AnalysisResultLabelProvider extends ColumnLabelProvider {
 			if (element instanceof PropertyResult) {
 				PropertyResult pr = (PropertyResult) element;
 				return getStatusImage(pr.getStatus());
+			} else if (element instanceof RealizabilityResult) {
+				RealizabilityResult re = (RealizabilityResult) element;
+				return getStatusImage(re.getStatus());
 			} else if (element instanceof AnalysisResult) {
 				AnalysisResult result = (AnalysisResult) element;
 				return getStatusImage(ResultsUtil.getMultiStatus(result).getOverallStatus());
 			}
 		} else if (column == Column.REALIZABILITY) {
-			if (element instanceof RealizabilityResult) {
+			if (element instanceof PropertyResult) {
+				PropertyResult pr = (PropertyResult) element;
+				return getStatusImage(pr.getStatus());
+			} else if (element instanceof RealizabilityResult) {
 				RealizabilityResult re = (RealizabilityResult) element;
 				return getStatusImage(re.getStatus());
 			} else if (element instanceof AnalysisResult) {
