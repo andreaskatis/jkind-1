@@ -185,7 +185,6 @@ public class ExcelFormatter implements Closeable {
 
 	private void write(ValidRealizability realizability) throws WriteException {
 		String name = realizability.getName();
-		System.out.println(name);
 		int k = realizability.getK();
 		double runtime = realizability.getRuntime();
 
