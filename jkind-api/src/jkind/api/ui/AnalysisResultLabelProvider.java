@@ -50,7 +50,7 @@ public class AnalysisResultLabelProvider extends ColumnLabelProvider {
 			RealizabilityResult re = (RealizabilityResult) element;
 			switch (column) {
 			case PROPERTY:
-				break;
+				return "Realizability Check";
 			case REALIZABILITY:
 				return re.getName();
 			case RESULT:
