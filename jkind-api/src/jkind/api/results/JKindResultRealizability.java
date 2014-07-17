@@ -91,9 +91,7 @@ public class JKindResultRealizability extends AnalysisResult implements Property
 	}
 
 	private void addRealizabilities(List<String> realizabilities) {
-		for (String realizability : realizabilities) {
-			addRealizability(realizability);
-		}
+			addRealizability(realizabilities.get(realizabilities.size()-1));
 	}
 
 	private void addRealizabilities(List<String> realizabilities, List<Boolean> invertStatus) {
