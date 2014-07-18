@@ -43,25 +43,21 @@ public class Lustre2Sexps {
 	}
 	
 	private void createOutputSet(Node node) {
-		for (VarDecl out : node.outputs){
-			for (String real : node.realizabilities){
-				if (!(real.contains(out.id+",")) && !(real.contains(out.id+"]")) && !(outputs.contains(new VarDecl("$$"+out.id,out.type)))){
-					outputs.add(new VarDecl("$$"+out.id,out.type));
-				}
+		for (String real : node.realizabilities){
+			for (VarDecl out : node.outputs){
+					if (!(real.contains("["+out.id+",")) && !(real.contains(" "+out.id+",")) && !(real.contains(" "+out.id+"]")) && !(outputs.contains(new VarDecl("$$"+out.id,out.type)))){
+						outputs.add(new VarDecl("$$"+out.id,out.type));
+					}
 			}
-		}
-		for (VarDecl local : node.locals){
-			for (String real : node.realizabilities){
-				if (!(real.contains(local.id+",")) && !(real.contains(local.id+"]")) && !(outputs.contains(new VarDecl("$$"+local.id,local.type)))){
-					outputs.add(new VarDecl("$$"+local.id,local.type));
-				}
+			for (VarDecl local : node.locals){
+					if (!(real.contains("["+local.id+",")) && !(real.contains(" "+local.id+",")) && !(real.contains(" "+local.id+"]")) && !(outputs.contains(new VarDecl("$$"+local.id,local.type)))){
+						outputs.add(new VarDecl("$$"+local.id,local.type));
+					}
 			}
-		}
-		for (VarDecl in : node.inputs){
-			for (String real : node.realizabilities){
-				if (!(real.contains(in.id+",")) && !(real.contains(in.id+"]")) && !(outputs.contains(new VarDecl("$$"+in.id,in.type)))){
-					outputs.add(new VarDecl("$$"+in.id,in.type));
-				}
+			for (VarDecl in : node.inputs){
+					if (!(real.contains("["+in.id+",")) && !(real.contains(" "+in.id+",")) && !(real.contains(" "+in.id+"]")) && !(outputs.contains(new VarDecl("$$"+in.id,in.type)))){
+						outputs.add(new VarDecl("$$"+in.id,in.type));
+					}
 			}
 		}
 	}
