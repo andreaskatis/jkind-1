@@ -45,21 +45,21 @@ public class Lustre2Sexps {
 	private void createOutputSet(Node node) {
 		for (VarDecl out : node.outputs){
 			for (String real : node.realizabilities){
-				if (!(real.contains(out.id)) && !(outputs.contains(new VarDecl("$$"+out.id,out.type)))){
+				if (!(real.contains(out.id+",")) && !(real.contains(out.id+"]")) && !(outputs.contains(new VarDecl("$$"+out.id,out.type)))){
 					outputs.add(new VarDecl("$$"+out.id,out.type));
 				}
 			}
 		}
 		for (VarDecl local : node.locals){
 			for (String real : node.realizabilities){
-				if (!(real.contains(local.id)) && !(outputs.contains(new VarDecl("$$"+local.id,local.type)))){
+				if (!(real.contains(local.id+",")) && !(real.contains(local.id+"]")) && !(outputs.contains(new VarDecl("$$"+local.id,local.type)))){
 					outputs.add(new VarDecl("$$"+local.id,local.type));
 				}
 			}
 		}
 		for (VarDecl in : node.inputs){
 			for (String real : node.realizabilities){
-				if (!(real.contains(in.id)) && !(outputs.contains(new VarDecl("$$"+in.id,in.type)))){
+				if (!(real.contains(in.id+",")) && !(real.contains(in.id+"]")) && !(outputs.contains(new VarDecl("$$"+in.id,in.type)))){
 					outputs.add(new VarDecl("$$"+in.id,in.type));
 				}
 			}
@@ -129,15 +129,12 @@ public class Lustre2Sexps {
 				conjuncts.add(equation2SexpReal(eq, SexpUtil.I, visitor));
 			}
 		}*/
-		
 		for (String prom : node.properties){
 			conjuncts.add(new Symbol("$$"+prom));
 		}
 		
-		
 		GeneralizedLambda lambda = new GeneralizedLambda(SexpUtil.I, outputs, new Cons("and", conjuncts));
 		p_prime = new GeneralizedStreamDef(Keywords.P_prime, NamedType.BOOL, lambda);
-		
 	}
 
 	private Sexp equation2Sexp(Equation eq, Symbol iSym, Expr2SexpVisitor visitor) {
