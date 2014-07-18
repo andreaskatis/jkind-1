@@ -87,7 +87,7 @@ public class JKindResultRealizability extends AnalysisResult implements Property
 			Renaming renaming) {
 		super(name);
 		this.renaming = renaming;
-		addRealizability("result", false);
+		addRealizabilities(realizabilities, invertStatus);
 	}
 
 	private void addRealizabilities(List<String> realizabilities) {
@@ -163,22 +163,10 @@ public class JKindResultRealizability extends AnalysisResult implements Property
 	 *            Name of realizability to retrieve (pre-renaming)
 	 * @return Realizability with the given name or <code>null</code> if not found
 	 */
-	public RealizabilityResult getRealizabilityResult(String name) {
-		if (renaming != null) {
-			name = renaming.rename(name);
-			if (name == null) {
-				return null;
-			}
-		}
-
-		for (RealizabilityResult re : realizabilityResults) {
-			if (re.getName().equals(name)) {
-				return re;
-			}
-		}
-		return null;
+	public RealizabilityResult getRealizabilityResult() {
+		   return realizabilityResults.get(0);
 	}
-
+	
 	public void addText(char c) {
 		text.append(c);
 	}

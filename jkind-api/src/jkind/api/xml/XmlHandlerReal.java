@@ -149,8 +149,8 @@ public class XmlHandlerReal extends DefaultHandler {
 				throw new JKindException("Unknown realizability answer in XML file: " + answer);
 			}
 
-			RealizabilityResult re = resultreal.getRealizabilityResult(realizabilityName);
-			if (re == null && realizabilityName.equals("result")) {
+			RealizabilityResult re = resultreal.getRealizabilityResult();
+			if (re == null) {
 				re = resultreal.addRealizability(realizabilityName);
 				if (re == null) {
 					return;
