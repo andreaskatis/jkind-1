@@ -150,7 +150,7 @@ public class XmlHandlerReal extends DefaultHandler {
 			}
 
 			RealizabilityResult re = resultreal.getRealizabilityResult(realizabilityName);
-			if (re == null) {
+			if (re == null && realizabilityName.equals("result")) {
 				re = resultreal.addRealizability(realizabilityName);
 				if (re == null) {
 					return;

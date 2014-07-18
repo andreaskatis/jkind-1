@@ -87,7 +87,7 @@ public class JKindResultRealizability extends AnalysisResult implements Property
 			Renaming renaming) {
 		super(name);
 		this.renaming = renaming;
-		addRealizabilities(realizabilities, invertStatus);
+		addRealizability("result", false);
 	}
 
 	private void addRealizabilities(List<String> realizabilities) {
