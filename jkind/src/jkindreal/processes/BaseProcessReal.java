@@ -10,12 +10,14 @@ import jkindreal.processes.messages.BaseStepMessage;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
 import jkindreal.processes.messages.MessageReal;
 import jkindreal.processes.messages.StopMessage;
+import jkindreal.processes.messages.UnknownMessageReal;
 import jkindreal.processes.messages.ValidRealizabilityMessage;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.solvers.Model;
 import jkind.solvers.Result;
 import jkind.solvers.SatResult;
+import jkind.solvers.UnknownResult;
 import jkind.translation.Keywords;
 import jkind.translation.Specification;
 import jkind.util.SexpUtil;
@@ -90,7 +92,11 @@ public class BaseProcessReal extends ProcessReal {
 					iterator.remove();
 				}
 				sendInvalidRealizability(invalid, k, model);
+			} else if (result instanceof UnknownResult) {
+				sendUnknown(realizabilities);
+				realizabilities.clear();
 			}
+			
 		} while (!realizabilities.isEmpty() && result instanceof SatResult);
 
 		sendBaseStep(k);
@@ -112,6 +118,14 @@ public class BaseProcessReal extends ProcessReal {
 	private void sendBaseStep(int k) {
 		if (inductiveProcess != null) {
 			inductiveProcess.incoming.add(new BaseStepMessage(k));
+		}
+	}
+	
+	private void sendUnknown(List<String> unknown) {
+		UnknownMessageReal um = new UnknownMessageReal(unknown);
+		director.incoming.add(um);
+		if (inductiveProcess != null) {
+			inductiveProcess.incoming.add(um);
 		}
 	}
 

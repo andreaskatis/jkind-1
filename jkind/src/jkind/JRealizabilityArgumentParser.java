@@ -129,20 +129,6 @@ public class JRealizabilityArgumentParser {
 			settings.intervalGeneralization = true;
 		}
 
-		if (line.hasOption(SOLVER)) {
-			String solver = line.getOptionValue(SOLVER);
-			if (solver.equals("yices")) {
-				settings.solver = SolverOption.YICES;
-			} else if (solver.equals("cvc4")) {
-				settings.solver = SolverOption.CVC4;
-			} else if (solver.equals("z3")) {
-				settings.solver = SolverOption.Z3;
-			} else {
-				Output.error("unknown solver: " + solver);
-				System.exit(-1);
-			}
-		}
-
 		if (line.hasOption(XML)) {
 			settings.xml = true;
 		}
@@ -170,25 +156,13 @@ public class JRealizabilityArgumentParser {
 	}
 
 	private static void checkSettings(JRealizabilitySettings settings) {
-		if (settings.solver == SolverOption.CVC4) {
-			if (settings.smoothCounterexamples) {
-				Output.error("smoothing not supported with CVC4");
-				System.exit(-1);
-			}
-			if (settings.reduceInvariants) {
-				Output.error("invariant reduction not supported with CVC4");
-				System.exit(-1);
-			}
+		if (settings.smoothCounterexamples) {
+			Output.error("smoothing not supported with Z3");
+			System.exit(-1);
 		}
-		if (settings.solver == SolverOption.Z3) {
-			if (settings.smoothCounterexamples) {
-				Output.error("smoothing not supported with Z3");
-				System.exit(-1);
-			}
-			if (settings.reduceInvariants) {
-				Output.error("invariant reduction not supported with Z3");
-				System.exit(-1);
-			}
+		if (settings.reduceInvariants) {
+			Output.error("invariant reduction not supported with Z3");
+			System.exit(-1);
 		}
 	}
 }

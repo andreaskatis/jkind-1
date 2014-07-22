@@ -2,6 +2,7 @@ package jkind.api.results;
 
 import jkind.results.InvalidRealizability;
 import jkind.results.Realizability;
+import jkind.results.UnknownRealizability;
 import jkind.results.ValidRealizability;
 
 public class RealizabilityResult extends AnalysisResult {
@@ -46,6 +47,8 @@ public class RealizabilityResult extends AnalysisResult {
 			setStatus(invertStatus ? Status.INVALID : Status.VALID);
 		} else if (realizability instanceof InvalidRealizability) {
 			setStatus(invertStatus ? Status.VALID : Status.INVALID);
+		} else if (realizability instanceof UnknownRealizability) {
+			setStatus(Status.UNKNOWN);
 		}
 	}
 

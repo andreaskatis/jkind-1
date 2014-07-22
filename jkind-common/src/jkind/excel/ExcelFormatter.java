@@ -12,6 +12,7 @@ import jkind.results.InvalidRealizability;
 import jkind.results.Property;
 import jkind.results.Realizability;
 import jkind.results.UnknownProperty;
+import jkind.results.UnknownRealizability;
 import jkind.results.ValidProperty;
 import jkind.results.ValidRealizability;
 import jkind.results.layout.Layout;
@@ -177,6 +178,8 @@ public class ExcelFormatter implements Closeable {
 			write((ValidRealizability) realizability);
 		} else if (realizability instanceof InvalidRealizability) {
 			write((InvalidRealizability) realizability);
+		} else if (realizability instanceof UnknownRealizability) {
+			write((UnknownRealizability) realizability);
 		} else {
 			throw new IllegalArgumentException("Unknown realizability type: "
 					+ realizability.getClass().getSimpleName());
@@ -206,6 +209,21 @@ public class ExcelFormatter implements Closeable {
 		summarySheet.addHyperlink(new WritableHyperlink(1, summaryRow, "Invalid", cexSheet, 0, 0));
 		summarySheet.addCell(new Number(2, summaryRow, length));
 		summarySheet.addCell(new Number(3, summaryRow, runtime));
+		summaryRow++;
+	}
+	
+	private void write(UnknownRealizability realizability) throws WriteException {
+		String name = realizability.getName();
+		Counterexample cex = realizability.getInductiveCounterexample();
+
+		summarySheet.addCell(new Label(0, summaryRow, name));
+		if (cex == null) {
+			summarySheet.addCell(new Label(1, summaryRow, "Unknown"));
+		} else {
+			WritableSheet cexSheet = writeCounterexample(name, cex);
+			summarySheet.addHyperlink(new WritableHyperlink(1, summaryRow, "Unknown", cexSheet, 0,
+					0));
+		}
 		summaryRow++;
 	}
 

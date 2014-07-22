@@ -79,19 +79,11 @@ public abstract class SmtLib2Solver extends Solver {
 	
 	@Override
 	public void send(GeneralizedStreamDef def) {
-		//for getArgs length sexp arg = new cons(def.getArg, new Symbol ("Int")
-		//args.add(arg)
 		List<Sexp> outputs = new ArrayList<>();
 		Sexp args = new Cons(def.getArg(), new Symbol("Int"));
 		for (jkind.lustre.VarDecl outs : def.getouts()){
 			
 			outputs.add(new Cons(outs.id.toString(), type(outs.type)));
-			/*if (outs.type.toString() == "int") {
-				outputs.add(new Cons(outs.id.toString(), new Symbol("Int")));
-			}
-			else if (outs.type.toString() == "bool") {
-				outputs.add(new Cons(outs.id.toString(), new Symbol("Bool")));
-			}*/
 		}
 		
 		send(new Cons("define-fun", def.getId(), new Cons(args, outputs), type(def.getType()),def.getBody()));

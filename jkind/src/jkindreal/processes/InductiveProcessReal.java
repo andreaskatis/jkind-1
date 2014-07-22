@@ -23,6 +23,7 @@ import jkindreal.processes.messages.BaseStepMessage;
 import jkindreal.processes.messages.InductiveCounterexampleMessageReal;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
 import jkindreal.processes.messages.MessageReal;
+import jkindreal.processes.messages.UnknownMessageReal;
 import jkindreal.processes.messages.ValidRealizabilityMessage;
 
 public class InductiveProcessReal extends ProcessReal {
@@ -38,14 +39,6 @@ public class InductiveProcessReal extends ProcessReal {
 	public void setBaseProcess(BaseProcessReal baseProcess2) {
 		this.baseProcess = baseProcess2;
 	}
-
-	//public void setInvariantProcess(InvariantProcessReal invariantProcess) {
-	//	this.invariantProcess = invariantProcess;
-	//}
-	
-	//public void setReduceProcess(ReduceProcess reduceProcess) {
-	//	this.reduceProcess = reduceProcess;
-	//}
 
 	@Override
 	public void main() {
@@ -80,6 +73,9 @@ public class InductiveProcessReal extends ProcessReal {
 				} else if (message instanceof BaseStepMessage) {
 					BaseStepMessage baseStepMessage = (BaseStepMessage) message;
 					kLimit = baseStepMessage.step;
+				} else if (message instanceof UnknownMessageReal) {
+					UnknownMessageReal unknownMessage = (UnknownMessageReal) message;
+					properties.removeAll(unknownMessage.unknown);
 				} else {
 					throw new JKindException("Unknown message type in inductive process: "
 							+ message.getClass().getCanonicalName());
@@ -87,12 +83,6 @@ public class InductiveProcessReal extends ProcessReal {
 			}
 		} catch (InterruptedException e) {
 			throw new JKindException("Interrupted while waiting for message", e);
-		}
-	}
-
-	private void assertNewInvariants(List<Invariant> invariants, int k) {
-		for (int i = 0; i <= k; i++) {
-			assertInvariants(invariants, i);
 		}
 	}
 

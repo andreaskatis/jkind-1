@@ -12,7 +12,6 @@ public class JRealizabilitySettings {
 	public boolean inductiveCounterexamples = false;
 	public boolean reduceInvariants = false;
 	public boolean smoothCounterexamples = false;
-	public SolverOption solver = SolverOption.YICES;
 	public String filename = null;
     public boolean intervalGeneralization = false;
 }

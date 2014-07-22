@@ -8,6 +8,12 @@ public abstract class Realizability {
 		this.name = real;
 		this.runtime = runtime;
 	}
+	
+	public Realizability(String name) {
+		this.name = name;
+		this.runtime = 0;
+	}
+	
 
 	/**
 	 * Get the name of the realizability

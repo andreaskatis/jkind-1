@@ -16,8 +16,6 @@ import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.solvers.Solver;
 import jkind.solvers.VarDecl;
-import jkind.solvers.cvc4.Cvc4Solver;
-import jkind.solvers.yices.YicesSolver;
 import jkind.solvers.z3.Z3Solver;
 import jkind.translation.Keywords;
 import jkind.translation.Specification;
@@ -63,14 +61,7 @@ public abstract class ProcessReal implements Runnable {
 	}
 
 	private String getSolverExtension() {
-		switch (settings.solver) {
-		case YICES:
-			return "yc";
-		case CVC4:
-		case Z3:
-			return "smt2";
-		}
-		return null;
+		return "smt2";
 	}
 
 	protected abstract void main();
@@ -94,19 +85,7 @@ public abstract class ProcessReal implements Runnable {
 	}
 
 	protected void initializeSolver() {
-		switch (settings.solver) {
-		case YICES:
-			solver = new YicesSolver();
-			break;
-
-		case CVC4:
-			solver = new Cvc4Solver();
-			break;
-
-		case Z3:
-			solver = new Z3Solver();
-			break;
-		}
+		solver = new Z3Solver();
 
 		if (settings.scratch) {
 			solver.setDebug(scratch);

@@ -42,8 +42,14 @@ public class Lustre2Sexps {
 		}
 	}
 	
+	// Method to create the set of outputs needed for the realizability checking procedure.
+	// Anything that is not declared as an input in the --%REALIZABILITY command set, should be
+	// included in the set of outputs for that checking.
+	
 	private void createOutputSet(Node node) {
 		for (String real : node.realizabilities){
+			//This will need to change in case we need multiple realizability checks in a single lustre file.
+			//There should be a set of outputs for every --%REALIZABILITY command.
 			for (VarDecl out : node.outputs){
 					if (!(real.contains("["+out.id+"]")) && !(real.contains("["+out.id+",")) && !(real.contains(" "+out.id+",")) && !(real.contains(" "+out.id+"]")) && !(outputs.contains(new VarDecl("$$"+out.id,out.type)))){
 						outputs.add(new VarDecl("$$"+out.id,out.type));
@@ -87,17 +93,14 @@ public class Lustre2Sexps {
 		transition = new StreamDef(Keywords.T, NamedType.BOOL, lambda);
 	}
 	
+	// Realizability checking Transition definition creation.
+	
 	private void createTransition_prime(Node node) {
 		List<Sexp> conjuncts = new ArrayList<>();
 		Expr2SexpVisitor visitor = new Expr2SexpVisitor(SexpUtil.I, outputs);
 		
 		for (Equation eq : node.equations) {
-			//if (node.properties.contains(eq.lhs.get(0).id)){
 				conjuncts.add(equation2SexpReal(eq, SexpUtil.I, visitor));
-			//}
-			//else {
-				//conjuncts.add(equation2Sexp(eq, SexpUtil.I, visitor));
-			//}
 		}
 		
 		for (VarDecl input : node.inputs) {
@@ -117,14 +120,11 @@ public class Lustre2Sexps {
 		transition_prime = new GeneralizedStreamDef(Keywords.T_prime, NamedType.BOOL, lambda);
 	}
 	
+	//Creation of the set of guarantees that are needed to remain true during the realizability checking.
+	
 	private void createP_prime(Node node) {
 		List<Sexp> conjuncts = new ArrayList<>();
-		/*Expr2SexpVisitor visitor = new Expr2SexpVisitor(SexpUtil.I, outputs);
-		for (Equation eq : node.equations) {
-			if (node.properties.contains(eq.lhs.get(0).id)){
-				conjuncts.add(equation2SexpReal(eq, SexpUtil.I, visitor));
-			}
-		}*/
+
 		for (String prom : node.properties){
 			conjuncts.add(new Symbol("$$"+prom));
 		}

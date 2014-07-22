@@ -16,7 +16,7 @@ public class JRealizability {
 			String filename = settings.filename;
 			Program program = Main.parseLustre(filename);
 			
-			Level nonlinear = settings.solver == SolverOption.Z3 ? Level.WARNING : Level.ERROR;
+			Level nonlinear = Level.WARNING;
 			StaticAnalyzer.check(program, nonlinear);
 
 			Node main = Translate.translate(program);

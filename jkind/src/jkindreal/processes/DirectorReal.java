@@ -13,6 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
+import jkind.Output;
 import jkind.invariant.Invariant;
 import jkind.lustre.Type;
 import jkind.lustre.values.Value;
@@ -20,7 +21,10 @@ import jkindreal.processes.messages.CounterexampleMessageReal;
 import jkindreal.processes.messages.InductiveCounterexampleMessageReal;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
 import jkindreal.processes.messages.MessageReal;
+import jkindreal.processes.messages.UnknownMessageReal;
 import jkindreal.processes.messages.ValidRealizabilityMessage;
+import jkind.processes.messages.InductiveCounterexampleMessage;
+import jkind.processes.messages.UnknownMessage;
 import jkind.results.Counterexample;
 import jkind.results.Signal;
 import jkind.results.layout.NodeLayout;
@@ -44,6 +48,7 @@ public class DirectorReal {
 	private List<String> remainingRealizabilities = new ArrayList<>();
 	private List<String> validRealizabilities = new ArrayList<>();
 	private List<String> invalidRealizabilities = new ArrayList<>();
+	private List<String> unknownRealizabilities = new ArrayList<>();
 	private Map<String, InductiveCounterexampleMessageReal> inductiveCounterexamples = new HashMap<>();
 	private Map<String, StreamDecl> declarations;
 
@@ -98,11 +103,11 @@ public class DirectorReal {
 
 		processMessages(startTime);
 		
-		//Do we need to check for "unknown" realizabilities"?...
-		/*if (!remainingRealizabilities.isEmpty()) {
-			writer.writeUnknown_Realizability(remainingRealizabilities, convertInductiveCounterexamples());
-		}*/
-
+		unknownRealizabilities.addAll(remainingRealizabilities);
+		remainingRealizabilities.clear();
+		if (!unknownRealizabilities.isEmpty()) {
+			writer.writeUnknown(unknownRealizabilities, convertInductiveCounterexamples());
+		}
 		writer.end();
 		printSummary();
 		reportFailures();
@@ -160,35 +165,6 @@ public class DirectorReal {
 			registerProcess(inductiveProcess);
 		}
 
-		/*if (settings.useInvariantProcess) {
-			invariantProcess = new InvariantProcess(spec, settings);
-			invariantProcess.setInductiveProcess(inductiveProcess);
-			inductiveProcess.setInvariantProcess(invariantProcess);
-			registerProcess(invariantProcess);
-		}*/
-
-		/*if (settings.reduceInvariants) {
-			reduceProcess = new ReduceProcess(spec, settings, this);
-			inductiveProcess.setReduceProcess(reduceProcess);
-			registerProcess(reduceProcess);
-		}*/
-
-		/*if (settings.smoothCounterexamples) {
-			smoothProcess = new SmoothProcess(spec, settings, this);
-			baseProcess.setCounterexampleProcess(smoothProcess);
-			registerProcess(smoothProcess);
-		}*/
-
-		/*if (settings.intervalGeneralization) {
-			intervalProcess = new IntervalProcess(spec, settings, this);
-			if (smoothProcess == null) {
-				baseProcess.setCounterexampleProcess(intervalProcess);
-			} else {
-				smoothProcess.setCounterexampleProcess(intervalProcess);
-			}
-			registerProcess(intervalProcess);
-		}*/
-
 		for (Thread thread : threads) {
 			thread.start();
 		}
@@ -232,6 +208,10 @@ public class DirectorReal {
 			} else if (message instanceof InductiveCounterexampleMessageReal) {
 				InductiveCounterexampleMessageReal icmr = (InductiveCounterexampleMessageReal) message;
 				inductiveCounterexamples.put(icmr.realizability, icmr);
+			} else if (message instanceof UnknownMessageReal) {
+				UnknownMessageReal um = (UnknownMessageReal) message;
+				remainingRealizabilities.removeAll(um.unknown);
+				unknownRealizabilities.addAll(um.unknown);
 			} else {
 				throw new JKindException("Unknown message type in director: "
 						+ message.getClass().getCanonicalName());
@@ -254,8 +234,26 @@ public class DirectorReal {
 			System.out.println("INVALID REALIZABILITIES: " + invalidRealizabilities);
 			System.out.println();
 		}
+		if (!unknownRealizabilities.isEmpty()) {
+			Output.println("UNKNOWN REALIZABILITIES: " + unknownRealizabilities);
+			Output.println();
+		}
 	}
 
+	private Map<String, Counterexample> convertInductiveCounterexamples() {
+		Map<String, Counterexample> result = new HashMap<>();
+
+		CounterexampleSlicer cexSlicer = new CounterexampleSlicer(spec.dependencyMap);
+		for (String real : inductiveCounterexamples.keySet()) {
+			InductiveCounterexampleMessageReal icm = inductiveCounterexamples.get(real);
+			Model slicedModel = cexSlicer.slice(icm.realizability, icm.model);
+			result.put(real, extractCounterexample(icm.k, icm.n, slicedModel));
+		}
+
+		return result;
+	}
+
+	
 	private Counterexample extractCounterexample(int k, BigInteger offset, Model model) {
 		Counterexample cex = new Counterexample(k);
 		model.setDeclarations(declarations);
