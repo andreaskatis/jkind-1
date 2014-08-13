@@ -1,71 +1,50 @@
 package jkind.solvers.smtlib2;
 
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-import jkind.lustre.NamedType;
+import jkind.lustre.Type;
+import jkind.lustre.values.Value;
 import jkind.sexp.Sexp;
-import jkind.sexp.Symbol;
 import jkind.solvers.Eval;
-import jkind.solvers.Lambda;
 import jkind.solvers.Model;
-import jkind.solvers.Value;
 import jkind.util.SexpUtil;
 
 public class SmtLib2Model extends Model {
-	private HashMap<String, Sexp> values;
-	private HashMap<String, Lambda> functions;
+	private final Map<String, Sexp> values = new HashMap<>();
 
-	public SmtLib2Model() {
-		this.values = new HashMap<>();
-		this.functions = new HashMap<>();
+	public SmtLib2Model(Map<String, Type> varTypes) {
+		super(varTypes);
 	}
 
 	public void addValue(String id, Sexp sexp) {
 		values.put(id, sexp);
 	}
 
-	public void addFunction(String fn, Lambda lambda) {
-		functions.put(fn, lambda);
-	}
-
 	@Override
-	public Value getValue(Symbol sym) {
-		return new Eval(this).eval(values.get(sym.toString()));
-	}
-
-	@Override
-	public Value getFunctionValue(String fn, BigInteger index) {
-		Lambda lambda;
-		if (functions.containsKey(fn)) {
-			lambda = functions.get(fn);
-		} else if (definitions.containsKey(fn)) {
-			lambda = definitions.get(fn).getLambda();
-		} else {
-			lambda = new Lambda(SexpUtil.I, getDefaultValue(fn));
-			functions.put(fn, lambda);
+	public Value getValue(String name) {
+		Sexp sexp = values.get(name);
+		if (sexp == null) {
+			return getDefaultValue(varTypes.get(name));
 		}
-		
-		return new Eval(this).eval(lambda.instantiate(new Symbol(index.toString())));
+		return new Eval(this).eval(sexp);
 	}
 
-	private Symbol getDefaultValue(String fn) {
-		if (declarations.get(fn).getType() == NamedType.BOOL) {
-			return new Symbol("true");
-		} else {
-			return new Symbol("0");
-		}
-	}
-
-	
-	public Lambda getFunction(String fn) {
-		return functions.get(fn);
-	}
-	
 	@Override
-	public Set<String> getFunctions() {
-		return new HashSet<>(functions.keySet());
+	public Set<String> getVariableNames() {
+		return new HashSet<>(values.keySet());
+	}
+
+	@Override
+	public SmtLib2Model slice(Set<String> keep) {
+		SmtLib2Model sliced = new SmtLib2Model(varTypes);
+		for (String var : getVariableNames()) {
+			if (SexpUtil.isMangledStreamName(var) && keep.contains(SexpUtil.getBaseName(var))) {
+				sliced.values.put(var, values.get(var));
+			}
+		}
+		return sliced;
 	}
 }
