@@ -1,13 +1,11 @@
 package jkind.processes;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -29,12 +27,9 @@ import jkind.processes.messages.ValidMessage;
 import jkind.results.Counterexample;
 import jkind.results.Signal;
 import jkind.results.layout.NodeLayout;
-import jkind.slicing.CounterexampleSlicer;
 import jkind.solvers.Model;
-import jkind.solvers.StreamDecl;
-import jkind.solvers.StreamDef;
 import jkind.translation.Specification;
-import jkind.util.Util;
+import jkind.util.SexpUtil;
 import jkind.writers.ConsoleWriter;
 import jkind.writers.ExcelWriter;
 import jkind.writers.Writer;
@@ -50,7 +45,6 @@ public class Director {
 	private List<String> invalidProperties = new ArrayList<>();
 	private List<String> unknownProperties = new ArrayList<>();
 	private Map<String, InductiveCounterexampleMessage> inductiveCounterexamples = new HashMap<>();
-	private Map<String, StreamDecl> declarations;
 
 	private BaseProcess baseProcess;
 	private InductiveProcess inductiveProcess;
@@ -69,11 +63,6 @@ public class Director {
 		this.spec = spec;
 		this.writer = getWriter(spec);
 		this.remainingProperties.addAll(spec.node.properties);
-
-		this.declarations = new HashMap<>();
-		for (StreamDecl decl : spec.translation.getDeclarations()) {
-			this.declarations.put(decl.getId().toString(), decl);
-		}
 	}
 
 	private Writer getWriter(Specification spec) {
@@ -155,8 +144,7 @@ public class Director {
 			Output.println("  JAVA KIND");
 			Output.println("==========================================");
 			Output.println();
-			Output.println("There are " + remainingProperties.size()
-					+ " properties to be checked.");
+			Output.println("There are " + remainingProperties.size() + " properties to be checked.");
 			Output.println("PROPERTIES TO BE CHECKED: " + remainingProperties);
 			Output.println();
 		}
@@ -231,10 +219,9 @@ public class Director {
 				remainingProperties.removeAll(im.invalid);
 				invalidProperties.addAll(im.invalid);
 				inductiveCounterexamples.keySet().removeAll(im.invalid);
-				CounterexampleSlicer cexSlicer = new CounterexampleSlicer(spec.dependencyMap);
 				for (String invalidProp : im.invalid) {
-					Model slicedModel = cexSlicer.slice(invalidProp, im.model);
-					Counterexample cex = extractCounterexample(im.k, BigInteger.ZERO, slicedModel);
+					Model slicedModel = im.model.slice(spec.dependencyMap.get(invalidProp));
+					Counterexample cex = extractCounterexample(im.k, slicedModel);
 					writer.writeInvalid(invalidProp, cex, runtime);
 				}
 			} else if (message instanceof CounterexampleMessage) {
@@ -281,51 +268,36 @@ public class Director {
 	private Map<String, Counterexample> convertInductiveCounterexamples() {
 		Map<String, Counterexample> result = new HashMap<>();
 
-		CounterexampleSlicer cexSlicer = new CounterexampleSlicer(spec.dependencyMap);
 		for (String prop : inductiveCounterexamples.keySet()) {
 			InductiveCounterexampleMessage icm = inductiveCounterexamples.get(prop);
-			Model slicedModel = cexSlicer.slice(icm.property, icm.model);
-			result.put(prop, extractCounterexample(icm.k, icm.n, slicedModel));
+			Model slicedModel = icm.model.slice(spec.dependencyMap.get(icm.property));
+			result.put(prop, extractCounterexample(icm.k, slicedModel));
 		}
 
 		return result;
 	}
 
-	private Counterexample extractCounterexample(int k, BigInteger offset, Model model) {
+	private Counterexample extractCounterexample(int k, Model model) {
 		Counterexample cex = new Counterexample(k);
-		model.setDeclarations(declarations);
-		model.setDefinitions(Collections.<String, StreamDef> emptyMap());
-		for (String fn : new TreeSet<>(model.getFunctions())) {
-			cex.addSignal(extractSignal(fn, k, offset, model));
+		for (String var : model.getVariableNames()) {
+			String base = SexpUtil.getBaseName(var);
+			int offset = SexpUtil.getOffset(var);
+			if (offset >= 0 && !base.startsWith("%")) {
+				Signal<Value> signal = cex.getOrCreateSignal(base);
+				Value value = convert(base, model.getValue(var));
+				signal.putValue(offset, value);
+			}
 		}
 		return cex;
 	}
 
-	private Signal<Value> extractSignal(String fn, int k, BigInteger offset, Model model) {
-		String name = fn.substring(1);
-		Signal<Value> signal = new Signal<>(name);
-		Type type = spec.typeMap.get(name);
-
-		for (int i = 0; i < k; i++) {
-			BigInteger key = BigInteger.valueOf(i).add(offset);
-			jkind.solvers.Value value = model.getFunctionValue(fn, key);
-			if (value != null) {
-				Value parsedValue = Util.parseValue(Util.getName(type), value.toString());
-				if (type instanceof EnumType) {
-					EnumType et = (EnumType) type;
-					IntegerValue iv = (IntegerValue) parsedValue;
-					int v = iv.value.intValue();
-					if (v < 0 || et.values.size() <= v) {
-						// This can happen due to looking before the initial
-						// state
-						continue;
-					}
-					parsedValue = new EnumValue(et.values.get(v));
-				}
-				signal.putValue(i, parsedValue);
-			}
+	private Value convert(String base, Value value) {
+		Type type = spec.typeMap.get(base);
+		if (type instanceof EnumType) {
+			EnumType et = (EnumType) type;
+			IntegerValue iv = (IntegerValue) value;
+			return new EnumValue(et.values.get(iv.value.intValue()));
 		}
-
-		return signal;
+		return value;
 	}
 }

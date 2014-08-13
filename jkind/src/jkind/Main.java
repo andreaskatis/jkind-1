@@ -30,10 +30,10 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
  * runnable JARs allow only a single entry point.
  */
 public class Main {
-	final public static String VERSION = "1.5.1";
+	final public static String VERSION = "1.5.2";
 
 	public static void main(String[] args) {
-		String availableEntryPoints = "Available entry points: -jkind, -jlustre2kind, -jlustre2excel, -benchmark";
+		String availableEntryPoints = "Available entry points: -jkind, -jlustre2kind, -jlustre2excel, -jrealizability, -benchmark";
 		if (args.length == 0) {
 			Output.println("JKind Suite " + VERSION);
 			Output.println(availableEntryPoints);
@@ -55,12 +55,13 @@ public class Main {
 		case "-jlustre2excel":
 			JLustre2Excel.main(subArgs);
 			break;
+			
+		case "-jrealizability":
+			JRealizability.main(subArgs);
+			break;
 
 		case "-benchmark":
 			Benchmark.main(subArgs);
-			break;
-		case "-jrealizability":
-			JRealizability.main(subArgs);
 			break;
 
 		default:
@@ -71,8 +72,13 @@ public class Main {
 	}
 
 	public static Program parseLustre(String filename) throws IOException, RecognitionException {
-		if (!new File(filename).exists()) {
+		File file = new File(filename);
+		if (!file.exists() || !file.isFile()) {
 			Output.error("cannot find file " + filename);
+			System.exit(-1);
+		}
+		if (!file.canRead()) {
+			Output.error("cannot read file " + filename);
 			System.exit(-1);
 		}
 		
