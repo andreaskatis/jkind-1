@@ -254,8 +254,7 @@ public class YicesSolver extends Solver {
 	}
 	
 	@Override
-	public Result realizability_query(List<jkind.lustre.VarDecl> outs,
-			Sexp k) {
+	public Result realizability_query(Sexp inputs, Sexp outputs, Sexp transition, Sexp properties) {
 		throw new IllegalArgumentException("Yices not supported for realizability checks");
 	}
 }

@@ -57,6 +57,16 @@ public class SexpUtil {
 			return Integer.parseInt(str);
 		}
 	}
+	
+	public static int getOffset_real(String var) {
+		ensureMangledStreamName(var);
+		String str = var.substring(var.lastIndexOf("$") + 1);
+		if (str.startsWith("~") && str.contains("!")) {
+			return -Integer.parseInt(str.substring(1));
+		} else {
+			return Integer.parseInt(str.substring(0,1));
+		}
+	}
 
 	public static int getOffset(Symbol symbol) {
 		return getOffset(symbol.str);

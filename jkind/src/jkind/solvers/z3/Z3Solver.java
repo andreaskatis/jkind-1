@@ -1,7 +1,3 @@
-//error because of the need to re-write the
-//realizability query. Previous code is in
-//comments below.
-
 package jkind.solvers.z3;
 
 import java.io.File;
@@ -61,32 +57,27 @@ public class Z3Solver extends SmtLib2Solver {
 	}
 	
 	
-	/* Need to re-write the realizability query...
-	public Result realizability_query(List<jkind.lustre.VarDecl> outputs, Sexp k) {
+	public Result realizability_query(Sexp inputs, Sexp outputs, Sexp transition, Sexp properties) {
+		
 		Result result;
 		
-		ArrayList<Sexp> outset = new ArrayList<>();
-		ArrayList<Sexp> outdecl = new ArrayList<>();
-		outdecl.add(k);
-		for (jkind.lustre.VarDecl outs : outputs) {
-			outset.add(new Cons(outs.id, new Symbol(outs.type.toString().substring(0, 1).toUpperCase()+outs.type.toString().substring(1))));
-			outdecl.add(new Symbol(outs.id));
-		}
 		Symbol assum = new Symbol("assum" + assumCount++);
-		send(new VarDecl(assum, NamedType.BOOL));
-		send(new Cons("assert", new Cons("=>", assum,new Cons("and", new Cons("forall", new Cons(outset.get(0),outset.subList(1,outset.size())), new Cons("not", new Cons("and", new Cons(Keywords.T_prime, outdecl), new Cons(Keywords.P_prime, outdecl))))))));
+		define(new VarDecl(assum.str, NamedType.BOOL));
+		send(new Cons("assert", new Cons("=>", assum, /*new Cons("exists", inputs,*/ new Cons("forall", outputs, new Cons("not", new Cons("and", transition, properties))))));
 		send(new Cons("check-sat", assum));
 		send("(echo \"" + DONE + "\")");
-		if (isSat(readFromSolver())) {
+		String status = readFromSolver();
+		if (isSat(status)) {
 			send("(get-model)");
 			send("(echo \"" + DONE + "\")");
 			result = new SatResult(parseModel(readFromSolver()));
-		} else {
+		} else if (isUnsat(status)){
 			result = new UnsatResult();
+		} else {
+			result = new UnknownResult();
 		}
 
 		return result;
 	}
-	 */
 }
 

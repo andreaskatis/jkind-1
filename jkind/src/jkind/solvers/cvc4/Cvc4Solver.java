@@ -1,9 +1,8 @@
-//don't care!
 package jkind.solvers.cvc4;
 
 import java.io.File;
-import java.util.List;
-
+import jkind.sexp.Sexp;
+import jkind.solvers.Result;
 import jkind.solvers.smtlib2.SmtLib2Solver;
 
 public class Cvc4Solver extends SmtLib2Solver {
@@ -28,7 +27,7 @@ public class Cvc4Solver extends SmtLib2Solver {
 	}
 	
 	@Override
-	public Result realizability_query(List<VarDecl> outs, Sexp k) {
+	public Result realizability_query(Sexp inputs, Sexp outputs, Sexp transition, Sexp properties) {
 		
 		throw new IllegalArgumentException("CVC4 not supported for realizability checks");
 		

@@ -30,7 +30,7 @@ public class FlattenPres extends TypeAwareAstMapVisitor {
 		equations.addAll(newEquations);
 
 		return new Node(e.location, e.id, e.inputs, e.outputs, locals, equations, e.properties,
-				assertions);
+				assertions, e.realizabilities);
 	}
 
 	private IdExpr getFreshId() {

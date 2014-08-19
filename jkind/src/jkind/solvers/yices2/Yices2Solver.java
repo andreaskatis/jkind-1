@@ -1,7 +1,5 @@
 package jkind.solvers.yices2;
 
-import java.util.List;
-
 import jkind.JKindException;
 import jkind.lustre.parsing.StdoutErrorListener;
 import jkind.sexp.Sexp;
@@ -62,8 +60,7 @@ public class Yices2Solver extends SmtLib2Solver {
 	}
 	
 	@Override
-	public Result realizability_query(List<jkind.lustre.VarDecl> outs,
-			Sexp k) {
+	public Result realizability_query(Sexp inputs, Sexp outputs, Sexp transition, Sexp properties) {
 		throw new IllegalArgumentException("Yices2 not supported for realizability checks");
 	}
 }
