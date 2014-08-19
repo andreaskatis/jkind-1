@@ -80,4 +80,3 @@ public class Z3Solver extends SmtLib2Solver {
 		return result;
 	}
 }
-

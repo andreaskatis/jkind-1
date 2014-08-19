@@ -77,20 +77,6 @@ public abstract class SmtLib2Solver extends Solver {
 				type(NamedType.BOOL), lambda.getBody()));
 	}
 	
-	/* Might need to see stuff regarding the definition of the stream
-	@Override
-	public void send(GeneralizedStreamDef def) {
-		List<Sexp> outputs = new ArrayList<>();
-		Sexp args = new Cons(def.getArg(), new Symbol("Int"));
-		for (jkind.lustre.VarDecl outs : def.getouts()){
-			
-			outputs.add(new Cons(outs.id.toString(), type(outs.type)));
-		}
-		
-		send(new Cons("define-fun", def.getId(), new Cons(args, outputs), type(def.getType()),def.getBody()));
-	}
-	 */
-
 	private Sexp inputs(List<VarDecl> inputs) {
 		List<Sexp> args = new ArrayList<>();
 		for (VarDecl vd : inputs) {

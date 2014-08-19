@@ -1,6 +1,7 @@
 package jkind.solvers.cvc4;
 
 import java.io.File;
+
 import jkind.sexp.Sexp;
 import jkind.solvers.Result;
 import jkind.solvers.smtlib2.SmtLib2Solver;
