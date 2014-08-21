@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -182,11 +183,13 @@ public class DirectorReal {
 				remainingRealizabilities.removeAll(im.invalid);
 				invalidRealizabilities.addAll(im.invalid);
 				inductiveCounterexamples.keySet().removeAll(im.invalid);
+				List<Set<String>> keep = new ArrayList<>();
 				for (String props : spec.node.properties) {
-					Model slicedModel = im.model.slice(spec.dependencyMap.get(props));
-					Counterexample cex = extractCounterexample(im.k, slicedModel);
-					writer.writeInvalidRealizability(props, cex, runtime);
+					keep.add(spec.dependencyMap.get(props));
 				}
+				Model slicedModel = im.model.slice_real(keep);
+				Counterexample cex = extractCounterexample(im.k, slicedModel);
+				writer.writeInvalidRealizability(invalidRealizabilities.get(0), cex, runtime);
 			} else if (message instanceof CounterexampleMessageReal) {
 				CounterexampleMessageReal cm = (CounterexampleMessageReal) message;
 				remainingRealizabilities.remove(cm.invalid);
@@ -244,7 +247,7 @@ public class DirectorReal {
 		Counterexample cex = new Counterexample(k);
 		for (String var : model.getVariableNames()) {
 			String base = SexpUtil.getBaseName(var);
-			int offset = SexpUtil.getOffset_real(var);
+			int offset = SexpUtil.getOffset(var);
 			if (offset >= 0 && !base.startsWith("%")) {
 				Signal<Value> signal = cex.getOrCreateSignal(base);
 				Value value = convert(base, model.getValue(var));

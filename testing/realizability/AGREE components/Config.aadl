@@ -1,0 +1,111 @@
+---------------------------------------------------------------------------
+-- Copyright (c) 2013 University of Minnesota
+-- Author: Mike Whalen
+---------------------------------------------------------------------------
+
+----------------------------------------------------------------------------
+-- Edited by : Anitha Murugesan 
+-- Date 7/18/2013
+-- The features matches the Config behavioral model.
+--------------------------------------------------------------------------
+
+package Config
+public
+
+  with DATATYPES;
+  
+  system Config
+    features
+     TLM_MODE_IN: in data port DATATYPES::Top_Level_Mode_Outputs.Impl;
+     PRES_IN: in data port DATATYPES::Prescription_Inputs.Impl;
+     OP_CMD_IN: in data port DATATYPES::Operator_Commands.Impl;
+     DB_IN: in data port DATATYPES::Drug_Database_Inputs.Impl;
+     CONST_IN: in data port DATATYPES::Device_Configuration_Inputs.Impl;
+     --IM_IN: in data port DATATYPES::Infusion_Manager_Outputs.Impl;
+     SYS_STAT_IN: in data port DATATYPES::System_Status_Outputs.Impl;       
+	 
+	 CONFIG_OUT: out data port DATATYPES::Config_Outputs.Impl;    
+
+
+	 annex agree {** 
+		 property flow_rate_kvo_gt_0 = 
+				(TLM_MODE_IN.System_On => (CONFIG_OUT.Flow_Rate_KVO > 0));
+	
+		guarantee "flow_rate_kvo_gt_0":  flow_rate_kvo_gt_0;
+		
+		 property config_range = 
+				(TLM_MODE_IN.System_On => (CONFIG_OUT.Configured >= 0 and CONFIG_OUT.Configured <= 3 ));
+	
+		guarantee "config_range":  config_range;
+		
+		property Infusion_Total_Duration = 
+				(TLM_MODE_IN.System_On => CONFIG_OUT.Infusion_Total_Duration >= 0);	
+		guarantee "Infusion_Total_Duration":  Infusion_Total_Duration;
+		
+		property config_gt_1_implies_values_configured =
+			(TLM_MODE_IN.System_On and CONFIG_OUT.Configured > 0 ) => CONFIG_OUT.Infusion_Total_Duration > 0;
+		guarantee "config_gt_1_implies_values_configured":  config_gt_1_implies_values_configured;
+		
+		
+	
+	**};
+
+  end Config;
+  
+  system implementation Config.Impl 
+  end Config.Impl;
+    
+end Config;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--
+--	-------> Flow_Rate_KVO is always > 0  <-------
+--  
+--	property flow_rate_kvo_gte_0 = 
+--		true -> 
+--			(TLM_MODE_IN.System_On => (CONFIG_OUT.Flow_Rate_KVO >= 0));
+--
+--	assert flow_rate_kvo_gte_0;	
+
+
+
+
+
+
+
+
+
+
+
+
+
+

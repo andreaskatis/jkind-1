@@ -2,6 +2,7 @@ package jkind.solvers.smtlib2;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,6 +44,18 @@ public class SmtLib2Model extends Model {
 		for (String var : getVariableNames()) {
 			if (SexpUtil.isMangledStreamName(var) && keep.contains(SexpUtil.getBaseName(var))) {
 				sliced.values.put(var, values.get(var));
+			}
+		}
+		return sliced;
+	}
+	
+	public SmtLib2Model slice_real(List<Set<String>> keep) {
+		SmtLib2Model sliced = new SmtLib2Model(varTypes);
+		for(Set<String> k : keep) {
+			for (String var : getVariableNames()) {
+				if (SexpUtil.isMangledStreamName(var) && k.contains(SexpUtil.getBaseName(var)) && (!sliced.values.containsKey(var))) {
+					sliced.values.put(var, values.get(var));
+				}
 			}
 		}
 		return sliced;

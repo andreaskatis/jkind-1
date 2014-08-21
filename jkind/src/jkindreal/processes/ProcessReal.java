@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -175,10 +176,12 @@ public abstract class ProcessReal implements Runnable {
 	protected Sexp getInputs(int k) {
 		List<Sexp> args = new ArrayList<>();
 		for (String real : realizabilities) {
-			for (VarDecl element : spec.node.inputs) {
-				if (real.contains("["+element.id+"]") || real.contains("["+element.id+",") || 
-						real.contains(" "+element.id+",") || real.contains(" "+element.id+"]")) {
-					args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+			List<String> inputs = Arrays.asList(real.substring(1, real.length()-1).split("\\s*,\\s*"));
+			for (String in : inputs){
+				for (VarDecl element : spec.node.inputs) {
+					if (element.id.startsWith(in)) {
+						args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+					}
 				}
 			}
 		}
@@ -188,22 +191,38 @@ public abstract class ProcessReal implements Runnable {
 	protected Sexp getOutputs(int k) {
 		List<Sexp> args = new ArrayList<>();
 		for (String real : realizabilities) {
+			List<String> inputs = Arrays.asList(real.substring(1, real.length()-1).split("\\s*,\\s*"));
 			for (VarDecl element : spec.node.inputs) {
-				if (!real.contains("["+element.id+"]") && !real.contains("["+element.id+",") && 
-						!real.contains(" "+element.id+",") && !real.contains(" "+element.id+"]")) {
-					args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+				for (int i = 0; i < inputs.size(); i++) {
+					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
+						args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
+						continue;
+					} else {
+						break;
+					}
 				}
 			}
 			for (VarDecl element : spec.node.outputs) {
-				if (!real.contains("["+element.id+"]") && !real.contains("["+element.id+",") && 
-						!real.contains(" "+element.id+",") && !real.contains(" "+element.id+"]")) {
-					args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+				for (int i = 0; i < inputs.size(); i++) {
+					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
+						args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
+						continue;
+					} else {
+						break;
+					}
 				}
 			}
 			for (VarDecl element : spec.node.locals) {
-				if (!real.contains("["+element.id+"]") && !real.contains("["+element.id+",") && 
-						!real.contains(" "+element.id+",") && !real.contains(" "+element.id+"]")) {
-					args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+				for (int i = 0; i < inputs.size(); i++) {
+					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
+						args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
+						continue;
+					} else {
+						break;
+					}
 				}
 			}
 		}

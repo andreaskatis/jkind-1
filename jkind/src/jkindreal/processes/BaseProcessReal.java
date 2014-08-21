@@ -10,10 +10,10 @@ import jkindreal.processes.messages.BaseStepMessage;
 import jkindreal.processes.messages.StopMessage;
 import jkind.sexp.Sexp;
 import jkind.sexp.Cons;
-import jkind.solvers.Model;
 import jkind.solvers.Result;
 import jkind.solvers.SatResult;
 import jkind.solvers.UnknownResult;
+import jkind.solvers.smtlib2.SmtLib2Model;
 import jkind.translation.Specification;
 import jkind.util.SexpUtil;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
@@ -73,7 +73,7 @@ public class BaseProcessReal extends ProcessReal {
 		do {
 			result = solver.realizability_query(getInputs(k), getOutputs(k), getTransition(k, Sexp.fromBoolean(k == 0)), SexpUtil.conjoinOffsets(properties,  k));
 			if (result instanceof SatResult) {
-				Model model = ((SatResult) result).getModel();
+				SmtLib2Model model = (SmtLib2Model) ((SatResult) result).getModel();
 				List<String> invalid = new ArrayList<>();
 				Iterator<String> iterator = realizabilities.iterator();
 				while (iterator.hasNext()) {
@@ -90,7 +90,7 @@ public class BaseProcessReal extends ProcessReal {
 		sendBaseStep(k);
 	}
 
-	private void sendInvalid(List<String> invalid, int k, Model model) {
+	private void sendInvalid(List<String> invalid, int k, SmtLib2Model model) {
 		InvalidRealizabilityMessage im = new InvalidRealizabilityMessage(invalid, k + 1, model);
 		if (cexProcess != null) {
 			cexProcess.incoming.add(im);
