@@ -91,7 +91,11 @@ public class JKindResultRealizability extends AnalysisResult implements Property
 	}
 
 	private void addRealizabilities(List<String> realizabilities) {
+		if (realizabilities.size()!= 0) {
 			addRealizability(realizabilities.get(realizabilities.size()-1));
+		} else {
+			throw new IllegalArgumentException("There are no inputs defined in the current model.");
+		}
 	}
 
 	private void addRealizabilities(List<String> realizabilities, List<Boolean> invertStatus) {
