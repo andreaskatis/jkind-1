@@ -1,0 +1,67 @@
+type Feature_Groups__AOA_Data__impl = struct {aoa : int};
+type Feature_Groups__EGI_Data__impl = struct {accel_x : int; accel_y : int; accel_z : int; alt : int; aoa : int; bank : int; bank_rate : int; egi_health : int; heading : int; heading_rate : int; lat : int; long : int; pitch : int; pitch_rate : int; time : int; velocity_x : int; velocity_y : int; velocity_z : int};
+type Feature_Groups__ADS_Data__impl = struct {amb_press : int; amb_temp : int; total_press : int};
+type Feature_Groups__ACTUATORS_Data__impl = struct {ailerons : real; elevators : real; flaps_gt : real; flaps_lt : real; rudder : real; spoiler : real};
+type Feature_Groups__ACTUATORS_SOV_Data__impl = struct {ailerons_sov1_open : bool; ailerons_sov2_open : bool; elevators_sov1_open : bool; elevators_sov2_open : bool; flaps_gt_sov1_open : bool; flaps_gt_sov2_open : bool; flaps_lt_sov1_open : bool; flaps_lt_sov2_open : bool; rudder_sov1_open : bool; rudder_sov2_open : bool; spoiler_sov1_open : bool; spoiler_sov2_open : bool};
+
+node _MAIN(
+  FCS_Impl_Instance__acts_out3 : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__acts1_sense : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__acts_out4 : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__acts_out1 : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__acts_out2 : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__sovs2 : Feature_Groups__ACTUATORS_SOV_Data__impl;
+  FCS_Impl_Instance__acts3_sense : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__sovs3 : Feature_Groups__ACTUATORS_SOV_Data__impl;
+  FCS_Impl_Instance__sovs1 : Feature_Groups__ACTUATORS_SOV_Data__impl;
+  FCS_Impl_Instance__acts_ret4 : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__aoa1 : Feature_Groups__AOA_Data__impl;
+  FCS_Impl_Instance__acts2_sense : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__ads1 : Feature_Groups__ADS_Data__impl;
+  FCS_Impl_Instance__acts_ret2 : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__aoa2 : Feature_Groups__AOA_Data__impl;
+  FCS_Impl_Instance__ads2 : Feature_Groups__ADS_Data__impl;
+  FCS_Impl_Instance__acts_ret3 : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__sovs4 : Feature_Groups__ACTUATORS_SOV_Data__impl;
+  FCS_Impl_Instance__acts_ret1 : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__egi4 : Feature_Groups__EGI_Data__impl;
+  FCS_Impl_Instance__egi2 : Feature_Groups__EGI_Data__impl;
+  FCS_Impl_Instance__egi3 : Feature_Groups__EGI_Data__impl;
+  FCS_Impl_Instance__acts4_sense : Feature_Groups__ACTUATORS_Data__impl;
+  FCS_Impl_Instance__egi1 : Feature_Groups__EGI_Data__impl
+) returns (
+
+);
+var
+  FCS_Impl_Instance__spoiler_cmd : real;
+  FCS_Impl_Instance__rudder_cmd : real;
+  FCS_Impl_Instance__flaps_lt_cmd : real;
+  FCS_Impl_Instance__ailerons_cmd : real;
+  FCS_Impl_Instance__flaps_gt_cmd : real;
+  FCS_Impl_Instance__elevators_cmd : real;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+let
+  --%MAIN
+  FCS_Impl_Instance__ailerons_cmd = (((FCS_Impl_Instance__acts_out1.ailerons + FCS_Impl_Instance__acts_out2.ailerons) + FCS_Impl_Instance__acts_out3.ailerons) + FCS_Impl_Instance__acts_out4.ailerons);
+
+  FCS_Impl_Instance__elevators_cmd = (((FCS_Impl_Instance__acts_out1.elevators + FCS_Impl_Instance__acts_out2.elevators) + FCS_Impl_Instance__acts_out3.elevators) + FCS_Impl_Instance__acts_out4.elevators);
+
+  FCS_Impl_Instance__spoiler_cmd = (((FCS_Impl_Instance__acts_out1.spoiler + FCS_Impl_Instance__acts_out2.spoiler) + FCS_Impl_Instance__acts_out3.spoiler) + FCS_Impl_Instance__acts_out4.spoiler);
+
+  FCS_Impl_Instance__rudder_cmd = (((FCS_Impl_Instance__acts_out1.rudder + FCS_Impl_Instance__acts_out2.rudder) + FCS_Impl_Instance__acts_out3.rudder) + FCS_Impl_Instance__acts_out4.rudder);
+
+  FCS_Impl_Instance__flaps_gt_cmd = (((FCS_Impl_Instance__acts_out1.flaps_gt + FCS_Impl_Instance__acts_out2.flaps_gt) + FCS_Impl_Instance__acts_out3.flaps_gt) + FCS_Impl_Instance__acts_out4.flaps_gt);
+
+  FCS_Impl_Instance__flaps_lt_cmd = (((FCS_Impl_Instance__acts_out1.flaps_lt + FCS_Impl_Instance__acts_out2.flaps_lt) + FCS_Impl_Instance__acts_out3.flaps_lt) + FCS_Impl_Instance__acts_out4.flaps_lt);
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => (((((((0.0 <= FCS_Impl_Instance__ailerons_cmd) and ((4.0 * 50.0) >= FCS_Impl_Instance__ailerons_cmd)) and ((0.0 <= FCS_Impl_Instance__elevators_cmd) and ((4.0 * 50.0) >= FCS_Impl_Instance__elevators_cmd))) and ((0.0 <= FCS_Impl_Instance__spoiler_cmd) and ((4.0 * 50.0) >= FCS_Impl_Instance__spoiler_cmd))) and ((0.0 <= FCS_Impl_Instance__rudder_cmd) and ((4.0 * 50.0) >= FCS_Impl_Instance__rudder_cmd))) and ((0.0 <= FCS_Impl_Instance__flaps_gt_cmd) and ((4.0 * 50.0) >= FCS_Impl_Instance__flaps_gt_cmd))) and ((0.0 <= FCS_Impl_Instance__flaps_lt_cmd) and ((4.0 * 50.0) >= FCS_Impl_Instance__flaps_lt_cmd))));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+
+  --%REALIZABILITY {FCS_Impl_Instance__acts1_sense, FCS_Impl_Instance__acts3_sense, FCS_Impl_Instance__acts_ret4, FCS_Impl_Instance__aoa1, FCS_Impl_Instance__acts_ret2, FCS_Impl_Instance__ads1, FCS_Impl_Instance__acts2_sense, FCS_Impl_Instance__acts_ret3, FCS_Impl_Instance__ads2, FCS_Impl_Instance__aoa2, FCS_Impl_Instance__acts_ret1, FCS_Impl_Instance__egi4, FCS_Impl_Instance__egi2, FCS_Impl_Instance__egi3, FCS_Impl_Instance__acts4_sense, FCS_Impl_Instance__egi1};
+
+tel;
+

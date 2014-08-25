@@ -1,0 +1,49 @@
+type DATATYPES__Device_Configuration_Inputs__Impl = struct {Audio_Enable_Duration : int; Audio_Level : int; Config_Warning_Duration : int; Empty_Reservoir : int; Log_Interval : int; Low_Reservoir : int; Max_Config_Duration : int; Max_Confirm_Stop_Duration : int; Max_Display_Duration : int; Max_Duration_Over_Infusion : int; Max_Duration_Under_Infusion : int; Max_Idle_Duration : int; Max_Paused_Duration : int; System_Test_Inteval : int; Tolerance_Max : int; Tolerance_Min : int};
+type DATATYPES__Device_Sensor_Inputs__Impl = struct {Air_In_Line : bool; Air_Pressure : bool; Battery_Depleted : bool; Battery_Low : bool; Battery_Unable_To_Charge : bool; CPU_Error : bool; Door_Open : bool; Flow_Rate : int; Flow_Rate_Not_Stable : bool; Humidity : bool; Log : bool; Memory_Corrupted : bool; Occlusion : bool; Post_Successful : bool; Pump_Overheated : bool; Pump_Primed : bool; Pump_Too_Hot : bool; RTC_Error : bool; Supply_Voltage : bool; Temp : bool; WatchDog_Interrupt_Detected : bool};
+type DATATYPES__Config_Outputs__Impl = struct {Config_Mode : int; Config_Timer : int; Configured : int; Drug_Concentration : int; Drug_Name : int; Duration_Intermittent_Bolus : int; Duration_Patient_Bolus : int; Entered_Reservoir_Volume : int; Error_Message_ID : int; Flow_Rate_Basal : int; Flow_Rate_Intermittent_Bolus : int; Flow_Rate_KVO : int; Flow_Rate_Patient_Bolus : int; Infusion_Total_Duration : int; Interval_Intermittent_Bolus : int; Lockout_Period_Patient_Bolus : int; Log_Message_ID : int; Max_Number_of_Patient_Bolus : int; Patient_ID : int; Request_Config_Type : bool; Request_Confirm_Infusion_Initiate : bool; Request_Infusion_Info : bool; Request_Patient_Drug_Info : bool; Reservoir_Volume : int; VTBI_Total : int};
+type DATATYPES__System_Status_Outputs__Impl = struct {In_Therapy : bool; Log_Message_ID : int; Reservoir_Empty : bool; Reservoir_Volume : int; Volume_Infused : int};
+type DATATYPES__Infusion_Manager_Outputs__Impl = struct {Actual_Infusion_Duration : int; Commanded_Flow_Rate : int; Current_System_Mode : int; Log_Message_ID : int; New_Infusion : bool};
+type DATATYPES__Top_Level_Mode_Outputs__Impl = struct {Log_Message_ID : int; Request_Confirm_Stop : bool; System_On : bool};
+
+node _MAIN(
+  System_Status_Impl_Instance__CONST_IN : DATATYPES__Device_Configuration_Inputs__Impl;
+  System_Status_Impl_Instance__SYS_STAT_OUT : DATATYPES__System_Status_Outputs__Impl;
+  System_Status_Impl_Instance__SENSOR_IN : DATATYPES__Device_Sensor_Inputs__Impl;
+  System_Status_Impl_Instance__TLM_MODE_IN : DATATYPES__Top_Level_Mode_Outputs__Impl;
+  System_Status_Impl_Instance__CONFIG_IN : DATATYPES__Config_Outputs__Impl;
+  System_Status_Impl_Instance__IM_IN : DATATYPES__Infusion_Manager_Outputs__Impl
+) returns (
+
+);
+var
+  System_Status_Impl_Instance__mode_grt_1_implies_In_Therapy : bool;
+  System_Status_Impl_Instance__mode_not_grt_1_implies_not_In_Therapy : bool;
+  System_Status_Impl_Instance__empty_reservoir_condition : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+  _SYS_GUARANTEE_2 : bool;
+let
+  --%MAIN
+  System_Status_Impl_Instance__empty_reservoir_condition = ((System_Status_Impl_Instance__TLM_MODE_IN.System_On and (System_Status_Impl_Instance__SYS_STAT_OUT.Reservoir_Volume < System_Status_Impl_Instance__CONST_IN.Empty_Reservoir)) => System_Status_Impl_Instance__SYS_STAT_OUT.Reservoir_Empty);
+
+  System_Status_Impl_Instance__mode_grt_1_implies_In_Therapy = ((System_Status_Impl_Instance__TLM_MODE_IN.System_On and (System_Status_Impl_Instance__IM_IN.Current_System_Mode > 1)) => System_Status_Impl_Instance__SYS_STAT_OUT.In_Therapy);
+
+  System_Status_Impl_Instance__mode_not_grt_1_implies_not_In_Therapy = ((System_Status_Impl_Instance__TLM_MODE_IN.System_On and (not (System_Status_Impl_Instance__IM_IN.Current_System_Mode > 1))) => (not System_Status_Impl_Instance__SYS_STAT_OUT.In_Therapy));
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => System_Status_Impl_Instance__empty_reservoir_condition);
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => System_Status_Impl_Instance__mode_grt_1_implies_In_Therapy);
+
+  _SYS_GUARANTEE_2 = (_SYSTEM_ASSUMP_HIST => System_Status_Impl_Instance__mode_not_grt_1_implies_not_In_Therapy);
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+  --%PROPERTY _SYS_GUARANTEE_2;
+
+  --%REALIZABILITY {System_Status_Impl_Instance__CONST_IN, System_Status_Impl_Instance__SENSOR_IN, System_Status_Impl_Instance__TLM_MODE_IN, System_Status_Impl_Instance__CONFIG_IN, System_Status_Impl_Instance__IM_IN};
+
+tel;
+

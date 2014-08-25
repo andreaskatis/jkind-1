@@ -1,0 +1,100 @@
+type Feature_Groups__AOA_Data__impl = struct {aoa : int};
+type Feature_Groups__EGI_Data__impl = struct {accel_x : int; accel_y : int; accel_z : int; alt : int; aoa : int; bank : int; bank_rate : int; egi_health : int; heading : int; heading_rate : int; lat : int; long : int; pitch : int; pitch_rate : int; time : int; velocity_x : int; velocity_y : int; velocity_z : int};
+type Feature_Groups__ADS_Data__impl = struct {amb_press : int; amb_temp : int; total_press : int};
+type Feature_Groups__ACTUATORS_Data__impl = struct {ailerons : real; elevators : real; flaps_gt : real; flaps_lt : real; rudder : real; spoiler : real};
+type Feature_Groups__ACTUATORS_SOV_Data__impl = struct {ailerons_sov1_open : bool; ailerons_sov2_open : bool; elevators_sov1_open : bool; elevators_sov2_open : bool; flaps_gt_sov1_open : bool; flaps_gt_sov2_open : bool; flaps_lt_sov1_open : bool; flaps_lt_sov2_open : bool; rudder_sov1_open : bool; rudder_sov2_open : bool; spoiler_sov1_open : bool; spoiler_sov2_open : bool};
+
+node AGREE_OSAS_NODES__fault_occurred(
+  FCC_Impl_Instance__act : real;
+  FCC_Impl_Instance__act_ret : real
+) returns (
+  FCC_Impl_Instance__return : bool
+);
+let
+  FCC_Impl_Instance__return = (false -> (not ((FCC_Impl_Instance__act_ret <= (1.025 * (pre FCC_Impl_Instance__act))) and (FCC_Impl_Instance__act_ret >= (0.975 * (pre FCC_Impl_Instance__act))))));
+
+tel;
+
+node AGREE_OSAS_NODES__fault_persists_for_frames(
+  FCC_Impl_Instance__act : real;
+  FCC_Impl_Instance__act_ret : real;
+  FCC_Impl_Instance__for : int
+) returns (
+  FCC_Impl_Instance__return : bool
+);
+var
+  FCC_Impl_Instance__count : int;
+  nodeLemma0 : bool;
+let
+  FCC_Impl_Instance__count = (0 -> (if AGREE_OSAS_NODES__fault_occurred(FCC_Impl_Instance__act, FCC_Impl_Instance__act_ret) then ((pre FCC_Impl_Instance__count) + 1) else 0));
+
+  FCC_Impl_Instance__return = (FCC_Impl_Instance__count >= FCC_Impl_Instance__for);
+
+  nodeLemma0 = (FCC_Impl_Instance__count >= 0);
+
+  --%PROPERTY nodeLemma0;
+
+tel;
+
+node _MAIN(
+  FCC_Impl_Instance__flaps_lt_failed : bool;
+  FCC_Impl_Instance__num_valid_flaps_gt : int;
+  FCC_Impl_Instance__num_valid_spoiler : int;
+  FCC_Impl_Instance__acts1_sense : Feature_Groups__ACTUATORS_Data__impl;
+  FCC_Impl_Instance__acts3_sense : Feature_Groups__ACTUATORS_Data__impl;
+  FCC_Impl_Instance__spoiler_failed : bool;
+  FCC_Impl_Instance__egi4 : Feature_Groups__EGI_Data__impl;
+  FCC_Impl_Instance__acts_out : Feature_Groups__ACTUATORS_Data__impl;
+  FCC_Impl_Instance__ailerons_failed : bool;
+  FCC_Impl_Instance__elevators_failed : bool;
+  FCC_Impl_Instance__sovs : Feature_Groups__ACTUATORS_SOV_Data__impl;
+  FCC_Impl_Instance__aoa2 : Feature_Groups__AOA_Data__impl;
+  FCC_Impl_Instance__egi3 : Feature_Groups__EGI_Data__impl;
+  FCC_Impl_Instance__egi2 : Feature_Groups__EGI_Data__impl;
+  FCC_Impl_Instance__egi1 : Feature_Groups__EGI_Data__impl;
+  FCC_Impl_Instance__aoa1 : Feature_Groups__AOA_Data__impl;
+  FCC_Impl_Instance__num_valid_ailerons : int;
+  FCC_Impl_Instance__acts2_sense : Feature_Groups__ACTUATORS_Data__impl;
+  FCC_Impl_Instance__num_valid_elevators : int;
+  FCC_Impl_Instance__flaps_gt_failed : bool;
+  FCC_Impl_Instance__num_valid_rudder : int;
+  FCC_Impl_Instance__rudder_failed : bool;
+  FCC_Impl_Instance__ads1 : Feature_Groups__ADS_Data__impl;
+  FCC_Impl_Instance__ads2 : Feature_Groups__ADS_Data__impl;
+  FCC_Impl_Instance__num_valid_flaps_lt : int;
+  FCC_Impl_Instance__acts_ret : Feature_Groups__ACTUATORS_Data__impl;
+  FCC_Impl_Instance__acts4_sense : Feature_Groups__ACTUATORS_Data__impl
+) returns (
+
+);
+var
+  FCC_Impl_Instance__hist_rudder_fault : bool;
+  FCC_Impl_Instance__rudder_fault_occurred : bool;
+  FCC_Impl_Instance__rudder_fault_persists : bool;
+  FCC_Impl_Instance__time : int;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+let
+  --%MAIN
+  FCC_Impl_Instance__rudder_fault_persists = AGREE_OSAS_NODES__fault_persists_for_frames(FCC_Impl_Instance__acts_ret.rudder, FCC_Impl_Instance__acts_out.rudder, 5);
+
+  FCC_Impl_Instance__rudder_fault_occurred = AGREE_OSAS_NODES__fault_occurred(FCC_Impl_Instance__acts_ret.rudder, FCC_Impl_Instance__acts_out.rudder);
+
+  FCC_Impl_Instance__hist_rudder_fault = (FCC_Impl_Instance__rudder_fault_occurred -> ((pre FCC_Impl_Instance__hist_rudder_fault) and FCC_Impl_Instance__rudder_fault_occurred));
+
+  FCC_Impl_Instance__time = (0 -> ((pre FCC_Impl_Instance__time) + 1));
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => ((((((FCC_Impl_Instance__ailerons_failed => (FCC_Impl_Instance__acts_out.ailerons = 0.0)) and (FCC_Impl_Instance__elevators_failed => (FCC_Impl_Instance__acts_out.elevators = 0.0))) and (FCC_Impl_Instance__spoiler_failed => (FCC_Impl_Instance__acts_out.spoiler = 0.0))) and (FCC_Impl_Instance__rudder_failed => (FCC_Impl_Instance__acts_out.rudder = 0.0))) and (FCC_Impl_Instance__flaps_gt_failed => (FCC_Impl_Instance__acts_out.flaps_gt = 0.0))) and (FCC_Impl_Instance__flaps_lt_failed => (FCC_Impl_Instance__acts_out.flaps_lt = 0.0))));
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => (((((((((((((((((((((((((FCC_Impl_Instance__num_valid_ailerons = 0) => ((FCC_Impl_Instance__acts_out.ailerons >= 0.0) and (FCC_Impl_Instance__acts_out.ailerons <= (4.0 * 50.0)))) and ((FCC_Impl_Instance__num_valid_ailerons = 1) => ((FCC_Impl_Instance__acts_out.ailerons >= 0.0) and (FCC_Impl_Instance__acts_out.ailerons <= (2.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_ailerons = 2) => ((FCC_Impl_Instance__acts_out.ailerons >= 0.0) and (FCC_Impl_Instance__acts_out.ailerons <= ((4.0 / 3.0) * 50.0))))) and ((FCC_Impl_Instance__num_valid_ailerons = 3) => ((FCC_Impl_Instance__acts_out.ailerons >= 0.0) and (FCC_Impl_Instance__acts_out.ailerons <= 50.0)))) and ((FCC_Impl_Instance__num_valid_elevators = 0) => ((FCC_Impl_Instance__acts_out.elevators >= 0.0) and (FCC_Impl_Instance__acts_out.elevators <= (4.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_elevators = 1) => ((FCC_Impl_Instance__acts_out.elevators >= 0.0) and (FCC_Impl_Instance__acts_out.elevators <= (2.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_elevators = 2) => ((FCC_Impl_Instance__acts_out.elevators >= 0.0) and (FCC_Impl_Instance__acts_out.elevators <= ((4.0 / 3.0) * 50.0))))) and ((FCC_Impl_Instance__num_valid_elevators = 3) => ((FCC_Impl_Instance__acts_out.elevators >= 0.0) and (FCC_Impl_Instance__acts_out.elevators <= 50.0)))) and ((FCC_Impl_Instance__num_valid_spoiler = 0) => ((FCC_Impl_Instance__acts_out.spoiler >= 0.0) and (FCC_Impl_Instance__acts_out.spoiler <= (4.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_spoiler = 1) => ((FCC_Impl_Instance__acts_out.spoiler >= 0.0) and (FCC_Impl_Instance__acts_out.spoiler <= (2.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_spoiler = 2) => ((FCC_Impl_Instance__acts_out.spoiler >= 0.0) and (FCC_Impl_Instance__acts_out.spoiler <= ((4.0 / 3.0) * 50.0))))) and ((FCC_Impl_Instance__num_valid_spoiler = 3) => ((FCC_Impl_Instance__acts_out.spoiler >= 0.0) and (FCC_Impl_Instance__acts_out.spoiler <= 50.0)))) and ((FCC_Impl_Instance__num_valid_rudder = 0) => ((FCC_Impl_Instance__acts_out.rudder >= 0.0) and (FCC_Impl_Instance__acts_out.rudder <= (4.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_rudder = 1) => ((FCC_Impl_Instance__acts_out.rudder >= 0.0) and (FCC_Impl_Instance__acts_out.rudder <= (2.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_rudder = 2) => ((FCC_Impl_Instance__acts_out.rudder >= 0.0) and (FCC_Impl_Instance__acts_out.rudder <= ((4.0 / 3.0) * 50.0))))) and ((FCC_Impl_Instance__num_valid_rudder = 3) => ((FCC_Impl_Instance__acts_out.rudder >= 0.0) and (FCC_Impl_Instance__acts_out.rudder <= 50.0)))) and ((FCC_Impl_Instance__num_valid_flaps_gt = 0) => ((FCC_Impl_Instance__acts_out.flaps_gt >= 0.0) and (FCC_Impl_Instance__acts_out.flaps_gt <= (4.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_flaps_gt = 1) => ((FCC_Impl_Instance__acts_out.flaps_gt >= 0.0) and (FCC_Impl_Instance__acts_out.flaps_gt <= (2.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_flaps_gt = 2) => ((FCC_Impl_Instance__acts_out.flaps_gt >= 0.0) and (FCC_Impl_Instance__acts_out.flaps_gt <= ((4.0 / 3.0) * 50.0))))) and ((FCC_Impl_Instance__num_valid_flaps_gt = 3) => ((FCC_Impl_Instance__acts_out.flaps_gt >= 0.0) and (FCC_Impl_Instance__acts_out.flaps_gt <= 50.0)))) and ((FCC_Impl_Instance__num_valid_flaps_lt = 0) => ((FCC_Impl_Instance__acts_out.flaps_lt >= 0.0) and (FCC_Impl_Instance__acts_out.flaps_lt <= (4.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_flaps_lt = 1) => ((FCC_Impl_Instance__acts_out.flaps_lt >= 0.0) and (FCC_Impl_Instance__acts_out.flaps_lt <= (2.0 * 50.0))))) and ((FCC_Impl_Instance__num_valid_flaps_lt = 2) => ((FCC_Impl_Instance__acts_out.flaps_lt >= 0.0) and (FCC_Impl_Instance__acts_out.flaps_lt <= ((4.0 / 3.0) * 50.0))))) and ((FCC_Impl_Instance__num_valid_flaps_lt = 3) => ((FCC_Impl_Instance__acts_out.flaps_lt >= 0.0) and (FCC_Impl_Instance__acts_out.flaps_lt <= 50.0)))));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+
+  --%REALIZABILITY {FCC_Impl_Instance__num_valid_ailerons, FCC_Impl_Instance__acts2_sense, FCC_Impl_Instance__num_valid_flaps_gt, FCC_Impl_Instance__num_valid_elevators, FCC_Impl_Instance__num_valid_spoiler, FCC_Impl_Instance__acts1_sense, FCC_Impl_Instance__acts3_sense, FCC_Impl_Instance__num_valid_rudder, FCC_Impl_Instance__egi4, FCC_Impl_Instance__ads1, FCC_Impl_Instance__ads2, FCC_Impl_Instance__num_valid_flaps_lt, FCC_Impl_Instance__acts_ret, FCC_Impl_Instance__egi3, FCC_Impl_Instance__aoa2, FCC_Impl_Instance__egi2, FCC_Impl_Instance__acts4_sense, FCC_Impl_Instance__egi1, FCC_Impl_Instance__aoa1};
+
+tel;
+

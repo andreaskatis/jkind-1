@@ -1,0 +1,107 @@
+node Defs__rising(
+  Formation_impl_Instance__signal : bool
+) returns (
+  Formation_impl_Instance__result : bool
+);
+let
+  Formation_impl_Instance__result = (false -> ((pre (not Formation_impl_Instance__signal)) and Formation_impl_Instance__signal));
+
+tel;
+
+node _MAIN(
+  Formation_impl_Instance__pend_leader : int;
+  Formation_impl_Instance__right_shift : bool;
+  Formation_impl_Instance__left_shift : bool;
+  Formation_impl_Instance__pend_right : int;
+  Formation_impl_Instance__right : int;
+  Formation_impl_Instance__leader : int;
+  Formation_impl_Instance__left : int;
+  Formation_impl_Instance__pend_left : int
+) returns (
+
+);
+var
+  Formation_impl_Instance__last_shift_right : bool;
+  Formation_impl_Instance__last_shift_left : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+  _SYS_GUARANTEE_2 : bool;
+  _SYS_GUARANTEE_3 : bool;
+  _SYS_GUARANTEE_4 : bool;
+  _SYS_GUARANTEE_5 : bool;
+  _SYS_GUARANTEE_6 : bool;
+  _SYS_GUARANTEE_7 : bool;
+  _SYS_GUARANTEE_8 : bool;
+  _SYS_GUARANTEE_9 : bool;
+  _SYS_GUARANTEE_10 : bool;
+  _SYS_GUARANTEE_11 : bool;
+  _SYS_GUARANTEE_12 : bool;
+  _SYS_GUARANTEE_13 : bool;
+  _SYS_GUARANTEE_14 : bool;
+  _SYS_GUARANTEE_15 : bool;
+  _SYS_GUARANTEE_16 : bool;
+let
+  --%MAIN
+  Formation_impl_Instance__last_shift_left = (false -> (Defs__rising(Formation_impl_Instance__left_shift) or ((pre Formation_impl_Instance__last_shift_left) and (not Defs__rising(Formation_impl_Instance__right_shift)))));
+
+  Formation_impl_Instance__last_shift_right = (false -> (Defs__rising(Formation_impl_Instance__right_shift) or ((pre Formation_impl_Instance__last_shift_right) and (not Defs__rising(Formation_impl_Instance__left_shift)))));
+
+  _SYSTEM_ASSUMP_HIST = (((((not (Formation_impl_Instance__left_shift and Formation_impl_Instance__right_shift)) and (true -> ((pre Defs__rising(Formation_impl_Instance__left_shift)) => (Formation_impl_Instance__left_shift or (((Formation_impl_Instance__pend_leader <> 3) and (Formation_impl_Instance__pend_right <> 3)) and (Formation_impl_Instance__pend_left <> 3)))))) and (true -> ((pre Defs__rising(Formation_impl_Instance__right_shift)) => (Formation_impl_Instance__right_shift or (((Formation_impl_Instance__pend_leader <> 3) and (Formation_impl_Instance__pend_right <> 3)) and (Formation_impl_Instance__pend_left <> 3)))))) and (true -> ((Defs__rising(Formation_impl_Instance__left_shift) or Defs__rising(Formation_impl_Instance__right_shift)) => ((((pre Formation_impl_Instance__leader) <> 3) and ((pre Formation_impl_Instance__right) <> 3)) and ((pre Formation_impl_Instance__left) <> 3))))) -> (((((not (Formation_impl_Instance__left_shift and Formation_impl_Instance__right_shift)) and (true -> ((pre Defs__rising(Formation_impl_Instance__left_shift)) => (Formation_impl_Instance__left_shift or (((Formation_impl_Instance__pend_leader <> 3) and (Formation_impl_Instance__pend_right <> 3)) and (Formation_impl_Instance__pend_left <> 3)))))) and (true -> ((pre Defs__rising(Formation_impl_Instance__right_shift)) => (Formation_impl_Instance__right_shift or (((Formation_impl_Instance__pend_leader <> 3) and (Formation_impl_Instance__pend_right <> 3)) and (Formation_impl_Instance__pend_left <> 3)))))) and (true -> ((Defs__rising(Formation_impl_Instance__left_shift) or Defs__rising(Formation_impl_Instance__right_shift)) => ((((pre Formation_impl_Instance__leader) <> 3) and ((pre Formation_impl_Instance__right) <> 3)) and ((pre Formation_impl_Instance__left) <> 3))))) and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => ((Formation_impl_Instance__leader >= 0) and (Formation_impl_Instance__leader <= 3)));
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => ((Formation_impl_Instance__right >= 0) and (Formation_impl_Instance__right <= 3)));
+
+  _SYS_GUARANTEE_2 = (_SYSTEM_ASSUMP_HIST => ((Formation_impl_Instance__left >= 0) and (Formation_impl_Instance__left <= 3)));
+
+  _SYS_GUARANTEE_3 = (_SYSTEM_ASSUMP_HIST => ((Formation_impl_Instance__pend_leader >= 0) and (Formation_impl_Instance__pend_leader <= 3)));
+
+  _SYS_GUARANTEE_4 = (_SYSTEM_ASSUMP_HIST => ((Formation_impl_Instance__pend_right >= 0) and (Formation_impl_Instance__pend_right <= 3)));
+
+  _SYS_GUARANTEE_5 = (_SYSTEM_ASSUMP_HIST => ((Formation_impl_Instance__pend_left >= 0) and (Formation_impl_Instance__pend_left <= 3)));
+
+  _SYS_GUARANTEE_6 = (_SYSTEM_ASSUMP_HIST => ((((Formation_impl_Instance__pend_leader <> 3) => ((Formation_impl_Instance__pend_leader <> Formation_impl_Instance__pend_right) and (Formation_impl_Instance__pend_leader <> Formation_impl_Instance__pend_left))) and ((Formation_impl_Instance__pend_right <> 3) => ((Formation_impl_Instance__pend_leader <> Formation_impl_Instance__pend_right) and (Formation_impl_Instance__pend_right <> Formation_impl_Instance__pend_left)))) and ((Formation_impl_Instance__pend_left <> 3) => ((Formation_impl_Instance__pend_leader <> Formation_impl_Instance__pend_left) and (Formation_impl_Instance__pend_right <> Formation_impl_Instance__pend_left)))));
+
+  _SYS_GUARANTEE_7 = (_SYSTEM_ASSUMP_HIST => ((((Formation_impl_Instance__leader <> 3) => ((Formation_impl_Instance__leader <> Formation_impl_Instance__right) and (Formation_impl_Instance__leader <> Formation_impl_Instance__left))) and ((Formation_impl_Instance__right <> 3) => ((Formation_impl_Instance__right <> Formation_impl_Instance__leader) and (Formation_impl_Instance__right <> Formation_impl_Instance__left)))) and ((Formation_impl_Instance__left <> 3) => ((Formation_impl_Instance__left <> Formation_impl_Instance__leader) and (Formation_impl_Instance__left <> Formation_impl_Instance__right)))));
+
+  _SYS_GUARANTEE_8 = (_SYSTEM_ASSUMP_HIST => ((((((((Formation_impl_Instance__leader = 0) or (Formation_impl_Instance__right = 0)) or (Formation_impl_Instance__left = 0)) or (Formation_impl_Instance__pend_leader = 0)) or (Formation_impl_Instance__pend_right = 0)) or (Formation_impl_Instance__pend_left = 0)) and ((((((Formation_impl_Instance__leader = 1) or (Formation_impl_Instance__right = 1)) or (Formation_impl_Instance__left = 1)) or (Formation_impl_Instance__pend_leader = 1)) or (Formation_impl_Instance__pend_right = 1)) or (Formation_impl_Instance__pend_left = 1))) and ((((((Formation_impl_Instance__leader = 2) or (Formation_impl_Instance__right = 2)) or (Formation_impl_Instance__left = 2)) or (Formation_impl_Instance__pend_leader = 2)) or (Formation_impl_Instance__pend_right = 2)) or (Formation_impl_Instance__pend_left = 2))));
+
+  _SYS_GUARANTEE_9 = (_SYSTEM_ASSUMP_HIST => (true -> (((pre Formation_impl_Instance__pend_right) <> 3) => (((pre Formation_impl_Instance__pend_right) <> Formation_impl_Instance__pend_right) => (Formation_impl_Instance__right = (pre Formation_impl_Instance__pend_right))))));
+
+  _SYS_GUARANTEE_10 = (_SYSTEM_ASSUMP_HIST => (true -> (((pre Formation_impl_Instance__pend_left) <> 3) => (((pre Formation_impl_Instance__pend_left) <> Formation_impl_Instance__pend_left) => (Formation_impl_Instance__left = (pre Formation_impl_Instance__pend_left))))));
+
+  _SYS_GUARANTEE_11 = (_SYSTEM_ASSUMP_HIST => (true -> (((pre Formation_impl_Instance__pend_leader) <> 3) => (((pre Formation_impl_Instance__pend_leader) <> Formation_impl_Instance__pend_leader) => (Formation_impl_Instance__leader = (pre Formation_impl_Instance__pend_leader))))));
+
+  _SYS_GUARANTEE_12 = (_SYSTEM_ASSUMP_HIST => (true -> ((Formation_impl_Instance__leader <> (pre Formation_impl_Instance__leader)) => (((pre Formation_impl_Instance__leader) = 3) or (Formation_impl_Instance__leader = 3)))));
+
+  _SYS_GUARANTEE_13 = (_SYSTEM_ASSUMP_HIST => (true -> ((Formation_impl_Instance__right <> (pre Formation_impl_Instance__right)) => (((pre Formation_impl_Instance__right) = 3) or (Formation_impl_Instance__right = 3)))));
+
+  _SYS_GUARANTEE_14 = (_SYSTEM_ASSUMP_HIST => (true -> ((Formation_impl_Instance__left <> (pre Formation_impl_Instance__left)) => (((pre Formation_impl_Instance__left) = 3) or (Formation_impl_Instance__left = 3)))));
+
+  _SYS_GUARANTEE_15 = (_SYSTEM_ASSUMP_HIST => (true -> (((((Formation_impl_Instance__pend_right = (pre Formation_impl_Instance__leader)) and (Formation_impl_Instance__pend_right <> 3)) => Formation_impl_Instance__last_shift_right) and (((Formation_impl_Instance__pend_left = (pre Formation_impl_Instance__right)) and (Formation_impl_Instance__pend_left <> 3)) => Formation_impl_Instance__last_shift_right)) and (((Formation_impl_Instance__pend_leader = (pre Formation_impl_Instance__left)) and (Formation_impl_Instance__pend_leader <> 3)) => Formation_impl_Instance__last_shift_right))));
+
+  _SYS_GUARANTEE_16 = (_SYSTEM_ASSUMP_HIST => (true -> (((((Formation_impl_Instance__pend_right = (pre Formation_impl_Instance__left)) and (Formation_impl_Instance__pend_right <> 3)) => Formation_impl_Instance__last_shift_left) and (((Formation_impl_Instance__pend_left = (pre Formation_impl_Instance__leader)) and (Formation_impl_Instance__pend_left <> 3)) => Formation_impl_Instance__last_shift_left)) and (((Formation_impl_Instance__pend_leader = (pre Formation_impl_Instance__right)) and (Formation_impl_Instance__pend_leader <> 3)) => Formation_impl_Instance__last_shift_left))));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+  --%PROPERTY _SYS_GUARANTEE_2;
+  --%PROPERTY _SYS_GUARANTEE_3;
+  --%PROPERTY _SYS_GUARANTEE_4;
+  --%PROPERTY _SYS_GUARANTEE_5;
+  --%PROPERTY _SYS_GUARANTEE_6;
+  --%PROPERTY _SYS_GUARANTEE_7;
+  --%PROPERTY _SYS_GUARANTEE_8;
+  --%PROPERTY _SYS_GUARANTEE_9;
+  --%PROPERTY _SYS_GUARANTEE_10;
+  --%PROPERTY _SYS_GUARANTEE_11;
+  --%PROPERTY _SYS_GUARANTEE_12;
+  --%PROPERTY _SYS_GUARANTEE_13;
+  --%PROPERTY _SYS_GUARANTEE_14;
+  --%PROPERTY _SYS_GUARANTEE_15;
+  --%PROPERTY _SYS_GUARANTEE_16;
+
+  --%REALIZABILITY {Formation_impl_Instance__right_shift, Formation_impl_Instance__left_shift};
+
+tel;
+

@@ -1,0 +1,36 @@
+type DATATYPES__Device_Configuration_Inputs__Impl = struct {Audio_Enable_Duration : int; Audio_Level : int; Config_Warning_Duration : int; Empty_Reservoir : int; Log_Interval : int; Low_Reservoir : int; Max_Config_Duration : int; Max_Confirm_Stop_Duration : int; Max_Display_Duration : int; Max_Duration_Over_Infusion : int; Max_Duration_Under_Infusion : int; Max_Idle_Duration : int; Max_Paused_Duration : int; System_Test_Inteval : int; Tolerance_Max : int; Tolerance_Min : int};
+type DATATYPES__Top_Level_Mode_Outputs__Impl = struct {Log_Message_ID : int; Request_Confirm_Stop : bool; System_On : bool};
+type DATATYPES__Operator_Commands__Impl = struct {Back : bool; Cancel : bool; Configuration_Type : int; Confirm_Stop : bool; Data_Config : bool; Disable_Audio : int; Infusion_Cancel : bool; Infusion_Inhibit : bool; Infusion_Initiate : bool; Keyboard : bool; Next : bool; Notification_Cancel : bool; System_Start : bool; System_Stop : bool};
+
+node _MAIN(
+  Top_Level_Mode_Impl_Instance__CONST_IN : DATATYPES__Device_Configuration_Inputs__Impl;
+  Top_Level_Mode_Impl_Instance__OP_CMD_IN : DATATYPES__Operator_Commands__Impl;
+  Top_Level_Mode_Impl_Instance__TLM_MODE_OUT : DATATYPES__Top_Level_Mode_Outputs__Impl
+) returns (
+
+);
+var
+  Top_Level_Mode_Impl_Instance__not_system_start_implies_system_off : bool;
+  Top_Level_Mode_Impl_Instance__system_start_implies_system_on : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+let
+  --%MAIN
+  Top_Level_Mode_Impl_Instance__system_start_implies_system_on = (Top_Level_Mode_Impl_Instance__OP_CMD_IN.System_Start => Top_Level_Mode_Impl_Instance__TLM_MODE_OUT.System_On);
+
+  Top_Level_Mode_Impl_Instance__not_system_start_implies_system_off = ((not Top_Level_Mode_Impl_Instance__OP_CMD_IN.System_Start) => (not Top_Level_Mode_Impl_Instance__TLM_MODE_OUT.System_On));
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => Top_Level_Mode_Impl_Instance__system_start_implies_system_on);
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => Top_Level_Mode_Impl_Instance__not_system_start_implies_system_off);
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+
+  --%REALIZABILITY {Top_Level_Mode_Impl_Instance__CONST_IN, Top_Level_Mode_Impl_Instance__OP_CMD_IN};
+
+tel;
+

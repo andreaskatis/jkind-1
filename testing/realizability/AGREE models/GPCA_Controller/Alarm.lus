@@ -1,0 +1,129 @@
+type DATATYPES__Device_Configuration_Inputs__Impl = struct {Audio_Enable_Duration : int; Audio_Level : int; Config_Warning_Duration : int; Empty_Reservoir : int; Log_Interval : int; Low_Reservoir : int; Max_Config_Duration : int; Max_Confirm_Stop_Duration : int; Max_Display_Duration : int; Max_Duration_Over_Infusion : int; Max_Duration_Under_Infusion : int; Max_Idle_Duration : int; Max_Paused_Duration : int; System_Test_Inteval : int; Tolerance_Max : int; Tolerance_Min : int};
+type DATATYPES__Device_Sensor_Inputs__Impl = struct {Air_In_Line : bool; Air_Pressure : bool; Battery_Depleted : bool; Battery_Low : bool; Battery_Unable_To_Charge : bool; CPU_Error : bool; Door_Open : bool; Flow_Rate : int; Flow_Rate_Not_Stable : bool; Humidity : bool; Log : bool; Memory_Corrupted : bool; Occlusion : bool; Post_Successful : bool; Pump_Overheated : bool; Pump_Primed : bool; Pump_Too_Hot : bool; RTC_Error : bool; Supply_Voltage : bool; Temp : bool; WatchDog_Interrupt_Detected : bool};
+type DATATYPES__Alarm_Outputs__Impl = struct {Audio_Notification_Command : int; Highest_Level_Alarm : int; Is_Audio_Disabled : int; Log_Message_ID : int; Notification_Message : int};
+type DATATYPES__Config_Outputs__Impl = struct {Config_Mode : int; Config_Timer : int; Configured : int; Drug_Concentration : int; Drug_Name : int; Duration_Intermittent_Bolus : int; Duration_Patient_Bolus : int; Entered_Reservoir_Volume : int; Error_Message_ID : int; Flow_Rate_Basal : int; Flow_Rate_Intermittent_Bolus : int; Flow_Rate_KVO : int; Flow_Rate_Patient_Bolus : int; Infusion_Total_Duration : int; Interval_Intermittent_Bolus : int; Lockout_Period_Patient_Bolus : int; Log_Message_ID : int; Max_Number_of_Patient_Bolus : int; Patient_ID : int; Request_Config_Type : bool; Request_Confirm_Infusion_Initiate : bool; Request_Infusion_Info : bool; Request_Patient_Drug_Info : bool; Reservoir_Volume : int; VTBI_Total : int};
+type DATATYPES__System_Monitor_Output__Impl = struct {System_Monitor_Failed : bool};
+type DATATYPES__System_Status_Outputs__Impl = struct {In_Therapy : bool; Log_Message_ID : int; Reservoir_Empty : bool; Reservoir_Volume : int; Volume_Infused : int};
+type DATATYPES__Infusion_Manager_Outputs__Impl = struct {Actual_Infusion_Duration : int; Commanded_Flow_Rate : int; Current_System_Mode : int; Log_Message_ID : int; New_Infusion : bool};
+type DATATYPES__Top_Level_Mode_Outputs__Impl = struct {Log_Message_ID : int; Request_Confirm_Stop : bool; System_On : bool};
+type DATATYPES__Log_Output__Impl = struct {Log : int; Logging_Failed : bool};
+type DATATYPES__Drug_Database_Inputs__Impl = struct {Drug_Concentration_High : int; Drug_Concentration_Low : int; Drug_Name : int; Flow_Rate_High : int; Flow_Rate_KVO : int; Flow_Rate_Low : int; Inteval_Patient_Bolus : int; Known_Prescription : bool; Number_Max_Patient_Bolus : int; VTBI_High : int; VTBI_Low : int};
+type DATATYPES__Operator_Commands__Impl = struct {Back : bool; Cancel : bool; Configuration_Type : int; Confirm_Stop : bool; Data_Config : bool; Disable_Audio : int; Infusion_Cancel : bool; Infusion_Inhibit : bool; Infusion_Initiate : bool; Keyboard : bool; Next : bool; Notification_Cancel : bool; System_Start : bool; System_Stop : bool};
+
+node _MAIN(
+  Alarm_Impl_Instance__SYS_STAT_IN : DATATYPES__System_Status_Outputs__Impl;
+  Alarm_Impl_Instance__SYS_MON_IN : DATATYPES__System_Monitor_Output__Impl;
+  Alarm_Impl_Instance__TLM_MODE_IN : DATATYPES__Top_Level_Mode_Outputs__Impl;
+  Alarm_Impl_Instance__DB_IN : DATATYPES__Drug_Database_Inputs__Impl;
+  Alarm_Impl_Instance__IM_IN : DATATYPES__Infusion_Manager_Outputs__Impl;
+  Alarm_Impl_Instance__OP_CMD_IN : DATATYPES__Operator_Commands__Impl;
+  Alarm_Impl_Instance__CONFIG_IN : DATATYPES__Config_Outputs__Impl;
+  Alarm_Impl_Instance__LOGGING_IN : DATATYPES__Log_Output__Impl;
+  Alarm_Impl_Instance__SENSOR_IN : DATATYPES__Device_Sensor_Inputs__Impl;
+  Alarm_Impl_Instance__CONST_IN : DATATYPES__Device_Configuration_Inputs__Impl;
+  Alarm_Impl_Instance__ALARM_OUT : DATATYPES__Alarm_Outputs__Impl
+) returns (
+
+);
+var
+  Alarm_Impl_Instance__alarm_gt_3_no_audio_disable_implies_audio : bool;
+  Alarm_Impl_Instance__low_reservoir_implies_alarm_L2 : bool;
+  Alarm_Impl_Instance__flow_rate_exceeds_flow_rate_Hi : bool;
+  Alarm_Impl_Instance__empty_reservoir_implies_alarm_L4 : bool;
+  Alarm_Impl_Instance__occlusion_implies_grt_L3_alarm : bool;
+  Alarm_Impl_Instance__no_audio_if_audio_disabled : bool;
+  Alarm_Impl_Instance__alarm_range : bool;
+  Alarm_Impl_Instance__door_open_implies_grt_L3_alarm : bool;
+  Alarm_Impl_Instance__air_in_line_implies_grt_L3_alarm : bool;
+  Alarm_Impl_Instance__empty_reservoir_implies_visual_1 : bool;
+  Alarm_Impl_Instance__other_level_4_alarms : bool;
+  Alarm_Impl_Instance__alarm_gte_L3_causes_audio_output_EQ_audio_level : bool;
+  Alarm_Impl_Instance__volume_infused : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+  _SYS_GUARANTEE_2 : bool;
+  _SYS_GUARANTEE_3 : bool;
+  _SYS_GUARANTEE_4 : bool;
+  _SYS_GUARANTEE_5 : bool;
+  _SYS_GUARANTEE_6 : bool;
+  _SYS_GUARANTEE_7 : bool;
+  _SYS_GUARANTEE_8 : bool;
+  _SYS_GUARANTEE_9 : bool;
+  _SYS_GUARANTEE_10 : bool;
+  _SYS_GUARANTEE_11 : bool;
+  _SYS_GUARANTEE_12 : bool;
+let
+  --%MAIN
+  Alarm_Impl_Instance__volume_infused = (((Alarm_Impl_Instance__TLM_MODE_IN.System_On and Alarm_Impl_Instance__SYS_STAT_IN.In_Therapy) and (Alarm_Impl_Instance__SYS_STAT_IN.Volume_Infused > Alarm_Impl_Instance__DB_IN.VTBI_High)) => (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm >= 3));
+
+  Alarm_Impl_Instance__alarm_range = ((((Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm = 1) or (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm = 2)) or (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm = 3)) or (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm = 4));
+
+  Alarm_Impl_Instance__empty_reservoir_implies_alarm_L4 = (((Alarm_Impl_Instance__TLM_MODE_IN.System_On and Alarm_Impl_Instance__SYS_STAT_IN.In_Therapy) and Alarm_Impl_Instance__SYS_STAT_IN.Reservoir_Empty) => (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm = 4));
+
+  Alarm_Impl_Instance__low_reservoir_implies_alarm_L2 = (((Alarm_Impl_Instance__TLM_MODE_IN.System_On and Alarm_Impl_Instance__SYS_STAT_IN.In_Therapy) and (Alarm_Impl_Instance__SYS_STAT_IN.Reservoir_Volume < Alarm_Impl_Instance__CONST_IN.Low_Reservoir)) => (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm >= 2));
+
+  Alarm_Impl_Instance__air_in_line_implies_grt_L3_alarm = ((Alarm_Impl_Instance__TLM_MODE_IN.System_On and Alarm_Impl_Instance__SENSOR_IN.Air_In_Line) => (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm >= 3));
+
+  Alarm_Impl_Instance__occlusion_implies_grt_L3_alarm = ((Alarm_Impl_Instance__TLM_MODE_IN.System_On and Alarm_Impl_Instance__SENSOR_IN.Occlusion) => (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm >= 3));
+
+  Alarm_Impl_Instance__door_open_implies_grt_L3_alarm = ((Alarm_Impl_Instance__TLM_MODE_IN.System_On and Alarm_Impl_Instance__SENSOR_IN.Door_Open) => (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm >= 3));
+
+  Alarm_Impl_Instance__alarm_gte_L3_causes_audio_output_EQ_audio_level = (((Alarm_Impl_Instance__TLM_MODE_IN.System_On and (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm >= 3)) and (Alarm_Impl_Instance__OP_CMD_IN.Disable_Audio = 0)) => ((Alarm_Impl_Instance__ALARM_OUT.Audio_Notification_Command = Alarm_Impl_Instance__CONST_IN.Audio_Level) and (Alarm_Impl_Instance__ALARM_OUT.Is_Audio_Disabled = 0)));
+
+  Alarm_Impl_Instance__no_audio_if_audio_disabled = ((Alarm_Impl_Instance__TLM_MODE_IN.System_On and (Alarm_Impl_Instance__OP_CMD_IN.Disable_Audio > 0)) => ((Alarm_Impl_Instance__ALARM_OUT.Audio_Notification_Command = 0) and (Alarm_Impl_Instance__ALARM_OUT.Is_Audio_Disabled = Alarm_Impl_Instance__OP_CMD_IN.Disable_Audio)));
+
+  Alarm_Impl_Instance__other_level_4_alarms = ((Alarm_Impl_Instance__TLM_MODE_IN.System_On and (((((Alarm_Impl_Instance__SENSOR_IN.Battery_Depleted or Alarm_Impl_Instance__SENSOR_IN.RTC_Error) or Alarm_Impl_Instance__SENSOR_IN.CPU_Error) or Alarm_Impl_Instance__SENSOR_IN.Memory_Corrupted) or Alarm_Impl_Instance__SENSOR_IN.Pump_Too_Hot) or Alarm_Impl_Instance__SENSOR_IN.WatchDog_Interrupt_Detected)) => (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm = 4));
+
+  Alarm_Impl_Instance__flow_rate_exceeds_flow_rate_Hi = (true -> (((Alarm_Impl_Instance__TLM_MODE_IN.System_On and Alarm_Impl_Instance__SYS_STAT_IN.In_Therapy) and (Alarm_Impl_Instance__SENSOR_IN.Flow_Rate > Alarm_Impl_Instance__DB_IN.Flow_Rate_High)) => (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm >= 3)));
+
+  Alarm_Impl_Instance__alarm_gt_3_no_audio_disable_implies_audio = (true -> (((Alarm_Impl_Instance__TLM_MODE_IN.System_On and (Alarm_Impl_Instance__ALARM_OUT.Highest_Level_Alarm >= 3)) and (Alarm_Impl_Instance__OP_CMD_IN.Disable_Audio = 0)) => ((Alarm_Impl_Instance__ALARM_OUT.Audio_Notification_Command = Alarm_Impl_Instance__CONST_IN.Audio_Level) and (Alarm_Impl_Instance__ALARM_OUT.Is_Audio_Disabled = Alarm_Impl_Instance__OP_CMD_IN.Disable_Audio))));
+
+  Alarm_Impl_Instance__empty_reservoir_implies_visual_1 = (true -> (((Alarm_Impl_Instance__TLM_MODE_IN.System_On and Alarm_Impl_Instance__SYS_STAT_IN.In_Therapy) and Alarm_Impl_Instance__SYS_STAT_IN.Reservoir_Empty) => (Alarm_Impl_Instance__ALARM_OUT.Notification_Message = 1)));
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__volume_infused);
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__alarm_range);
+
+  _SYS_GUARANTEE_2 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__empty_reservoir_implies_alarm_L4);
+
+  _SYS_GUARANTEE_3 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__low_reservoir_implies_alarm_L2);
+
+  _SYS_GUARANTEE_4 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__air_in_line_implies_grt_L3_alarm);
+
+  _SYS_GUARANTEE_5 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__occlusion_implies_grt_L3_alarm);
+
+  _SYS_GUARANTEE_6 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__door_open_implies_grt_L3_alarm);
+
+  _SYS_GUARANTEE_7 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__alarm_gte_L3_causes_audio_output_EQ_audio_level);
+
+  _SYS_GUARANTEE_8 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__no_audio_if_audio_disabled);
+
+  _SYS_GUARANTEE_9 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__other_level_4_alarms);
+
+  _SYS_GUARANTEE_10 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__flow_rate_exceeds_flow_rate_Hi);
+
+  _SYS_GUARANTEE_11 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__alarm_gt_3_no_audio_disable_implies_audio);
+
+  _SYS_GUARANTEE_12 = (_SYSTEM_ASSUMP_HIST => Alarm_Impl_Instance__empty_reservoir_implies_visual_1);
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+  --%PROPERTY _SYS_GUARANTEE_2;
+  --%PROPERTY _SYS_GUARANTEE_3;
+  --%PROPERTY _SYS_GUARANTEE_4;
+  --%PROPERTY _SYS_GUARANTEE_5;
+  --%PROPERTY _SYS_GUARANTEE_6;
+  --%PROPERTY _SYS_GUARANTEE_7;
+  --%PROPERTY _SYS_GUARANTEE_8;
+  --%PROPERTY _SYS_GUARANTEE_9;
+  --%PROPERTY _SYS_GUARANTEE_10;
+  --%PROPERTY _SYS_GUARANTEE_11;
+  --%PROPERTY _SYS_GUARANTEE_12;
+
+  --%REALIZABILITY {Alarm_Impl_Instance__SYS_STAT_IN, Alarm_Impl_Instance__SYS_MON_IN, Alarm_Impl_Instance__TLM_MODE_IN, Alarm_Impl_Instance__DB_IN, Alarm_Impl_Instance__IM_IN, Alarm_Impl_Instance__CONFIG_IN, Alarm_Impl_Instance__OP_CMD_IN, Alarm_Impl_Instance__CONST_IN, Alarm_Impl_Instance__SENSOR_IN, Alarm_Impl_Instance__LOGGING_IN};
+
+tel;
+

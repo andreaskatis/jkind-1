@@ -1,0 +1,75 @@
+type FGS__Lateral_Modes__Lateral_Modes_Impl = struct {HDG_active : bool; ROLL_active : bool};
+type FGS__Flight_Modes__Flight_Modes_Impl = struct {active : bool; lat : FGS__Lateral_Modes__Lateral_Modes_Impl; ver : int};
+type ADS__Air_Data__Air_Data_Impl = struct {AirSpeed : ADS__Airspeed__Airspeed_Impl; Pitch : ADS__Pitch__Pitch_Impl};
+type ADS__Pitch__Pitch_Impl = struct {Val : real; Valid : bool};
+type FGS__Guidance_Data__Guidance_Data_Impl = struct {cmds : FGS__Guidance_Commands__Guidance_Commands_Impl; mds : FGS__Flight_Modes__Flight_Modes_Impl};
+type FGS__Guidance_Commands__Guidance_Commands_Impl = struct {Pitch_Delta : real; Pitch_Valid : bool};
+type ADS__Airspeed__Airspeed_Impl = struct {Val : real; Valid : bool};
+type APS__Control_Surface_Actuator_Data__Control_Surface_Actuator_Data_Impl = struct {CSA_Pitch_Delta : real; CSA_Pitch_Valid : bool};
+
+node FCS__Flight_Control_System__abs(
+  Flight_Control_System_Flight_Control_System_Impl_Instance__x : real
+) returns (
+  _outvar : real
+);
+let
+  _outvar = (if (Flight_Control_System_Flight_Control_System_Impl_Instance__x > 0.0) then Flight_Control_System_Flight_Control_System_Impl_Instance__x else (-Flight_Control_System_Flight_Control_System_Impl_Instance__x));
+
+tel;
+
+node _MAIN(
+  Flight_Control_System_Flight_Control_System_Impl_Instance__YOKE_R : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__THROT_R : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__NAV_R : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R : ADS__Air_Data__Air_Data_Impl;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__AH_L : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__FM_R : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__THROT_L : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L : ADS__Air_Data__Air_Data_Impl;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__FD_L : FGS__Guidance_Data__Guidance_Data_Impl;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__YOKE_L : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__NAV_L : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__FM_L : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__AH_R : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__FD_R : FGS__Guidance_Data__Guidance_Data_Impl;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__CSA : APS__Control_Surface_Actuator_Data__Control_Surface_Actuator_Data_Impl
+) returns (
+
+);
+var
+  Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__right_side_valid : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__some_side_valid : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L_Pitch_Step_Delta_Valid : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__pitch_lr_ok : bool;
+  Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R_Pitch_Step_Delta_Valid : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+let
+  --%MAIN
+  Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L_Pitch_Step_Delta_Valid = (true -> (FCS__Flight_Control_System__abs((Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L.Pitch.Val - (0.0 -> (pre Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L.Pitch.Val)))) < 1.0));
+
+  Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R_Pitch_Step_Delta_Valid = (true -> (FCS__Flight_Control_System__abs((Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R.Pitch.Val - (0.0 -> (pre Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R.Pitch.Val)))) < 1.0));
+
+  Flight_Control_System_Flight_Control_System_Impl_Instance__pitch_lr_ok = (FCS__Flight_Control_System__abs((Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L.Pitch.Val - Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R.Pitch.Val)) < 2.0);
+
+  Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid = Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L.Pitch.Valid;
+
+  Flight_Control_System_Flight_Control_System_Impl_Instance__right_side_valid = Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R.Pitch.Valid;
+
+  Flight_Control_System_Flight_Control_System_Impl_Instance__some_side_valid = (Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid or Flight_Control_System_Flight_Control_System_Impl_Instance__right_side_valid);
+
+  _SYSTEM_ASSUMP_HIST = (((Flight_Control_System_Flight_Control_System_Impl_Instance__some_side_valid and (((false -> (pre (false -> (pre (not Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid))))) and (false -> (pre Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid))) => Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid)) and ((Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L_Pitch_Step_Delta_Valid and Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R_Pitch_Step_Delta_Valid) and Flight_Control_System_Flight_Control_System_Impl_Instance__pitch_lr_ok)) -> (((Flight_Control_System_Flight_Control_System_Impl_Instance__some_side_valid and (((false -> (pre (false -> (pre (not Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid))))) and (false -> (pre Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid))) => Flight_Control_System_Flight_Control_System_Impl_Instance__left_side_valid)) and ((Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L_Pitch_Step_Delta_Valid and Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R_Pitch_Step_Delta_Valid) and Flight_Control_System_Flight_Control_System_Impl_Instance__pitch_lr_ok)) and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => (true -> (FCS__Flight_Control_System__abs(Flight_Control_System_Flight_Control_System_Impl_Instance__CSA.CSA_Pitch_Delta) < 5.0)));
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => (true -> (FCS__Flight_Control_System__abs((Flight_Control_System_Flight_Control_System_Impl_Instance__CSA.CSA_Pitch_Delta - (0.0 -> (pre Flight_Control_System_Flight_Control_System_Impl_Instance__CSA.CSA_Pitch_Delta)))) < 5.0)));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+
+  --%REALIZABILITY {Flight_Control_System_Flight_Control_System_Impl_Instance__YOKE_R, Flight_Control_System_Flight_Control_System_Impl_Instance__THROT_R, Flight_Control_System_Flight_Control_System_Impl_Instance__NAV_R, Flight_Control_System_Flight_Control_System_Impl_Instance__AD_R, Flight_Control_System_Flight_Control_System_Impl_Instance__AH_L, Flight_Control_System_Flight_Control_System_Impl_Instance__FM_R, Flight_Control_System_Flight_Control_System_Impl_Instance__THROT_L, Flight_Control_System_Flight_Control_System_Impl_Instance__AD_L, Flight_Control_System_Flight_Control_System_Impl_Instance__YOKE_L, Flight_Control_System_Flight_Control_System_Impl_Instance__NAV_L, Flight_Control_System_Flight_Control_System_Impl_Instance__FM_L, Flight_Control_System_Flight_Control_System_Impl_Instance__AH_R};
+
+tel;
+

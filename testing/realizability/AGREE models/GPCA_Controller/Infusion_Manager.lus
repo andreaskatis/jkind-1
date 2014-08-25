@@ -1,0 +1,117 @@
+type DATATYPES__Alarm_Outputs__Impl = struct {Audio_Notification_Command : int; Highest_Level_Alarm : int; Is_Audio_Disabled : int; Log_Message_ID : int; Notification_Message : int};
+type DATATYPES__Config_Outputs__Impl = struct {Config_Mode : int; Config_Timer : int; Configured : int; Drug_Concentration : int; Drug_Name : int; Duration_Intermittent_Bolus : int; Duration_Patient_Bolus : int; Entered_Reservoir_Volume : int; Error_Message_ID : int; Flow_Rate_Basal : int; Flow_Rate_Intermittent_Bolus : int; Flow_Rate_KVO : int; Flow_Rate_Patient_Bolus : int; Infusion_Total_Duration : int; Interval_Intermittent_Bolus : int; Lockout_Period_Patient_Bolus : int; Log_Message_ID : int; Max_Number_of_Patient_Bolus : int; Patient_ID : int; Request_Config_Type : bool; Request_Confirm_Infusion_Initiate : bool; Request_Infusion_Info : bool; Request_Patient_Drug_Info : bool; Reservoir_Volume : int; VTBI_Total : int};
+type DATATYPES__System_Status_Outputs__Impl = struct {In_Therapy : bool; Log_Message_ID : int; Reservoir_Empty : bool; Reservoir_Volume : int; Volume_Infused : int};
+type DATATYPES__Top_Level_Mode_Outputs__Impl = struct {Log_Message_ID : int; Request_Confirm_Stop : bool; System_On : bool};
+type DATATYPES__Infusion_Manager_Outputs__Impl = struct {Actual_Infusion_Duration : int; Commanded_Flow_Rate : int; Current_System_Mode : int; Log_Message_ID : int; New_Infusion : bool};
+type DATATYPES__Patient_Inputs__Impl = struct {Patient_Bolus_Request : bool};
+type DATATYPES__Operator_Commands__Impl = struct {Back : bool; Cancel : bool; Configuration_Type : int; Confirm_Stop : bool; Data_Config : bool; Disable_Audio : int; Infusion_Cancel : bool; Infusion_Inhibit : bool; Infusion_Initiate : bool; Keyboard : bool; Next : bool; Notification_Cancel : bool; System_Start : bool; System_Stop : bool};
+
+node _MAIN(
+  Infusion_Manager_Impl_Instance__SYS_STAT_IN : DATATYPES__System_Status_Outputs__Impl;
+  Infusion_Manager_Impl_Instance__ALARM_IN : DATATYPES__Alarm_Outputs__Impl;
+  Infusion_Manager_Impl_Instance__TLM_MODE_IN : DATATYPES__Top_Level_Mode_Outputs__Impl;
+  Infusion_Manager_Impl_Instance__CONFIG_IN : DATATYPES__Config_Outputs__Impl;
+  Infusion_Manager_Impl_Instance__OP_CMD_IN : DATATYPES__Operator_Commands__Impl;
+  Infusion_Manager_Impl_Instance__PATIENT_IN : DATATYPES__Patient_Inputs__Impl;
+  Infusion_Manager_Impl_Instance__IM_OUT : DATATYPES__Infusion_Manager_Outputs__Impl
+) returns (
+
+);
+var
+  Infusion_Manager_Impl_Instance__initial_system_on_implies_idle : bool;
+  Infusion_Manager_Impl_Instance__infusion_cancel_implies_flow_0 : bool;
+  Infusion_Manager_Impl_Instance__infusion_pause_implies_flow_kvo : bool;
+  Infusion_Manager_Impl_Instance__alarm_L2_implies_no_bolus : bool;
+  Infusion_Manager_Impl_Instance__mode_0_1_implies_flow_rate_0 : bool;
+  Infusion_Manager_Impl_Instance__IM_initial : bool;
+  Infusion_Manager_Impl_Instance__system_on_implies_idle : bool;
+  Infusion_Manager_Impl_Instance__no_config_implies_mode_1 : bool;
+  Infusion_Manager_Impl_Instance__mode_range : bool;
+  Infusion_Manager_Impl_Instance__no_patient_request_imples_no_pbolus : bool;
+  Infusion_Manager_Impl_Instance__alarm_L4_implies_flow_rate_zero : bool;
+  Infusion_Manager_Impl_Instance__alarm_L3_implies_flow_rate_kvo : bool;
+  Infusion_Manager_Impl_Instance__not_system_on_implies_mode_0 : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+  _SYS_GUARANTEE_2 : bool;
+  _SYS_GUARANTEE_3 : bool;
+  _SYS_GUARANTEE_4 : bool;
+  _SYS_GUARANTEE_5 : bool;
+  _SYS_GUARANTEE_6 : bool;
+  _SYS_GUARANTEE_7 : bool;
+  _SYS_GUARANTEE_8 : bool;
+  _SYS_GUARANTEE_9 : bool;
+  _SYS_GUARANTEE_10 : bool;
+  _SYS_GUARANTEE_11 : bool;
+let
+  --%MAIN
+  Infusion_Manager_Impl_Instance__IM_initial = (true -> false);
+
+  Infusion_Manager_Impl_Instance__mode_range = (((((((((Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 0) and (Infusion_Manager_Impl_Instance__IM_OUT.Commanded_Flow_Rate = 0)) or ((Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 1) and (Infusion_Manager_Impl_Instance__IM_OUT.Commanded_Flow_Rate = 0))) or (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 2)) or (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 3)) or (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 4)) or (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 6)) or (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 7)) or (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 8));
+
+  Infusion_Manager_Impl_Instance__initial_system_on_implies_idle = ((Infusion_Manager_Impl_Instance__IM_initial and Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On) => (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 1));
+
+  Infusion_Manager_Impl_Instance__system_on_implies_idle = ((((not Infusion_Manager_Impl_Instance__IM_initial) and ((pre Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode) = 0)) and Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On) => ((Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 1) and (Infusion_Manager_Impl_Instance__IM_OUT.Commanded_Flow_Rate = 0)));
+
+  Infusion_Manager_Impl_Instance__not_system_on_implies_mode_0 = ((not Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On) => (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 0));
+
+  Infusion_Manager_Impl_Instance__mode_0_1_implies_flow_rate_0 = (((not Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On) and (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode < 2)) => (Infusion_Manager_Impl_Instance__IM_OUT.Commanded_Flow_Rate = 0));
+
+  Infusion_Manager_Impl_Instance__alarm_L4_implies_flow_rate_zero = ((Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On and (Infusion_Manager_Impl_Instance__ALARM_IN.Highest_Level_Alarm = 4)) => (Infusion_Manager_Impl_Instance__IM_OUT.Commanded_Flow_Rate = 0));
+
+  Infusion_Manager_Impl_Instance__alarm_L3_implies_flow_rate_kvo = ((Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On and (Infusion_Manager_Impl_Instance__ALARM_IN.Highest_Level_Alarm = 3)) => (Infusion_Manager_Impl_Instance__IM_OUT.Commanded_Flow_Rate = Infusion_Manager_Impl_Instance__CONFIG_IN.Flow_Rate_KVO));
+
+  Infusion_Manager_Impl_Instance__alarm_L2_implies_no_bolus = ((Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On and (Infusion_Manager_Impl_Instance__ALARM_IN.Highest_Level_Alarm = 2)) => ((not (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 3)) or (not (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 4))));
+
+  Infusion_Manager_Impl_Instance__infusion_cancel_implies_flow_0 = (true -> ((Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On and Infusion_Manager_Impl_Instance__OP_CMD_IN.Infusion_Cancel) => (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 1)));
+
+  Infusion_Manager_Impl_Instance__infusion_pause_implies_flow_kvo = (true -> ((Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On and Infusion_Manager_Impl_Instance__OP_CMD_IN.Infusion_Inhibit) => (Infusion_Manager_Impl_Instance__IM_OUT.Commanded_Flow_Rate <= Infusion_Manager_Impl_Instance__CONFIG_IN.Flow_Rate_KVO)));
+
+  Infusion_Manager_Impl_Instance__no_config_implies_mode_1 = ((Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On and (Infusion_Manager_Impl_Instance__CONFIG_IN.Configured < 1)) => (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 1));
+
+  Infusion_Manager_Impl_Instance__no_patient_request_imples_no_pbolus = (((Infusion_Manager_Impl_Instance__TLM_MODE_IN.System_On and (not (pre (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 4)))) and (not Infusion_Manager_Impl_Instance__PATIENT_IN.Patient_Bolus_Request)) => (not (Infusion_Manager_Impl_Instance__IM_OUT.Current_System_Mode = 4)));
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__mode_range);
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__initial_system_on_implies_idle);
+
+  _SYS_GUARANTEE_2 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__system_on_implies_idle);
+
+  _SYS_GUARANTEE_3 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__not_system_on_implies_mode_0);
+
+  _SYS_GUARANTEE_4 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__mode_0_1_implies_flow_rate_0);
+
+  _SYS_GUARANTEE_5 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__alarm_L4_implies_flow_rate_zero);
+
+  _SYS_GUARANTEE_6 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__alarm_L3_implies_flow_rate_kvo);
+
+  _SYS_GUARANTEE_7 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__alarm_L2_implies_no_bolus);
+
+  _SYS_GUARANTEE_8 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__infusion_cancel_implies_flow_0);
+
+  _SYS_GUARANTEE_9 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__infusion_pause_implies_flow_kvo);
+
+  _SYS_GUARANTEE_10 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__no_config_implies_mode_1);
+
+  _SYS_GUARANTEE_11 = (_SYSTEM_ASSUMP_HIST => Infusion_Manager_Impl_Instance__no_patient_request_imples_no_pbolus);
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+  --%PROPERTY _SYS_GUARANTEE_2;
+  --%PROPERTY _SYS_GUARANTEE_3;
+  --%PROPERTY _SYS_GUARANTEE_4;
+  --%PROPERTY _SYS_GUARANTEE_5;
+  --%PROPERTY _SYS_GUARANTEE_6;
+  --%PROPERTY _SYS_GUARANTEE_7;
+  --%PROPERTY _SYS_GUARANTEE_8;
+  --%PROPERTY _SYS_GUARANTEE_9;
+  --%PROPERTY _SYS_GUARANTEE_10;
+  --%PROPERTY _SYS_GUARANTEE_11;
+
+  --%REALIZABILITY {Infusion_Manager_Impl_Instance__SYS_STAT_IN, Infusion_Manager_Impl_Instance__ALARM_IN, Infusion_Manager_Impl_Instance__TLM_MODE_IN, Infusion_Manager_Impl_Instance__CONFIG_IN, Infusion_Manager_Impl_Instance__OP_CMD_IN, Infusion_Manager_Impl_Instance__PATIENT_IN};
+
+tel;
+

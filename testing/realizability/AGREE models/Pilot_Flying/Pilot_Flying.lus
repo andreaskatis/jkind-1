@@ -1,0 +1,84 @@
+node Agree_Nodes__Rise(
+  Pilot_Flying_Pilot_Flying_Impl_Instance__p : bool
+) returns (
+  Pilot_Flying_Pilot_Flying_Impl_Instance__r : bool
+);
+let
+  Pilot_Flying_Pilot_Flying_Impl_Instance__r = (false -> ((not (pre Pilot_Flying_Pilot_Flying_Impl_Instance__p)) and Pilot_Flying_Pilot_Flying_Impl_Instance__p));
+
+tel;
+
+node Pilot_Flying__Pilot_Flying__PRESSED(
+  Pilot_Flying_Pilot_Flying_Impl_Instance__p : bool
+) returns (
+  Pilot_Flying_Pilot_Flying_Impl_Instance__r : bool
+);
+let
+  Pilot_Flying_Pilot_Flying_Impl_Instance__r = Agree_Nodes__Rise(Pilot_Flying_Pilot_Flying_Impl_Instance__p);
+
+tel;
+
+node Agree_Nodes__Changed(
+  Pilot_Flying_Pilot_Flying_Impl_Instance__p : bool
+) returns (
+  Pilot_Flying_Pilot_Flying_Impl_Instance__r : bool
+);
+let
+  Pilot_Flying_Pilot_Flying_Impl_Instance__r = (false -> (Pilot_Flying_Pilot_Flying_Impl_Instance__p <> (pre Pilot_Flying_Pilot_Flying_Impl_Instance__p)));
+
+tel;
+
+node Pilot_Flying__Pilot_Flying__CHANGED(
+  Pilot_Flying_Pilot_Flying_Impl_Instance__p : bool
+) returns (
+  Pilot_Flying_Pilot_Flying_Impl_Instance__r : bool
+);
+let
+  Pilot_Flying_Pilot_Flying_Impl_Instance__r = Agree_Nodes__Changed(Pilot_Flying_Pilot_Flying_Impl_Instance__p);
+
+tel;
+
+node Agree_Nodes__Duration(
+  Pilot_Flying_Pilot_Flying_Impl_Instance__p : bool
+) returns (
+  Pilot_Flying_Pilot_Flying_Impl_Instance__c : int
+);
+let
+  Pilot_Flying_Pilot_Flying_Impl_Instance__c = (if Pilot_Flying_Pilot_Flying_Impl_Instance__p then (1 -> ((pre Pilot_Flying_Pilot_Flying_Impl_Instance__c) + 1)) else 0);
+
+tel;
+
+node _MAIN(
+  Pilot_Flying_Pilot_Flying_Impl_Instance__TS : bool;
+  Pilot_Flying_Pilot_Flying_Impl_Instance__LPFS : bool;
+  Pilot_Flying_Pilot_Flying_Impl_Instance__RPFS : bool
+) returns (
+
+);
+var
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+  _SYS_GUARANTEE_2 : bool;
+  _SYS_GUARANTEE_3 : bool;
+let
+  --%MAIN
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => (Pilot_Flying_Pilot_Flying_Impl_Instance__LPFS or Pilot_Flying_Pilot_Flying_Impl_Instance__RPFS));
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => ((Agree_Nodes__Duration((not Pilot_Flying__Pilot_Flying__PRESSED(Pilot_Flying_Pilot_Flying_Impl_Instance__TS))) > 25) => (Pilot_Flying_Pilot_Flying_Impl_Instance__LPFS = (not Pilot_Flying_Pilot_Flying_Impl_Instance__RPFS))));
+
+  _SYS_GUARANTEE_2 = (_SYSTEM_ASSUMP_HIST => ((Pilot_Flying_Pilot_Flying_Impl_Instance__LPFS -> true) and ((not Pilot_Flying_Pilot_Flying_Impl_Instance__RPFS) -> true)));
+
+  _SYS_GUARANTEE_3 = (_SYSTEM_ASSUMP_HIST => ((Agree_Nodes__Duration((not Pilot_Flying__Pilot_Flying__PRESSED(Pilot_Flying_Pilot_Flying_Impl_Instance__TS))) > 26) => (not (Pilot_Flying__Pilot_Flying__CHANGED(Pilot_Flying_Pilot_Flying_Impl_Instance__RPFS) or Pilot_Flying__Pilot_Flying__CHANGED(Pilot_Flying_Pilot_Flying_Impl_Instance__LPFS)))));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+  --%PROPERTY _SYS_GUARANTEE_2;
+  --%PROPERTY _SYS_GUARANTEE_3;
+
+  --%REALIZABILITY {Pilot_Flying_Pilot_Flying_Impl_Instance__TS};
+
+tel;
+

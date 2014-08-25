@@ -1,0 +1,27 @@
+node _MAIN(
+  Squadron_impl_Instance__left_l : int;
+  Squadron_impl_Instance__leader_r : int;
+  Squadron_impl_Instance__left_r : int;
+  Squadron_impl_Instance__left_shift : bool;
+  Squadron_impl_Instance__right_l : int;
+  Squadron_impl_Instance__right_r : int;
+  Squadron_impl_Instance__leader_l : int;
+  Squadron_impl_Instance__right_shift : bool
+) returns (
+
+);
+var
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+let
+  --%MAIN
+  _SYSTEM_ASSUMP_HIST = ((((((Squadron_impl_Instance__leader_l = 0) and (Squadron_impl_Instance__leader_r = 0)) -> true) and (((Squadron_impl_Instance__right_l = 1) and (Squadron_impl_Instance__right_r = 1)) -> true)) and (((Squadron_impl_Instance__left_l = 2) and (Squadron_impl_Instance__left_r = 2)) -> true)) -> ((((((Squadron_impl_Instance__leader_l = 0) and (Squadron_impl_Instance__leader_r = 0)) -> true) and (((Squadron_impl_Instance__right_l = 1) and (Squadron_impl_Instance__right_r = 1)) -> true)) and (((Squadron_impl_Instance__left_l = 2) and (Squadron_impl_Instance__left_r = 2)) -> true)) and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => (((((((Squadron_impl_Instance__leader_l <> 3) and (Squadron_impl_Instance__leader_r <> 3)) and (Squadron_impl_Instance__right_l <> 3)) and (Squadron_impl_Instance__right_r <> 3)) and (Squadron_impl_Instance__left_l <> 3)) and (Squadron_impl_Instance__left_r <> 3)) => (((Squadron_impl_Instance__leader_l = Squadron_impl_Instance__leader_r) and (Squadron_impl_Instance__right_l = Squadron_impl_Instance__right_r)) and (Squadron_impl_Instance__left_l = Squadron_impl_Instance__left_r))));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+
+  --%REALIZABILITY {Squadron_impl_Instance__left_shift, Squadron_impl_Instance__right_shift};
+
+tel;
+

@@ -1,0 +1,38 @@
+node Agree_Nodes__tF(
+  Rise_Rise_Impl_Instance__n : int
+) returns (
+  Rise_Rise_Impl_Instance__r : bool
+);
+var
+  Rise_Rise_Impl_Instance__c : int;
+let
+  Rise_Rise_Impl_Instance__c = (1 -> ((pre Rise_Rise_Impl_Instance__c) + 1));
+
+  Rise_Rise_Impl_Instance__r = (Rise_Rise_Impl_Instance__c <= Rise_Rise_Impl_Instance__n);
+
+tel;
+
+node _MAIN(
+  Rise_Rise_Impl_Instance__O : bool;
+  Rise_Rise_Impl_Instance__I : bool
+) returns (
+
+);
+var
+  Rise_Rise_Impl_Instance__ttF : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+let
+  --%MAIN
+  Rise_Rise_Impl_Instance__ttF = Agree_Nodes__tF(2);
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => (Rise_Rise_Impl_Instance__O = (if Rise_Rise_Impl_Instance__ttF then false else (false -> ((not (pre Rise_Rise_Impl_Instance__I)) and Rise_Rise_Impl_Instance__I)))));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+
+  --%REALIZABILITY {Rise_Rise_Impl_Instance__I};
+
+tel;
+

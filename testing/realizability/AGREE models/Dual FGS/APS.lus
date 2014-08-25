@@ -1,0 +1,34 @@
+type FGS__Lateral_Modes__Lateral_Modes_Impl = struct {HDG_active : bool; ROLL_active : bool};
+type FGS__Flight_Modes__Flight_Modes_Impl = struct {active : bool; lat : FGS__Lateral_Modes__Lateral_Modes_Impl; ver : int};
+type FGS__Guidance_Data__Guidance_Data_Impl = struct {cmds : FGS__Guidance_Commands__Guidance_Commands_Impl; mds : FGS__Flight_Modes__Flight_Modes_Impl};
+type FGS__Guidance_Commands__Guidance_Commands_Impl = struct {Pitch_Delta : real; Pitch_Valid : bool};
+type APS__Control_Surface_Actuator_Data__Control_Surface_Actuator_Data_Impl = struct {CSA_Pitch_Delta : real; CSA_Pitch_Valid : bool};
+
+node _MAIN(
+  Autopilot_System_Autopilot_System_Impl_Instance__GC_L : FGS__Guidance_Data__Guidance_Data_Impl;
+  Autopilot_System_Autopilot_System_Impl_Instance__CSA : APS__Control_Surface_Actuator_Data__Control_Surface_Actuator_Data_Impl;
+  Autopilot_System_Autopilot_System_Impl_Instance__GC_R : FGS__Guidance_Data__Guidance_Data_Impl
+) returns (
+
+);
+var
+  Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta : real;
+  Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta_correct : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+let
+  --%MAIN
+  Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta = (if Autopilot_System_Autopilot_System_Impl_Instance__GC_L.mds.active then Autopilot_System_Autopilot_System_Impl_Instance__GC_L.cmds.Pitch_Delta else (if Autopilot_System_Autopilot_System_Impl_Instance__GC_R.mds.active then Autopilot_System_Autopilot_System_Impl_Instance__GC_R.cmds.Pitch_Delta else (0.0 -> (pre Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta))));
+
+  Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta_correct = (((Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta > 0.0) => ((Autopilot_System_Autopilot_System_Impl_Instance__CSA.CSA_Pitch_Delta > 0.0) and (Autopilot_System_Autopilot_System_Impl_Instance__CSA.CSA_Pitch_Delta <= Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta))) and ((Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta <= 0.0) => ((Autopilot_System_Autopilot_System_Impl_Instance__CSA.CSA_Pitch_Delta <= 0.0) and (Autopilot_System_Autopilot_System_Impl_Instance__CSA.CSA_Pitch_Delta >= Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta))));
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => Autopilot_System_Autopilot_System_Impl_Instance__leader_pitch_delta_correct);
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+
+  --%REALIZABILITY {Autopilot_System_Autopilot_System_Impl_Instance__GC_L, Autopilot_System_Autopilot_System_Impl_Instance__GC_R};
+
+tel;
+

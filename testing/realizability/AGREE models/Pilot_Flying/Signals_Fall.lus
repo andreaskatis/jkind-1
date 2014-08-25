@@ -1,0 +1,38 @@
+node Agree_Nodes__tF(
+  Fall_Fall_Impl_Instance__n : int
+) returns (
+  Fall_Fall_Impl_Instance__r : bool
+);
+var
+  Fall_Fall_Impl_Instance__c : int;
+let
+  Fall_Fall_Impl_Instance__c = (1 -> ((pre Fall_Fall_Impl_Instance__c) + 1));
+
+  Fall_Fall_Impl_Instance__r = (Fall_Fall_Impl_Instance__c <= Fall_Fall_Impl_Instance__n);
+
+tel;
+
+node _MAIN(
+  Fall_Fall_Impl_Instance__O : bool;
+  Fall_Fall_Impl_Instance__I : bool
+) returns (
+
+);
+var
+  Fall_Fall_Impl_Instance__ttF : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+let
+  --%MAIN
+  Fall_Fall_Impl_Instance__ttF = Agree_Nodes__tF(2);
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => (Fall_Fall_Impl_Instance__O = (if Fall_Fall_Impl_Instance__ttF then false else (false -> ((pre Fall_Fall_Impl_Instance__I) and (not Fall_Fall_Impl_Instance__I))))));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+
+  --%REALIZABILITY {Fall_Fall_Impl_Instance__I};
+
+tel;
+

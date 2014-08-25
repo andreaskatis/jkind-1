@@ -1,0 +1,21 @@
+node _MAIN(
+  top_level_Impl_Instance__Input : int;
+  top_level_Impl_Instance__Output : int
+) returns (
+
+);
+var
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+let
+  --%MAIN
+  _SYSTEM_ASSUMP_HIST = ((top_level_Impl_Instance__Input < 10) -> ((top_level_Impl_Instance__Input < 10) and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => (top_level_Impl_Instance__Output < 50));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+
+  --%REALIZABILITY {top_level_Impl_Instance__Input};
+
+tel;
+

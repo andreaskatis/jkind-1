@@ -1,0 +1,58 @@
+type DATATYPES__Device_Configuration_Inputs__Impl = struct {Audio_Enable_Duration : int; Audio_Level : int; Config_Warning_Duration : int; Empty_Reservoir : int; Log_Interval : int; Low_Reservoir : int; Max_Config_Duration : int; Max_Confirm_Stop_Duration : int; Max_Display_Duration : int; Max_Duration_Over_Infusion : int; Max_Duration_Under_Infusion : int; Max_Idle_Duration : int; Max_Paused_Duration : int; System_Test_Inteval : int; Tolerance_Max : int; Tolerance_Min : int};
+type DATATYPES__Config_Outputs__Impl = struct {Config_Mode : int; Config_Timer : int; Configured : int; Drug_Concentration : int; Drug_Name : int; Duration_Intermittent_Bolus : int; Duration_Patient_Bolus : int; Entered_Reservoir_Volume : int; Error_Message_ID : int; Flow_Rate_Basal : int; Flow_Rate_Intermittent_Bolus : int; Flow_Rate_KVO : int; Flow_Rate_Patient_Bolus : int; Infusion_Total_Duration : int; Interval_Intermittent_Bolus : int; Lockout_Period_Patient_Bolus : int; Log_Message_ID : int; Max_Number_of_Patient_Bolus : int; Patient_ID : int; Request_Config_Type : bool; Request_Confirm_Infusion_Initiate : bool; Request_Infusion_Info : bool; Request_Patient_Drug_Info : bool; Reservoir_Volume : int; VTBI_Total : int};
+type DATATYPES__System_Status_Outputs__Impl = struct {In_Therapy : bool; Log_Message_ID : int; Reservoir_Empty : bool; Reservoir_Volume : int; Volume_Infused : int};
+type DATATYPES__Prescription_Inputs__Impl = struct {Drug_Concentration : int; Drug_Name : int; Duration_Intermittent_Bolus : int; Duration_Patient_Bolus : int; Entered_Reservoir_Volume : int; Flow_Rate_Basal : int; Flow_Rate_Intermittent_Bolus : int; Flow_Rate_Patient_Bolus : int; Interval_Intermittent_Bolus : int; Lockout_Period_Patient_Bolus : int; Max_Number_of_Patient_Bolus : int; Patient_ID : int; Total_Duration : int; VTBI_Total : int};
+type DATATYPES__Top_Level_Mode_Outputs__Impl = struct {Log_Message_ID : int; Request_Confirm_Stop : bool; System_On : bool};
+type DATATYPES__Drug_Database_Inputs__Impl = struct {Drug_Concentration_High : int; Drug_Concentration_Low : int; Drug_Name : int; Flow_Rate_High : int; Flow_Rate_KVO : int; Flow_Rate_Low : int; Inteval_Patient_Bolus : int; Known_Prescription : bool; Number_Max_Patient_Bolus : int; VTBI_High : int; VTBI_Low : int};
+type DATATYPES__Operator_Commands__Impl = struct {Back : bool; Cancel : bool; Configuration_Type : int; Confirm_Stop : bool; Data_Config : bool; Disable_Audio : int; Infusion_Cancel : bool; Infusion_Inhibit : bool; Infusion_Initiate : bool; Keyboard : bool; Next : bool; Notification_Cancel : bool; System_Start : bool; System_Stop : bool};
+
+node _MAIN(
+  Config_Impl_Instance__DB_IN : DATATYPES__Drug_Database_Inputs__Impl;
+  Config_Impl_Instance__PRES_IN : DATATYPES__Prescription_Inputs__Impl;
+  Config_Impl_Instance__OP_CMD_IN : DATATYPES__Operator_Commands__Impl;
+  Config_Impl_Instance__SYS_STAT_IN : DATATYPES__System_Status_Outputs__Impl;
+  Config_Impl_Instance__CONST_IN : DATATYPES__Device_Configuration_Inputs__Impl;
+  Config_Impl_Instance__CONFIG_OUT : DATATYPES__Config_Outputs__Impl;
+  Config_Impl_Instance__TLM_MODE_IN : DATATYPES__Top_Level_Mode_Outputs__Impl
+) returns (
+
+);
+var
+  Config_Impl_Instance__config_gt_1_implies_values_configured : bool;
+  Config_Impl_Instance__config_range : bool;
+  Config_Impl_Instance__Infusion_Total_Duration : bool;
+  Config_Impl_Instance__flow_rate_kvo_gt_0 : bool;
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+  _SYS_GUARANTEE_2 : bool;
+  _SYS_GUARANTEE_3 : bool;
+let
+  --%MAIN
+  Config_Impl_Instance__flow_rate_kvo_gt_0 = (Config_Impl_Instance__TLM_MODE_IN.System_On => (Config_Impl_Instance__CONFIG_OUT.Flow_Rate_KVO > 0));
+
+  Config_Impl_Instance__config_range = (Config_Impl_Instance__TLM_MODE_IN.System_On => ((Config_Impl_Instance__CONFIG_OUT.Configured >= 0) and (Config_Impl_Instance__CONFIG_OUT.Configured <= 3)));
+
+  Config_Impl_Instance__Infusion_Total_Duration = (Config_Impl_Instance__TLM_MODE_IN.System_On => (Config_Impl_Instance__CONFIG_OUT.Infusion_Total_Duration >= 0));
+
+  Config_Impl_Instance__config_gt_1_implies_values_configured = ((Config_Impl_Instance__TLM_MODE_IN.System_On and (Config_Impl_Instance__CONFIG_OUT.Configured > 0)) => (Config_Impl_Instance__CONFIG_OUT.Infusion_Total_Duration > 0));
+
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => Config_Impl_Instance__flow_rate_kvo_gt_0);
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => Config_Impl_Instance__config_range);
+
+  _SYS_GUARANTEE_2 = (_SYSTEM_ASSUMP_HIST => Config_Impl_Instance__Infusion_Total_Duration);
+
+  _SYS_GUARANTEE_3 = (_SYSTEM_ASSUMP_HIST => Config_Impl_Instance__config_gt_1_implies_values_configured);
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+  --%PROPERTY _SYS_GUARANTEE_2;
+  --%PROPERTY _SYS_GUARANTEE_3;
+
+  --%REALIZABILITY {Config_Impl_Instance__DB_IN, Config_Impl_Instance__PRES_IN, Config_Impl_Instance__SYS_STAT_IN, Config_Impl_Instance__OP_CMD_IN, Config_Impl_Instance__CONST_IN, Config_Impl_Instance__TLM_MODE_IN};
+
+tel;
+

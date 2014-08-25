@@ -1,0 +1,266 @@
+type DATA_TYPES__QUAD_Elevators__treal = struct {EL1 : DATA_TYPES__Elevators__treal; EL2 : DATA_TYPES__Elevators__treal; EL3 : DATA_TYPES__Elevators__treal; EL4 : DATA_TYPES__Elevators__treal};
+type DATA_TYPES__DUAL_AoA__treal = struct {AOA1 : DATA_TYPES__AoA__treal; AOA2 : DATA_TYPES__AoA__treal};
+type DATA_TYPES__Spoilers__tbool = struct {SPLIB : bool; SPLOB : bool; SPRIB : bool; SPROB : bool};
+type DATA_TYPES__QUAD_Ailerons__tbool = struct {AIL1 : DATA_TYPES__Ailerons__tbool; AIL2 : DATA_TYPES__Ailerons__tbool; AIL3 : DATA_TYPES__Ailerons__tbool; AIL4 : DATA_TYPES__Ailerons__tbool};
+type DATA_TYPES__NumActuators__impl = struct {AILL : int; AILR : int; BRAKE : int; ELLIB : int; ELLOB : int; ELRIB : int; ELROB : int; FLAPLI : int; FLAPLO : int; FLAPRI : int; FLAPRO : int; GEAR : int; RUDLO : int; RUDUP : int; SPLLIB : int; SPLLOB : int; SPLRIB : int; SPLROB : int; STEER : int; THROTR : int; THRTOL : int};
+type DATA_TYPES__QUAD_Stabilizer__treal = struct {STAB1 : DATA_TYPES__Stabilizer__treal; STAB2 : DATA_TYPES__Stabilizer__treal; STAB3 : DATA_TYPES__Stabilizer__treal; STAB4 : DATA_TYPES__Stabilizer__treal};
+type DATA_TYPES__QUAD_Rudders__tbool = struct {RUDD1 : DATA_TYPES__Rudders__tbool; RUDD2 : DATA_TYPES__Rudders__tbool; RUDD3 : DATA_TYPES__Rudders__tbool; RUDD4 : DATA_TYPES__Rudders__tbool};
+type DATA_TYPES__Spoilers__treal = struct {SPLIB : real; SPLOB : real; SPRIB : real; SPROB : real; TIME_STAMP : int};
+type DATA_TYPES__Elevators__treal = struct {ELLIB : real; ELLOB : real; ELRIB : real; ELROB : real; TIME_STAMP : int};
+type DATA_TYPES__QUAD_Ailerons__treal = struct {AIL1 : DATA_TYPES__Ailerons__treal; AIL2 : DATA_TYPES__Ailerons__treal; AIL3 : DATA_TYPES__Ailerons__treal; AIL4 : DATA_TYPES__Ailerons__treal};
+type DATA_TYPES__BoolActuators__impl = struct {AILL : bool; AILR : bool; BRAKE : bool; ELLIB : bool; ELLOB : bool; ELRIB : bool; ELROB : bool; FLAPLI : bool; FLAPLO : bool; FLAPRI : bool; FLAPRO : bool; GEAR : bool; RUDLO : bool; RUDUP : bool; SPLLIB : bool; SPLLOB : bool; SPLRIB : bool; SPLROB : bool; STEER : bool; THROTR : bool; THRTOL : bool};
+type DATA_TYPES__AoA__tbool = struct {AOA : bool};
+type DATA_TYPES__QUAD_EGI__treal = struct {egi1 : DATA_TYPES__EGI__treal; egi2 : DATA_TYPES__EGI__treal; egi3 : DATA_TYPES__EGI__treal; egi4 : DATA_TYPES__EGI__treal};
+type DATA_TYPES__QUAD_EGI__tbool = struct {egi1 : DATA_TYPES__EGI__tbool; egi2 : DATA_TYPES__EGI__tbool; egi3 : DATA_TYPES__EGI__tbool; egi4 : DATA_TYPES__EGI__tbool};
+type DATA_TYPES__Ailerons__tbool = struct {AILL : bool; AILR : bool};
+type DATA_TYPES__Ailerons__treal = struct {AILL : real; AILR : real; TIME_STAMP : int};
+type DATA_TYPES__Rudders__treal = struct {RUDL : real; RUDU : real; TIME_STAMP : int};
+type DATA_TYPES__Stabilizer__treal = struct {TIME_STAMP : int; VAL : real};
+type DATA_TYPES__DUAL_AirData__treal = struct {AD1 : DATA_TYPES__AirData__treal; AD2 : DATA_TYPES__AirData__treal};
+type DATA_TYPES__QUAD_Spoilers__treal = struct {SPOIL1 : DATA_TYPES__Spoilers__treal; SPOIL2 : DATA_TYPES__Spoilers__treal; SPOIL3 : DATA_TYPES__Spoilers__treal; SPOIL4 : DATA_TYPES__Spoilers__treal};
+type DATA_TYPES__DUAL_AoA__tbool = struct {AOA1 : DATA_TYPES__AoA__tbool; AOA2 : DATA_TYPES__AoA__tbool};
+type DATA_TYPES__Flaps__treal = struct {FLLIB : real; FLLOB : real; FLRIB : real; FLROB : real; TIME_STAMP : int};
+type DATA_TYPES__QUAD_Stabilizer__tbool = struct {STAB1 : bool; STAB2 : bool; STAB3 : bool; STAB4 : bool};
+type DATA_TYPES__Flaps__tbool = struct {FLLIB : bool; FLLOB : bool; FLRIB : bool; FLROB : bool};
+type DATA_TYPES__AoA__treal = struct {AOA : real; TIME_STAMP : int};
+type DATA_TYPES__Elevators__tbool = struct {ELLIB : bool; ELLOB : bool; ELRIB : bool; ELROB : bool};
+type DATA_TYPES__AirData__tbool = struct {Pres : bool; TAT : bool; Temp : bool; TotPres : bool};
+type DATA_TYPES__DUAL_AirData__tbool = struct {AD1 : DATA_TYPES__AirData__tbool; AD2 : DATA_TYPES__AirData__tbool};
+type DATA_TYPES__QUAD_Flaps__tbool = struct {FLAPS1 : DATA_TYPES__Flaps__tbool; FLAPS2 : DATA_TYPES__Flaps__tbool; FLAPS3 : DATA_TYPES__Flaps__tbool; FLAPS4 : DATA_TYPES__Flaps__tbool};
+type DATA_TYPES__QUAD_Rudders__treal = struct {RUDD1 : DATA_TYPES__Rudders__treal; RUDD2 : DATA_TYPES__Rudders__treal; RUDD3 : DATA_TYPES__Rudders__treal; RUDD4 : DATA_TYPES__Rudders__treal};
+type DATA_TYPES__AirData__treal = struct {Pres : real; TAT : real; TIME_STAMP : int; Temp : real; TotPres : real};
+type DATA_TYPES__EGI__tbool = struct {ALT : bool; FPACCEL : bool; GAMLNS : bool; GS : bool; HDD : bool; HDOT : bool; LAT : bool; LON : bool; NX : bool; NY : bool; NZ : bool; PB : bool; PHI : bool; PSI : bool; QB : bool; RB : bool; THETA : bool; VE : bool; VGOT : bool; VN : bool; XTACC : bool};
+type DATA_TYPES__QUAD_Elevators__tbool = struct {EL1 : DATA_TYPES__Elevators__tbool; EL2 : DATA_TYPES__Elevators__tbool; EL3 : DATA_TYPES__Elevators__tbool; EL4 : DATA_TYPES__Elevators__tbool};
+type DATA_TYPES__QUAD_Flaps__treal = struct {FLAPS1 : DATA_TYPES__Flaps__treal; FLAPS2 : DATA_TYPES__Flaps__treal; FLAPS3 : DATA_TYPES__Flaps__treal; FLAPS4 : DATA_TYPES__Flaps__treal};
+type DATA_TYPES__QUAD_Spoilers__tbool = struct {SPOIL1 : DATA_TYPES__Spoilers__tbool; SPOIL2 : DATA_TYPES__Spoilers__tbool; SPOIL3 : DATA_TYPES__Spoilers__tbool; SPOIL4 : DATA_TYPES__Spoilers__tbool};
+type DATA_TYPES__Actuators__impl = struct {AILL : real; AILR : real; BRAKE : real; ELLIB : real; ELLOB : real; ELRIB : real; ELROB : real; FLAPLI : real; FLAPLO : real; FLAPRI : real; FLAPRO : real; GEAR : real; RUDLO : real; RUDUP : real; SPLLIB : real; SPLLOB : real; SPLRIB : real; SPLROB : real; STEER : real; THROTR : real; THRTOL : real};
+type DATA_TYPES__Rudders__tbool = struct {RUDL : bool; RUDU : bool};
+type DATA_TYPES__EGI__treal = struct {ALT : real; AOA : real; FPACCEL : real; GAMLNS : real; GS : real; HDD : real; HDOT : real; LAT : real; LON : real; NX : real; NY : real; NZ : real; PB : real; PHI : real; PSI : real; Pres : real; QB : real; RB : real; TAT : real; THETA : real; TIME_STAMP : int; Temp : real; TotPres : real; VE : real; VGOT : real; VN : real; XTACC : real};
+
+node FCC_RC5__two_faults_in_range(
+  FCC_Impl_Instance__f1 : bool;
+  FCC_Impl_Instance__f2 : bool;
+  FCC_Impl_Instance__f3 : bool;
+  FCC_Impl_Instance__f4 : bool;
+  FCC_Impl_Instance__select : real;
+  FCC_Impl_Instance__high : real;
+  FCC_Impl_Instance__low : real
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+var
+  FCC_Impl_Instance__nf12 : bool;
+  FCC_Impl_Instance__nf13 : bool;
+  FCC_Impl_Instance__nf14 : bool;
+  FCC_Impl_Instance__nf23 : bool;
+  FCC_Impl_Instance__nf24 : bool;
+  FCC_Impl_Instance__nf34 : bool;
+let
+  FCC_Impl_Instance__nf12 = (not (FCC_Impl_Instance__f1 or FCC_Impl_Instance__f2));
+
+  FCC_Impl_Instance__nf13 = (not (FCC_Impl_Instance__f1 or FCC_Impl_Instance__f3));
+
+  FCC_Impl_Instance__nf14 = (not (FCC_Impl_Instance__f1 or FCC_Impl_Instance__f4));
+
+  FCC_Impl_Instance__nf23 = (not (FCC_Impl_Instance__f2 or FCC_Impl_Instance__f3));
+
+  FCC_Impl_Instance__nf24 = (not (FCC_Impl_Instance__f2 or FCC_Impl_Instance__f4));
+
+  FCC_Impl_Instance__nf34 = (not (FCC_Impl_Instance__f3 or FCC_Impl_Instance__f4));
+
+  FCC_Impl_Instance__ret = ((((((FCC_Impl_Instance__nf12 or FCC_Impl_Instance__nf13) or FCC_Impl_Instance__nf14) or FCC_Impl_Instance__nf23) or FCC_Impl_Instance__nf24) or FCC_Impl_Instance__nf34) => ((FCC_Impl_Instance__low <= FCC_Impl_Instance__select) and (FCC_Impl_Instance__select <= FCC_Impl_Instance__high)));
+
+tel;
+
+node FCC_RC5__req_els(
+  FCC_Impl_Instance__elevators_fault : DATA_TYPES__QUAD_Elevators__tbool;
+  FCC_Impl_Instance__elevators_select : DATA_TYPES__Elevators__treal
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+let
+  FCC_Impl_Instance__ret = (((FCC_RC5__two_faults_in_range(FCC_Impl_Instance__elevators_fault.EL1.ELLOB, FCC_Impl_Instance__elevators_fault.EL2.ELLOB, FCC_Impl_Instance__elevators_fault.EL3.ELLOB, FCC_Impl_Instance__elevators_fault.EL4.ELLOB, FCC_Impl_Instance__elevators_select.ELLOB, 50.0, 0.0) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__elevators_fault.EL1.ELLIB, FCC_Impl_Instance__elevators_fault.EL2.ELLIB, FCC_Impl_Instance__elevators_fault.EL3.ELLIB, FCC_Impl_Instance__elevators_fault.EL4.ELLIB, FCC_Impl_Instance__elevators_select.ELLIB, 50.0, 0.0)) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__elevators_fault.EL1.ELRIB, FCC_Impl_Instance__elevators_fault.EL2.ELRIB, FCC_Impl_Instance__elevators_fault.EL3.ELRIB, FCC_Impl_Instance__elevators_fault.EL4.ELRIB, FCC_Impl_Instance__elevators_select.ELRIB, 50.0, 0.0)) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__elevators_fault.EL1.ELROB, FCC_Impl_Instance__elevators_fault.EL2.ELROB, FCC_Impl_Instance__elevators_fault.EL3.ELROB, FCC_Impl_Instance__elevators_fault.EL4.ELROB, FCC_Impl_Instance__elevators_select.ELROB, 50.0, 0.0));
+
+tel;
+
+node FCC_RC5__req_ails(
+  FCC_Impl_Instance__ailerons_fault : DATA_TYPES__QUAD_Ailerons__tbool;
+  FCC_Impl_Instance__ailerons_select : DATA_TYPES__Ailerons__treal
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+let
+  FCC_Impl_Instance__ret = (FCC_RC5__two_faults_in_range(FCC_Impl_Instance__ailerons_fault.AIL1.AILL, FCC_Impl_Instance__ailerons_fault.AIL2.AILL, FCC_Impl_Instance__ailerons_fault.AIL3.AILL, FCC_Impl_Instance__ailerons_fault.AIL4.AILL, FCC_Impl_Instance__ailerons_select.AILL, 50.0, 0.0) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__ailerons_fault.AIL1.AILR, FCC_Impl_Instance__ailerons_fault.AIL2.AILR, FCC_Impl_Instance__ailerons_fault.AIL3.AILR, FCC_Impl_Instance__ailerons_fault.AIL4.AILR, FCC_Impl_Instance__ailerons_select.AILR, 50.0, 0.0));
+
+tel;
+
+node FCC_RC5__req_flaps(
+  FCC_Impl_Instance__flaps_fault : DATA_TYPES__QUAD_Flaps__tbool;
+  FCC_Impl_Instance__flaps_select : DATA_TYPES__Flaps__treal
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+let
+  FCC_Impl_Instance__ret = (((FCC_RC5__two_faults_in_range(FCC_Impl_Instance__flaps_fault.FLAPS1.FLLOB, FCC_Impl_Instance__flaps_fault.FLAPS2.FLLOB, FCC_Impl_Instance__flaps_fault.FLAPS3.FLLOB, FCC_Impl_Instance__flaps_fault.FLAPS4.FLLOB, FCC_Impl_Instance__flaps_select.FLLOB, 50.0, 0.0) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__flaps_fault.FLAPS1.FLLIB, FCC_Impl_Instance__flaps_fault.FLAPS2.FLLIB, FCC_Impl_Instance__flaps_fault.FLAPS3.FLLIB, FCC_Impl_Instance__flaps_fault.FLAPS4.FLLIB, FCC_Impl_Instance__flaps_select.FLLIB, 50.0, 0.0)) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__flaps_fault.FLAPS1.FLRIB, FCC_Impl_Instance__flaps_fault.FLAPS2.FLRIB, FCC_Impl_Instance__flaps_fault.FLAPS3.FLRIB, FCC_Impl_Instance__flaps_fault.FLAPS4.FLRIB, FCC_Impl_Instance__flaps_select.FLRIB, 50.0, 0.0)) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__flaps_fault.FLAPS1.FLROB, FCC_Impl_Instance__flaps_fault.FLAPS2.FLROB, FCC_Impl_Instance__flaps_fault.FLAPS3.FLROB, FCC_Impl_Instance__flaps_fault.FLAPS4.FLROB, FCC_Impl_Instance__flaps_select.FLROB, 50.0, 0.0));
+
+tel;
+
+node FCC_RC5__req_rud(
+  FCC_Impl_Instance__rudders_fault : DATA_TYPES__QUAD_Rudders__tbool;
+  FCC_Impl_Instance__rudders_select : DATA_TYPES__Rudders__treal
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+let
+  FCC_Impl_Instance__ret = (FCC_RC5__two_faults_in_range(FCC_Impl_Instance__rudders_fault.RUDD1.RUDU, FCC_Impl_Instance__rudders_fault.RUDD2.RUDU, FCC_Impl_Instance__rudders_fault.RUDD3.RUDU, FCC_Impl_Instance__rudders_fault.RUDD4.RUDU, FCC_Impl_Instance__rudders_select.RUDU, 50.0, 0.0) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__rudders_fault.RUDD1.RUDL, FCC_Impl_Instance__rudders_fault.RUDD2.RUDL, FCC_Impl_Instance__rudders_fault.RUDD3.RUDL, FCC_Impl_Instance__rudders_fault.RUDD4.RUDL, FCC_Impl_Instance__rudders_select.RUDL, 50.0, 0.0));
+
+tel;
+
+node FCC_RC5__req_spoil(
+  FCC_Impl_Instance__spoilers_fault : DATA_TYPES__QUAD_Spoilers__tbool;
+  FCC_Impl_Instance__spoilers_select : DATA_TYPES__Spoilers__treal
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+let
+  FCC_Impl_Instance__ret = (((FCC_RC5__two_faults_in_range(FCC_Impl_Instance__spoilers_fault.SPOIL1.SPLOB, FCC_Impl_Instance__spoilers_fault.SPOIL2.SPLOB, FCC_Impl_Instance__spoilers_fault.SPOIL3.SPLOB, FCC_Impl_Instance__spoilers_fault.SPOIL4.SPLOB, FCC_Impl_Instance__spoilers_select.SPLOB, 50.0, 0.0) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__spoilers_fault.SPOIL1.SPLIB, FCC_Impl_Instance__spoilers_fault.SPOIL2.SPLIB, FCC_Impl_Instance__spoilers_fault.SPOIL3.SPLIB, FCC_Impl_Instance__spoilers_fault.SPOIL4.SPLIB, FCC_Impl_Instance__spoilers_select.SPLIB, 50.0, 0.0)) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__spoilers_fault.SPOIL1.SPRIB, FCC_Impl_Instance__spoilers_fault.SPOIL2.SPRIB, FCC_Impl_Instance__spoilers_fault.SPOIL3.SPRIB, FCC_Impl_Instance__spoilers_fault.SPOIL4.SPRIB, FCC_Impl_Instance__spoilers_select.SPRIB, 50.0, 0.0)) and FCC_RC5__two_faults_in_range(FCC_Impl_Instance__spoilers_fault.SPOIL1.SPROB, FCC_Impl_Instance__spoilers_fault.SPOIL2.SPROB, FCC_Impl_Instance__spoilers_fault.SPOIL3.SPROB, FCC_Impl_Instance__spoilers_fault.SPOIL4.SPROB, FCC_Impl_Instance__spoilers_select.SPROB, 50.0, 0.0));
+
+tel;
+
+node FCC_RC5__req_stab(
+  FCC_Impl_Instance__stabilizers_fault : DATA_TYPES__QUAD_Stabilizer__tbool;
+  FCC_Impl_Instance__stabilizers_select : DATA_TYPES__Stabilizer__treal
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+let
+  FCC_Impl_Instance__ret = FCC_RC5__two_faults_in_range(FCC_Impl_Instance__stabilizers_fault.STAB1, FCC_Impl_Instance__stabilizers_fault.STAB2, FCC_Impl_Instance__stabilizers_fault.STAB3, FCC_Impl_Instance__stabilizers_fault.STAB4, FCC_Impl_Instance__stabilizers_select.VAL, 50.0, 0.0);
+
+tel;
+
+node FCC_RC_2__output_range(
+  FCC_Impl_Instance__num_valid : int;
+  FCC_Impl_Instance__act : real;
+  FCC_Impl_Instance__low : real;
+  FCC_Impl_Instance__high : real
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+let
+  FCC_Impl_Instance__ret = (((((FCC_Impl_Instance__num_valid = 0) => ((FCC_Impl_Instance__low <= FCC_Impl_Instance__act) and (FCC_Impl_Instance__act <= (4.0 * FCC_Impl_Instance__high)))) and ((FCC_Impl_Instance__num_valid = 1) => ((FCC_Impl_Instance__low <= FCC_Impl_Instance__act) and (FCC_Impl_Instance__act <= (2.0 * FCC_Impl_Instance__high))))) and ((FCC_Impl_Instance__num_valid = 2) => ((FCC_Impl_Instance__low <= FCC_Impl_Instance__act) and (FCC_Impl_Instance__act <= ((4.0 / 3.0) * FCC_Impl_Instance__high))))) and ((FCC_Impl_Instance__num_valid = 3) => ((FCC_Impl_Instance__low <= FCC_Impl_Instance__act) and (FCC_Impl_Instance__act <= FCC_Impl_Instance__high))));
+
+tel;
+
+node FCC_RC_2__req(
+  FCC_Impl_Instance__acts_out : DATA_TYPES__Actuators__impl;
+  FCC_Impl_Instance__num_valid_acts : DATA_TYPES__NumActuators__impl
+) returns (
+  FCC_Impl_Instance__ret : bool
+);
+let
+  FCC_Impl_Instance__ret = ((((((((((((((((((((FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.THRTOL, FCC_Impl_Instance__acts_out.THRTOL, 0.0, 50.0) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.THROTR, FCC_Impl_Instance__acts_out.THROTR, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.ELLOB, FCC_Impl_Instance__acts_out.ELLOB, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.ELLIB, FCC_Impl_Instance__acts_out.ELLIB, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.ELROB, FCC_Impl_Instance__acts_out.ELROB, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.ELRIB, FCC_Impl_Instance__acts_out.ELRIB, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.AILL, FCC_Impl_Instance__acts_out.AILL, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.AILR, FCC_Impl_Instance__acts_out.AILR, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.RUDUP, FCC_Impl_Instance__acts_out.RUDUP, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.RUDLO, FCC_Impl_Instance__acts_out.RUDLO, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.SPLLIB, FCC_Impl_Instance__acts_out.SPLLIB, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.SPLLOB, FCC_Impl_Instance__acts_out.SPLLOB, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.SPLRIB, FCC_Impl_Instance__acts_out.SPLRIB, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.SPLROB, FCC_Impl_Instance__acts_out.SPLROB, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.FLAPLI, FCC_Impl_Instance__acts_out.FLAPLI, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.FLAPLO, FCC_Impl_Instance__acts_out.FLAPLO, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.FLAPRI, FCC_Impl_Instance__acts_out.FLAPRI, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.FLAPRO, FCC_Impl_Instance__acts_out.FLAPRO, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.GEAR, FCC_Impl_Instance__acts_out.GEAR, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.BRAKE, FCC_Impl_Instance__acts_out.BRAKE, 0.0, 50.0)) and FCC_RC_2__output_range(FCC_Impl_Instance__num_valid_acts.STEER, FCC_Impl_Instance__acts_out.STEER, 0.0, 50.0));
+
+tel;
+
+node OSAS_S_140__req_helper(
+  FCC_Impl_Instance__act : real;
+  FCC_Impl_Instance__fail : bool
+) returns (
+  FCC_Impl_Instance__res : bool
+);
+let
+  FCC_Impl_Instance__res = (FCC_Impl_Instance__fail => (FCC_Impl_Instance__act = 0.0));
+
+tel;
+
+node OSAS_S_140__req(
+  FCC_Impl_Instance__acts : DATA_TYPES__Actuators__impl;
+  FCC_Impl_Instance__fails : DATA_TYPES__BoolActuators__impl
+) returns (
+  FCC_Impl_Instance__res : bool
+);
+let
+  FCC_Impl_Instance__res = ((((((((((((((((((((OSAS_S_140__req_helper(FCC_Impl_Instance__acts.AILL, FCC_Impl_Instance__fails.AILL) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.AILR, FCC_Impl_Instance__fails.AILR)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.BRAKE, FCC_Impl_Instance__fails.BRAKE)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.ELLIB, FCC_Impl_Instance__fails.ELLIB)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.ELLOB, FCC_Impl_Instance__fails.ELLOB)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.ELRIB, FCC_Impl_Instance__fails.ELRIB)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.ELROB, FCC_Impl_Instance__fails.ELROB)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.FLAPLI, FCC_Impl_Instance__fails.FLAPLI)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.FLAPLO, FCC_Impl_Instance__fails.FLAPLO)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.FLAPRI, FCC_Impl_Instance__fails.FLAPRI)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.FLAPRO, FCC_Impl_Instance__fails.FLAPRO)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.GEAR, FCC_Impl_Instance__fails.GEAR)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.RUDLO, FCC_Impl_Instance__fails.RUDLO)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.RUDUP, FCC_Impl_Instance__fails.RUDUP)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.SPLLIB, FCC_Impl_Instance__fails.SPLLIB)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.SPLLOB, FCC_Impl_Instance__fails.SPLLOB)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.SPLRIB, FCC_Impl_Instance__fails.SPLRIB)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.SPLROB, FCC_Impl_Instance__fails.SPLROB)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.STEER, FCC_Impl_Instance__fails.STEER)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.THROTR, FCC_Impl_Instance__fails.THROTR)) and OSAS_S_140__req_helper(FCC_Impl_Instance__acts.THRTOL, FCC_Impl_Instance__fails.THRTOL));
+
+tel;
+
+node _MAIN(
+  FCC_Impl_Instance__elevators_faults : DATA_TYPES__QUAD_Elevators__tbool;
+  FCC_Impl_Instance__aoa_select : DATA_TYPES__AoA__treal;
+  FCC_Impl_Instance__stabilizers_select : DATA_TYPES__Stabilizer__treal;
+  FCC_Impl_Instance__flaps_select : DATA_TYPES__Flaps__treal;
+  FCC_Impl_Instance__egi_select : DATA_TYPES__EGI__treal;
+  FCC_Impl_Instance__air_data_select : DATA_TYPES__AirData__treal;
+  FCC_Impl_Instance__stabilizers : DATA_TYPES__QUAD_Stabilizer__treal;
+  FCC_Impl_Instance__rudders_select : DATA_TYPES__Rudders__treal;
+  FCC_Impl_Instance__air_data : DATA_TYPES__DUAL_AirData__treal;
+  FCC_Impl_Instance__aoa_faults : DATA_TYPES__DUAL_AoA__tbool;
+  FCC_Impl_Instance__sovs2 : DATA_TYPES__BoolActuators__impl;
+  FCC_Impl_Instance__sovs1 : DATA_TYPES__BoolActuators__impl;
+  FCC_Impl_Instance__rudders : DATA_TYPES__QUAD_Rudders__treal;
+  FCC_Impl_Instance__num_valid_acts : DATA_TYPES__NumActuators__impl;
+  FCC_Impl_Instance__acts_out : DATA_TYPES__Actuators__impl;
+  FCC_Impl_Instance__air_data_faults : DATA_TYPES__DUAL_AirData__tbool;
+  FCC_Impl_Instance__acts_fail : DATA_TYPES__BoolActuators__impl;
+  FCC_Impl_Instance__rudders_faults : DATA_TYPES__QUAD_Rudders__tbool;
+  FCC_Impl_Instance__spoilers_faults : DATA_TYPES__QUAD_Spoilers__tbool;
+  FCC_Impl_Instance__egi_faults : DATA_TYPES__QUAD_EGI__tbool;
+  FCC_Impl_Instance__aoa : DATA_TYPES__DUAL_AoA__treal;
+  FCC_Impl_Instance__flaps : DATA_TYPES__QUAD_Flaps__treal;
+  FCC_Impl_Instance__spoilers_select : DATA_TYPES__Spoilers__treal;
+  FCC_Impl_Instance__elevators : DATA_TYPES__QUAD_Elevators__treal;
+  FCC_Impl_Instance__ailerons_faults : DATA_TYPES__QUAD_Ailerons__tbool;
+  FCC_Impl_Instance__flaps_faults : DATA_TYPES__QUAD_Flaps__tbool;
+  FCC_Impl_Instance__egi : DATA_TYPES__QUAD_EGI__treal;
+  FCC_Impl_Instance__elevators_select : DATA_TYPES__Elevators__treal;
+  FCC_Impl_Instance__ailerons : DATA_TYPES__QUAD_Ailerons__treal;
+  FCC_Impl_Instance__stabilizers_faults : DATA_TYPES__QUAD_Stabilizer__tbool;
+  FCC_Impl_Instance__spoilers : DATA_TYPES__QUAD_Spoilers__treal;
+  FCC_Impl_Instance__acts_ret : DATA_TYPES__Actuators__impl;
+  FCC_Impl_Instance__ailerons_select : DATA_TYPES__Ailerons__treal
+) returns (
+
+);
+var
+  _SYSTEM_ASSUMP_HIST : bool;
+  _SYS_GUARANTEE_0 : bool;
+  _SYS_GUARANTEE_1 : bool;
+  _SYS_GUARANTEE_2 : bool;
+  _SYS_GUARANTEE_3 : bool;
+  _SYS_GUARANTEE_4 : bool;
+  _SYS_GUARANTEE_5 : bool;
+  _SYS_GUARANTEE_6 : bool;
+  _SYS_GUARANTEE_7 : bool;
+let
+  --%MAIN
+  _SYSTEM_ASSUMP_HIST = (true -> (true and (pre _SYSTEM_ASSUMP_HIST)));
+
+  _SYS_GUARANTEE_0 = (_SYSTEM_ASSUMP_HIST => FCC_RC5__req_els(FCC_Impl_Instance__elevators_faults, FCC_Impl_Instance__elevators_select));
+
+  _SYS_GUARANTEE_1 = (_SYSTEM_ASSUMP_HIST => FCC_RC5__req_ails(FCC_Impl_Instance__ailerons_faults, FCC_Impl_Instance__ailerons_select));
+
+  _SYS_GUARANTEE_2 = (_SYSTEM_ASSUMP_HIST => FCC_RC5__req_flaps(FCC_Impl_Instance__flaps_faults, FCC_Impl_Instance__flaps_select));
+
+  _SYS_GUARANTEE_3 = (_SYSTEM_ASSUMP_HIST => FCC_RC5__req_rud(FCC_Impl_Instance__rudders_faults, FCC_Impl_Instance__rudders_select));
+
+  _SYS_GUARANTEE_4 = (_SYSTEM_ASSUMP_HIST => FCC_RC5__req_spoil(FCC_Impl_Instance__spoilers_faults, FCC_Impl_Instance__spoilers_select));
+
+  _SYS_GUARANTEE_5 = (_SYSTEM_ASSUMP_HIST => FCC_RC5__req_stab(FCC_Impl_Instance__stabilizers_faults, FCC_Impl_Instance__stabilizers_select));
+
+  _SYS_GUARANTEE_6 = (_SYSTEM_ASSUMP_HIST => FCC_RC_2__req(FCC_Impl_Instance__acts_out, FCC_Impl_Instance__num_valid_acts));
+
+  _SYS_GUARANTEE_7 = (_SYSTEM_ASSUMP_HIST => OSAS_S_140__req(FCC_Impl_Instance__acts_out, FCC_Impl_Instance__acts_fail));
+
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%PROPERTY _SYS_GUARANTEE_1;
+  --%PROPERTY _SYS_GUARANTEE_2;
+  --%PROPERTY _SYS_GUARANTEE_3;
+  --%PROPERTY _SYS_GUARANTEE_4;
+  --%PROPERTY _SYS_GUARANTEE_5;
+  --%PROPERTY _SYS_GUARANTEE_6;
+  --%PROPERTY _SYS_GUARANTEE_7;
+
+  --%REALIZABILITY {FCC_Impl_Instance__rudders, FCC_Impl_Instance__ailerons, FCC_Impl_Instance__num_valid_acts, FCC_Impl_Instance__aoa, FCC_Impl_Instance__stabilizers, FCC_Impl_Instance__flaps, FCC_Impl_Instance__elevators, FCC_Impl_Instance__spoilers, FCC_Impl_Instance__acts_ret, FCC_Impl_Instance__egi, FCC_Impl_Instance__air_data};
+
+tel;
+
