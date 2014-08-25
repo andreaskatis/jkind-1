@@ -2,6 +2,7 @@ package jkindreal.processes;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,7 @@ import jkind.Output;
 import jkind.invariant.Invariant;
 import jkind.lustre.EnumType;
 import jkind.lustre.Type;
+import jkind.lustre.VarDecl;
 import jkind.lustre.values.EnumValue;
 import jkind.lustre.values.IntegerValue;
 import jkind.lustre.values.Value;
@@ -187,7 +189,7 @@ public class DirectorReal {
 				for (String props : spec.node.properties) {
 					keep.add(spec.dependencyMap.get(props));
 				}
-				Model slicedModel = im.model.slice_real(keep);
+				Model slicedModel = im.model.slice_real(keep, getInputs(invalidRealizabilities.get(0)));
 				Counterexample cex = extractCounterexample(im.k, slicedModel);
 				writer.writeInvalidRealizability(invalidRealizabilities.get(0), cex, runtime);
 			} else if (message instanceof CounterexampleMessageReal) {
@@ -265,5 +267,24 @@ public class DirectorReal {
 			return new EnumValue(et.values.get(iv.value.intValue()));
 		}
 		return value;
+	}
+	
+	private List<String> getInputs(String real) {
+		List<String> args = new ArrayList<>();
+		List<String> inputs = Arrays.asList(real.substring(1, real.length()-1).split("\\s*,\\s*"));
+		for (String in : inputs){
+			for (VarDecl element : spec.node.inputs) {
+				if (element.id.startsWith(in)) {
+					args.add(element.id);
+				}
+			}
+			for (VarDecl element : spec.node.locals) {
+				if (element.id.startsWith(in)) {
+					args.add(element.id);
+				}
+			}
+		}
+		
+		return args;
 	}
 }

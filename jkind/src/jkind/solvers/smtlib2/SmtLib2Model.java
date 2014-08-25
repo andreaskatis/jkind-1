@@ -49,14 +49,23 @@ public class SmtLib2Model extends Model {
 		return sliced;
 	}
 	
-	public SmtLib2Model slice_real(List<Set<String>> keep) {
+	public SmtLib2Model slice_real(List<Set<String>> keep, List<String> inputs) {
 		SmtLib2Model sliced = new SmtLib2Model(varTypes);
 		for(Set<String> k : keep) {
-			for (String var : getVariableNames()) {
-				if (SexpUtil.isMangledStreamName(var) && k.contains(SexpUtil.getBaseName(var)) && (!sliced.values.containsKey(var))) {
+			if (k!=null) {
+				for (String var : getVariableNames()) {
+					if (SexpUtil.isMangledStreamName(var) && k.contains(SexpUtil.getBaseName(var)) && (!sliced.values.containsKey(var))) {
+						sliced.values.put(var, values.get(var));
+					}
+				}
+			}
+		for(String in : inputs) {
+			for (String var:getVariableNames()) {
+				if (SexpUtil.isMangledStreamName(var) && in.equals(SexpUtil.getBaseName(var)) && (!sliced.values.containsKey(var))) {
 					sliced.values.put(var, values.get(var));
 				}
 			}
+		}
 		}
 		return sliced;
 	}
