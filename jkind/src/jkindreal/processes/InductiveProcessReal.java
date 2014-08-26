@@ -15,7 +15,7 @@ import jkind.solvers.SatResult;
 import jkind.solvers.UnknownResult;
 import jkind.solvers.UnsatResult;
 import jkind.translation.Specification;
-import jkind.util.SexpUtil;
+import jkind.util.StreamIndex;
 import jkindreal.processes.messages.InductiveCounterexampleMessageReal;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
 import jkindreal.processes.messages.MessageReal;
@@ -78,7 +78,7 @@ public class InductiveProcessReal extends ProcessReal {
 		List<String> reals = new ArrayList<>(realizabilities);
 		//supports one realizability command for now.
 		while (!reals.isEmpty()) {
-			Result result = solver.realizability_query(getInputs(k), getOutputs(k), getTransition(k, INIT), SexpUtil.conjoinOffsets(properties,  k));
+			Result result = solver.realizability_query(getInputs(k), getOutputs(k), getTransition(k, INIT), StreamIndex.conjoinEncodings(properties,  k));
 			
 			if (result instanceof SatResult) {
 				Model model = ((SatResult) result).getModel();
@@ -98,7 +98,7 @@ public class InductiveProcessReal extends ProcessReal {
 	private void assertRealizabilities(int k) {
 		if (!realizabilities.isEmpty()) {
 			solver.send(new Cons("assert", new Cons("and", getTransition(k, Sexp.fromBoolean(k == 0)), 
-					SexpUtil.conjoinOffsets(properties, k))));
+					StreamIndex.conjoinEncodings(properties, k))));
 		}
 	}
 	

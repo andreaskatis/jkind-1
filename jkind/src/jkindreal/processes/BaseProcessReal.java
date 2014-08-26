@@ -15,7 +15,7 @@ import jkind.solvers.SatResult;
 import jkind.solvers.UnknownResult;
 import jkind.solvers.smtlib2.SmtLib2Model;
 import jkind.translation.Specification;
-import jkind.util.SexpUtil;
+import jkind.util.StreamIndex;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
 import jkindreal.processes.messages.MessageReal;
 import jkindreal.processes.messages.UnknownMessageReal;
@@ -71,7 +71,7 @@ public class BaseProcessReal extends ProcessReal {
 	private void checkRealizabilities(int k) {
 		Result result;
 		do {
-			result = solver.realizability_query(getInputs(k), getOutputs(k), getTransition(k, Sexp.fromBoolean(k == 0)), SexpUtil.conjoinOffsets(properties,  k));
+			result = solver.realizability_query(getInputs(k), getOutputs(k), getTransition(k, Sexp.fromBoolean(k == 0)), StreamIndex.conjoinEncodings(properties,  k));
 			if (result instanceof SatResult) {
 				SmtLib2Model model = (SmtLib2Model) ((SatResult) result).getModel();
 				List<String> invalid = new ArrayList<>();
@@ -120,11 +120,11 @@ public class BaseProcessReal extends ProcessReal {
 	private void assertRealizabilities(int k) {
 		if (!realizabilities.isEmpty()) {
 			solver.send(new Cons("assert", new Cons("and", getTransition(k, Sexp.fromBoolean(k == 0)), 
-					SexpUtil.conjoinOffsets(properties, k))));
+					StreamIndex.conjoinEncodings(properties, k))));
 		}
 		if (!(validRealizabilities.isEmpty())) {
 			solver.send(new Cons("assert", new Cons("and", getTransition(k, Sexp.fromBoolean(k == 0)), 
-					SexpUtil.conjoinOffsets(validRealizabilities, k))));
+					StreamIndex.conjoinEncodings(validRealizabilities, k))));
 		}
 	}
 

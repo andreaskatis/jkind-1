@@ -23,6 +23,7 @@ import jkind.solvers.z3.Z3Solver;
 import jkind.translation.Specification;
 import jkind.translation.TransitionRelation;
 import jkind.util.SexpUtil;
+import jkind.util.StreamIndex;
 import jkind.util.Util;
 import jkindreal.processes.messages.MessageReal;
 
@@ -154,8 +155,8 @@ public abstract class ProcessReal implements Runnable {
 	protected List<VarDecl> getOffsetVarDecls(int k, List<VarDecl> varDecls) {
 		List<VarDecl> result = new ArrayList<>();
 		for (VarDecl vd : varDecls) {
-			result.add(SexpUtil.offset(vd, k));
-		}
+			StreamIndex si = new StreamIndex(vd.id, k);
+			result.add(new VarDecl(si.getEncoded().str, vd.type));		}
 		return result;
 	}
 
@@ -180,7 +181,8 @@ public abstract class ProcessReal implements Runnable {
 			for (String in : inputs){
 				for (VarDecl element : spec.node.inputs) {
 					if (element.id.startsWith(in)) {
-						args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+						StreamIndex si = new StreamIndex(element.id, k);
+						args.add(new Cons(si.getEncoded().str, new Symbol(element.type.toString().substring(0, 1).toUpperCase()+element.type.toString().substring(1))));
 					}
 				}
 			}
@@ -195,7 +197,8 @@ public abstract class ProcessReal implements Runnable {
 			for (VarDecl element : spec.node.inputs) {
 				for (int i = 0; i < inputs.size(); i++) {
 					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
-						args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+						StreamIndex si = new StreamIndex(element.id, k);
+						args.add(new Cons(si.getEncoded().str, new Symbol(element.type.toString().substring(0, 1).toUpperCase()+element.type.toString().substring(1))));
 					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
 						continue;
 					} else {
@@ -206,7 +209,8 @@ public abstract class ProcessReal implements Runnable {
 			for (VarDecl element : spec.node.outputs) {
 				for (int i = 0; i < inputs.size(); i++) {
 					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
-						args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+						StreamIndex si = new StreamIndex(element.id, k);
+						args.add(new Cons(si.getEncoded().str, new Symbol(element.type.toString().substring(0, 1).toUpperCase()+element.type.toString().substring(1))));
 					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
 						continue;
 					} else {
@@ -217,7 +221,8 @@ public abstract class ProcessReal implements Runnable {
 			for (VarDecl element : spec.node.locals) {
 				for (int i = 0; i < inputs.size(); i++) {
 					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
-						args.add(new Cons(SexpUtil.offset(element, k).id, new Symbol(SexpUtil.offset(element, k).type.toString().substring(0, 1).toUpperCase()+SexpUtil.offset(element, k).type.toString().substring(1))));
+						StreamIndex si = new StreamIndex(element.id, k);
+						args.add(new Cons(si.getEncoded().str, new Symbol(element.type.toString().substring(0, 1).toUpperCase()+element.type.toString().substring(1))));
 					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
 						continue;
 					} else {

@@ -11,7 +11,7 @@ import jkind.lustre.values.Value;
 import jkind.sexp.Sexp;
 import jkind.solvers.Eval;
 import jkind.solvers.Model;
-import jkind.util.SexpUtil;
+import jkind.util.StreamIndex;
 
 public class SmtLib2Model extends Model {
 	private final Map<String, Sexp> values = new HashMap<>();
@@ -42,7 +42,8 @@ public class SmtLib2Model extends Model {
 	public SmtLib2Model slice(Set<String> keep) {
 		SmtLib2Model sliced = new SmtLib2Model(varTypes);
 		for (String var : getVariableNames()) {
-			if (SexpUtil.isMangledStreamName(var) && keep.contains(SexpUtil.getBaseName(var))) {
+			StreamIndex si = StreamIndex.decode(var);
+			if (si != null && keep.contains(si.getStream())) {
 				sliced.values.put(var, values.get(var));
 			}
 		}
@@ -54,14 +55,16 @@ public class SmtLib2Model extends Model {
 		for(Set<String> k : keep) {
 			if (k!=null) {
 				for (String var : getVariableNames()) {
-					if (SexpUtil.isMangledStreamName(var) && k.contains(SexpUtil.getBaseName(var)) && (!sliced.values.containsKey(var))) {
+					StreamIndex si = StreamIndex.decode(var);
+					if (si!=null && k.contains(si.getStream()) && (!sliced.values.containsKey(var))) {
 						sliced.values.put(var, values.get(var));
 					}
 				}
 			}
 		for(String in : inputs) {
 			for (String var:getVariableNames()) {
-				if (SexpUtil.isMangledStreamName(var) && in.equals(SexpUtil.getBaseName(var)) && (!sliced.values.containsKey(var))) {
+				StreamIndex si = StreamIndex.decode(var);
+				if (si!=null && in.equals(si.getStream()) && (!sliced.values.containsKey(var))) {
 					sliced.values.put(var, values.get(var));
 				}
 			}
