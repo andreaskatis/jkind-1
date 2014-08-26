@@ -164,6 +164,23 @@ public abstract class Renaming {
 		return new InvalidRealizability(name, rename(realizability.getCounterexample()),
 				realizability.getRuntime());
 	}
+	
+	/**
+	 * Rename unknown realizability and signals (if present), possibly omitting some
+	 * 
+	 * @param realizability
+	 *            realizability to be renamed
+	 * @return Renamed version of the realizability, or <code>null</code> if there is
+	 *         no renaming for the realizability
+	 */
+	public UnknownRealizability rename(UnknownRealizability realizability) {
+		String name = rename(realizability.getName());
+		if (name == null) {
+			return null;
+		}
+
+		return new UnknownRealizability(name, rename(realizability.getInductiveCounterexample()));
+	}
 
 	/**
 	 * Rename signals in a counterexample, possibly omitting some
