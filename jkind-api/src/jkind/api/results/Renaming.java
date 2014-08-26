@@ -10,6 +10,7 @@ import jkind.results.Property;
 import jkind.results.Realizability;
 import jkind.results.Signal;
 import jkind.results.UnknownProperty;
+import jkind.results.UnknownRealizability;
 import jkind.results.ValidProperty;
 import jkind.results.ValidRealizability;
 
@@ -119,6 +120,8 @@ public abstract class Renaming {
 			return rename((ValidRealizability) realizability);
 		} else if (realizability instanceof InvalidRealizability) {
 			return rename((InvalidRealizability) realizability);
+		} else if (realizability instanceof UnknownRealizability) {
+			return rename((UnknownRealizability) realizability);
 		} else {
 			return null;
 		}
