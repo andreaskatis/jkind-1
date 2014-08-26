@@ -93,4 +93,20 @@ public class ConsoleWriter extends Writer {
 		System.out.println();
 		
 	}
+	
+	@Override
+	public void writeUnknownRealizability(List<String> reals,
+			Map<String, Counterexample> inductiveCounterexamples) {
+		for (String real : reals) {
+			Counterexample cex = inductiveCounterexamples.get(real);
+			if (cex != null) {
+				writeLine();
+				System.out.println("INDUCTIVE COUNTEREXAMPLE: " + real + " || K = "
+						+ cex.getLength());
+				System.out.println(cex);
+				writeLine();
+				System.out.println();
+			}
+		}
+	}
 }

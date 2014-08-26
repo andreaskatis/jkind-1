@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import jkind.api.results.TickerReal;
+
 import jkind.excel.ExcelFormatter;
 import jkind.results.Realizability;
 import jkind.results.layout.Layout;

@@ -23,4 +23,6 @@ public abstract class Writer {
 			List<Invariant> invariants);
 	
 	public abstract void writeInvalidRealizability(String real, Counterexample cex, double runtime);
+	
+	public abstract void writeUnknownRealizability(List<String> reals, Map<String, Counterexample> inductiveCounterexamples);
 }

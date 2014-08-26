@@ -18,8 +18,10 @@ import jkind.results.Counterexample;
 import jkind.results.InvalidRealizability;
 import jkind.results.Realizability;
 import jkind.results.Signal;
+import jkind.results.UnknownRealizability;
 import jkind.results.ValidRealizability;
 import jkind.util.Util;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -143,6 +145,10 @@ public class XmlHandlerReal extends DefaultHandler {
 
 			case "falsifiable":
 				real = new InvalidRealizability(realizabilityName, cex, runtime);
+				break;
+				
+			case "unknown":
+				real = new UnknownRealizability(realizabilityName, cex);
 				break;
 
 			default:

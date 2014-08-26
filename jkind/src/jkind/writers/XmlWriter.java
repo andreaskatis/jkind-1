@@ -160,4 +160,22 @@ public class XmlWriter extends Writer {
 		}
 		out.println("  </Property>");
 	}
+	
+	@Override
+	public void writeUnknownRealizability(List<String> reals,
+			Map<String, Counterexample> inductiveCounterexamples) {
+		for (String real : reals) {
+			writeUnknownRealizability(real, inductiveCounterexamples.get(real));
+		}
+	}
+
+	private void writeUnknownRealizability(String real, Counterexample icm) {
+		out.println("  <Realizability name=\"" + real + "\">");
+		out.println("    <Answer>unknown</Answer>");
+		if (icm != null) {
+			out.println("    <K>" + icm.getLength() + "</K>");
+			writeCounterexample(icm);
+		}
+		out.println("  </Realizability>");
+	}
 }

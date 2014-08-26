@@ -14,6 +14,7 @@ import jkind.results.InvalidRealizability;
 import jkind.results.Property;
 import jkind.results.Realizability;
 import jkind.results.UnknownProperty;
+import jkind.results.UnknownRealizability;
 import jkind.results.ValidProperty;
 import jkind.results.ValidRealizability;
 import jkind.results.layout.NodeLayout;
@@ -81,5 +82,13 @@ public class ExcelWriter extends Writer {
 	@Override
 	public void writeInvalidRealizability(String real, Counterexample cex, double runtime) {
 		realizabilities.add(new InvalidRealizability(real, cex, runtime));
+	}
+	
+	@Override
+	public void writeUnknownRealizability(List<String> reals,
+			Map<String, Counterexample> inductiveCounterexamples) {
+		for (String real : reals) {
+			realizabilities.add(new UnknownRealizability(real, inductiveCounterexamples.get(real)));
+		}
 	}
 }

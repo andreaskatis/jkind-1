@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.parsers.ParserConfigurationException;
-
 import jkind.JKindException;
 import jkind.SolverOption;
 import jkind.api.xml.JKindXmlFileInputStream;
@@ -19,7 +17,6 @@ import jkind.util.Util;
 import jkind.api.results.JKindResultRealizability;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.xml.sax.SAXException;
 
 /**
  * The primary interface to Realizability checking Api.
@@ -146,8 +143,7 @@ public class JRealizabilityApi {
 	}
 
 	private void callJKind(File lustreFile, File xmlFile, JKindResultRealizability result,
-			IProgressMonitor monitor) throws IOException, InterruptedException,
-			ParserConfigurationException, SAXException {
+			IProgressMonitor monitor) throws IOException, InterruptedException {
 		ProcessBuilder builder = getJKindProcessBuilder(lustreFile);
 		Process process = null;
 		try (JKindXmlFileInputStream xmlStream = new JKindXmlFileInputStream(xmlFile)) {
@@ -244,33 +240,37 @@ public class JRealizabilityApi {
 	}
 
 	private String[] getJKindCommand() {
-		if (Util.isWindows()) {
-			/*
-			 * On Windows, invoking Process.destroy does not kill the
-			 * subprocesses of the destroyed process. If we were to run
-			 * jkind.bat and kill it, only the cmd.exe process which is running
-			 * the batch file would be killed. The underlying JKind process
-			 * would continue to its natural end. To avoid this, we search the
-			 * user's path for the jkind.jar file and invoke it directly.
-			 */
+		/*
+		 * On Windows, invoking Process.destroy does not kill the
+		 * subprocesses of the destroyed process. If we were to run
+		 * jkind.bat and kill it, only the cmd.exe process which is running
+		 * the batch file would be killed. The underlying JKind process
+		 * would continue to its natural end. To avoid this, we search the
+		 * user's path for the jkind.jar file and invoke it directly.
+		 */
 
-			File jar = findRealJar();
-			if (jar == null) {
-				throw new JKindException("Unable to find jkind.jar on system PATH");
-			}
-			return new String[] { "java", "-jar", jar.toString(), "-jrealizability" };
-		} else {
-			return new String[] { "jrealizability" };
+		File jar = findRealJar();
+		if (jar == null) {
+			throw new JKindException("Unable to find jkind.jar on system PATH");
 		}
+		return new String[] { "java", "-jar", jar.toString(), "-jrealizability" };
 	}
 
 	private File findRealJar() {
-		String path = System.getenv("PATH");
+		File jar = findRealJar(System.getenv("JKIND_HOME"));
+		if (jar == null) {
+			jar = findRealJar(System.getenv("PATH"));
+		}
+		return jar;
+	}
+
+	
+	private File findRealJar(String path) {
 		if (path == null) {
 			return null;
 		}
 
-		for (String element : path.split(";")) {
+		for (String element : path.split(File.pathSeparator)) {
 			File jar = new File(new File(element), "jkind.jar");
 			if (jar.exists()) {
 				return jar;

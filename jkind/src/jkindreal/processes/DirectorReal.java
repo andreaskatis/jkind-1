@@ -98,7 +98,7 @@ public class DirectorReal {
 		unknownRealizabilities.addAll(remainingRealizabilities);
 		remainingRealizabilities.clear();
 		if (!unknownRealizabilities.isEmpty()) {
-			writer.writeUnknown(unknownRealizabilities, convertInductiveCounterexamples());
+			writer.writeUnknownRealizability(unknownRealizabilities, convertInductiveCounterexamples());
 		}
 
 		writer.end();
