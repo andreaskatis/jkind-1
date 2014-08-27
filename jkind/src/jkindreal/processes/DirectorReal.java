@@ -205,7 +205,7 @@ public class DirectorReal {
 			} else if (message instanceof UnknownMessageReal) {
 				UnknownMessageReal um = (UnknownMessageReal) message;
 				remainingRealizabilities.removeAll(um.unknown);
-				writer.writeUnknown(um.unknown, baseStep, convertInductiveCounterexamples(),
+				writer.writeUnknownRealizabilities(um.unknown, baseStep, convertInductiveCounterexamples(),
 								runtime);
 			} else if (message instanceof BaseStepMessage) {
 				BaseStepMessage bsm = (BaseStepMessage) message;
