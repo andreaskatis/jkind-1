@@ -7,8 +7,8 @@ public final class ValidRealizability extends Realizability {
 	private final int k;
 	private final List<String> invariants;
 
-	public ValidRealizability(String real, int k, double runtime, List<String> invariants) {
-		super(real,runtime);
+	public ValidRealizability(String name, int k, double runtime, List<String> invariants) {
+		super(name,runtime);
 		this.k = k;
 		this.invariants = invariants;
 	}
@@ -25,12 +25,5 @@ public final class ValidRealizability extends Realizability {
 	 */
 	public List<String> getInvariants() {
 		return Collections.unmodifiableList(invariants);
-	}
-
-	/**
-	 * Runtime of verification measured in seconds
-	 */
-	public double getRuntime() {
-		return runtime;
 	}
 }

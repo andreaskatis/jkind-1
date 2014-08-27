@@ -16,13 +16,13 @@ public abstract class Writer {
 
 	public abstract void writeInvalid(String prop, Counterexample cex, double runtime);
 
-	public abstract void writeUnknown(List<String> props,
-			Map<String, Counterexample> inductiveCounterexamples);
+	public abstract void writeUnknown(List<String> props, int trueFor,
+			Map<String, Counterexample> inductiveCounterexamples, double runtime);
 	
 	public abstract void writeValidRealizability(List<String> reals, int k, double runtime,
 			List<Invariant> invariants);
 	
 	public abstract void writeInvalidRealizability(String real, Counterexample cex, double runtime);
 	
-	public abstract void writeUnknownRealizability(List<String> reals, Map<String, Counterexample> inductiveCounterexamples);
+	public abstract void writeUnknownRealizabilities(List<String> reals, int trueFor, Map<String, Counterexample> inductiveCounterexamples, double runtime);
 }

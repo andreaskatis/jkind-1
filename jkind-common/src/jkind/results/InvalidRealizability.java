@@ -4,8 +4,8 @@ package jkind.results;
 public final class InvalidRealizability extends Realizability {
 		private final Counterexample cex;
 
-		public InvalidRealizability(String real, Counterexample cex, double runtime) {
-			super(real, runtime);
+		public InvalidRealizability(String name, Counterexample cex, double runtime) {
+			super(name, runtime);
 			this.cex = cex;
 		}
 
@@ -15,12 +15,4 @@ public final class InvalidRealizability extends Realizability {
 		public Counterexample getCounterexample() {
 			return cex;
 		}
-
-		/**
-		 * Runtime of falsification measured in seconds
-		 */
-		public double getRuntime() {
-			return runtime;
-		}
-
 }

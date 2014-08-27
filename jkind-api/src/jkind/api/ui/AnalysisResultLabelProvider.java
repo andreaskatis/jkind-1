@@ -9,6 +9,8 @@ import jkind.api.results.RealizabilityResult;
 import jkind.api.results.ResultsUtil;
 import jkind.api.results.Status;
 import jkind.api.ui.AnalysisResultColumnViewer.Column;
+import jkind.results.UnknownProperty;
+import jkind.results.UnknownRealizability;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
@@ -41,7 +43,7 @@ public class AnalysisResultLabelProvider extends ColumnLabelProvider {
 				case WORKING:
 					return pr.getStatus().toString() + "... (" + pr.getElapsed() + "s)";
 				default:
-					return pr.getStatus().toString() + " (" + pr.getElapsed() + "s)";
+					return getFinalStatus(pr) + " (" + pr.getElapsed() + "s)";
 				}
 			case REALIZABILITY:
 				break;
@@ -60,7 +62,7 @@ public class AnalysisResultLabelProvider extends ColumnLabelProvider {
 				case WORKING:
 					return re.getStatus().toString() + "... (" + re.getElapsed() + "s)";
 				default:
-					return re.getStatus().toString() + " (" + re.getElapsed() + "s)";
+					return getFinalStatus(re) + " (" + re.getElapsed() + "s)";
 				}
 			}
 		} else if (element instanceof AnalysisResult) {
@@ -76,6 +78,24 @@ public class AnalysisResultLabelProvider extends ColumnLabelProvider {
 		}
 
 		return "";
+	}
+
+	private String getFinalStatus(PropertyResult pr) {
+		if (pr.getProperty() instanceof UnknownProperty) {
+			UnknownProperty up = (UnknownProperty) pr.getProperty();
+			return pr.getStatus().toString() + " [true for " + up.getTrueFor() + " steps]";
+		} else {
+			return pr.getStatus().toString();
+		}
+	}
+	
+	private String getFinalStatus(RealizabilityResult r) {
+		if (r.getRealizability() instanceof UnknownRealizability) {
+			UnknownRealizability up = (UnknownRealizability) r.getRealizability();
+			return r.getStatus().toString() + " [true for " + up.getTrueFor() + " steps]";
+		} else {
+			return r.getStatus().toString();
+		}
 	}
 
 	private static final Image EMPTY_IMAGE = loadImage("/icons/empty.png");

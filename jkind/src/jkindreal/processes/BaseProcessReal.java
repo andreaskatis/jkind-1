@@ -104,8 +104,10 @@ public class BaseProcessReal extends ProcessReal {
 	}
 
 	private void sendBaseStep(int k) {
+		BaseStepMessage bsm = new BaseStepMessage(k+1);
+		director.incoming.add(bsm);
 		if (inductiveProcess != null) {
-			inductiveProcess.incoming.add(new BaseStepMessage(k + 1));
+			inductiveProcess.incoming.add(bsm);
 		}
 	}
 

@@ -53,8 +53,7 @@ public class XmlParseThreadReal extends Thread {
 	@Override
 	public void run() {
 
-		try {
-			LineInputStream lines = new LineInputStream(xmlStream);
+		try (LineInputStream lines = new LineInputStream(xmlStream)) {
 			StringBuilder buffer = null;
 			String line;
 			while ((line = lines.readLine()) != null) {
@@ -98,6 +97,7 @@ public class XmlParseThreadReal extends Thread {
 	private Realizability getRealizability(Element realizabilityElement) {
 		String name = realizabilityElement.getAttribute("name");
 		double runtime = getRuntime(getElement(realizabilityElement, "Runtime"));
+		int trueFor = getTrueFor(getElement(realizabilityElement, "TrueFor"));
 		int k = getK(getElement(realizabilityElement, "K"));
 		String answer = getAnswer(getElement(realizabilityElement, "Answer"));
 		List<String> invariants = getInvariants(getElements(realizabilityElement, "Invariant"));
@@ -111,7 +111,7 @@ public class XmlParseThreadReal extends Thread {
 			return new InvalidRealizability(name, cex, runtime);
 
 		case "unknown":
-			return new UnknownRealizability(name, cex);
+			return new UnknownRealizability(name, trueFor, cex, runtime);
 
 		default:
 			throw new JKindException("Unknown property answer in XML file: " + answer);
@@ -123,6 +123,13 @@ public class XmlParseThreadReal extends Thread {
 			return 0;
 		}
 		return Double.parseDouble(runtimeNode.getTextContent());
+	}
+	
+	private int getTrueFor(Node trueForNode) {
+		if (trueForNode == null) {
+			return 0;
+		}
+		return Integer.parseInt(trueForNode.getTextContent());
 	}
 	
 	private int getK(Node kNode) {

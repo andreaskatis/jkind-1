@@ -52,6 +52,7 @@ public class ExcelFormatter implements Closeable {
 			summarySheet.addCell(new Label(1, 0, "Result", boldFormat));
 			summarySheet.addCell(new Label(2, 0, "K", boldFormat));
 			summarySheet.addCell(new Label(3, 0, "Runtime", boldFormat));
+			summarySheet.addCell(new Label(4, 0, "True For", boldFormat));
 			summaryRow = 1;
 		} catch (WriteException | IOException e) {
 			throw new JKindException("Error writing to Excel file", e);
@@ -149,7 +150,9 @@ public class ExcelFormatter implements Closeable {
 
 	private void write(UnknownProperty property) throws WriteException {
 		String name = property.getName();
+		int trueFor = property.getTrueFor();
 		Counterexample cex = property.getInductiveCounterexample();
+		double runtime = property.getRuntime();
 
 		summarySheet.addCell(new Label(0, summaryRow, name));
 		if (cex == null) {
@@ -159,7 +162,13 @@ public class ExcelFormatter implements Closeable {
 			summarySheet.addHyperlink(new WritableHyperlink(1, summaryRow, "Unknown", cexSheet, 0,
 					0));
 		}
+		summarySheet.addCell(new Number(3, summaryRow, runtime));
+		summarySheet.addCell(new Number(4, summaryRow, trueFor));
 		summaryRow++;
+	}
+
+	private WritableSheet writeCounterexample(String name, Counterexample cex) {
+		return cexFormatter.writeCounterexample(name, cex);
 	}
 	
 	public void writeReal(List<Realizability> realizabilities) {
@@ -214,8 +223,10 @@ public class ExcelFormatter implements Closeable {
 	
 	private void write(UnknownRealizability realizability) throws WriteException {
 		String name = realizability.getName();
+		int trueFor = realizability.getTrueFor();
 		Counterexample cex = realizability.getInductiveCounterexample();
-
+		double runtime = realizability.getRuntime();
+		
 		summarySheet.addCell(new Label(0, summaryRow, name));
 		if (cex == null) {
 			summarySheet.addCell(new Label(1, summaryRow, "Unknown"));
@@ -224,10 +235,9 @@ public class ExcelFormatter implements Closeable {
 			summarySheet.addHyperlink(new WritableHyperlink(1, summaryRow, "Unknown", cexSheet, 0,
 					0));
 		}
+		summarySheet.addCell(new Number(3, summaryRow, runtime));
+		summarySheet.addCell(new Number(4, summaryRow, trueFor));
 		summaryRow++;
 	}
 
-	private WritableSheet writeCounterexample(String name, Counterexample cex) {
-		return cexFormatter.writeCounterexample(name, cex);
-	}
 }

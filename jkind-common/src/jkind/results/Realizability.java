@@ -1,8 +1,8 @@
 package jkind.results;
 
 public abstract class Realizability {
-	protected final String name;
-	protected final double runtime;
+	private final String name;
+	private final double runtime;
 
 	public Realizability(String real, double runtime) {
 		this.name = real;
@@ -20,5 +20,12 @@ public abstract class Realizability {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 *  Runtime of the property measured in seconds
+	 */
+	public double getRuntime() {
+		return runtime;
 	}
 }

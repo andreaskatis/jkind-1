@@ -30,6 +30,7 @@ import jkind.writers.ConsoleWriter;
 import jkind.writers.ExcelWriter;
 import jkind.writers.Writer;
 import jkind.writers.XmlWriter;
+import jkindreal.processes.messages.BaseStepMessage;
 import jkindreal.processes.messages.CounterexampleMessageReal;
 import jkindreal.processes.messages.InductiveCounterexampleMessageReal;
 import jkindreal.processes.messages.InvalidRealizabilityMessage;
@@ -45,7 +46,8 @@ public class DirectorReal {
 	private List<String> remainingRealizabilities = new ArrayList<>();
 	private List<String> validRealizabilities = new ArrayList<>();
 	private List<String> invalidRealizabilities = new ArrayList<>();
-	private List<String> unknownRealizabilities = new ArrayList<>();
+	
+	private int baseStep = 0;
 	private Map<String, InductiveCounterexampleMessageReal> inductiveCounterexamples = new HashMap<>();
 
 	private BaseProcessReal baseProcess;
@@ -95,10 +97,9 @@ public class DirectorReal {
 
 		processMessages(startTime);
 
-		unknownRealizabilities.addAll(remainingRealizabilities);
-		remainingRealizabilities.clear();
-		if (!unknownRealizabilities.isEmpty()) {
-			writer.writeUnknownRealizability(unknownRealizabilities, convertInductiveCounterexamples());
+
+		if (!remainingRealizabilities.isEmpty()) {
+			writer.writeUnknownRealizabilities(remainingRealizabilities, baseStep, convertInductiveCounterexamples(), getRuntime(startTime));
 		}
 
 		writer.end();
@@ -172,7 +173,7 @@ public class DirectorReal {
 	private void processMessages(long startTime) {
 		while (!incoming.isEmpty()) {
 			MessageReal message = incoming.poll();
-			double runtime = (System.currentTimeMillis() - startTime) / 1000.0;
+			double runtime = getRuntime(startTime);
 			if (message instanceof ValidRealizabilityMessage) {
 				ValidRealizabilityMessage vm = (ValidRealizabilityMessage) message;
 				remainingRealizabilities.removeAll(vm.valid);
@@ -204,7 +205,11 @@ public class DirectorReal {
 			} else if (message instanceof UnknownMessageReal) {
 				UnknownMessageReal um = (UnknownMessageReal) message;
 				remainingRealizabilities.removeAll(um.unknown);
-				unknownRealizabilities.addAll(um.unknown);
+				writer.writeUnknown(um.unknown, baseStep, convertInductiveCounterexamples(),
+								runtime);
+			} else if (message instanceof BaseStepMessage) {
+				BaseStepMessage bsm = (BaseStepMessage) message;
+				baseStep = bsm.step;
 			} else {
 				throw new JKindException("Unknown message type in director: "
 						+ message.getClass().getCanonicalName());
@@ -212,6 +217,11 @@ public class DirectorReal {
 		}
 	}
 
+	private double getRuntime(long startTime) {
+		
+		return (System.currentTimeMillis() - startTime) / 1000.0;
+	}
+	
 	private void printSummary() {
 		if (!settings.xmlToStdout) {
 			Output.println("    -------------------------------------");
@@ -226,8 +236,8 @@ public class DirectorReal {
 				Output.println("INVALID REALIZABILITIES: " + invalidRealizabilities);
 				Output.println();
 			}
-			if (!unknownRealizabilities.isEmpty()) {
-				Output.println("UNKNOWN REALIZABILITIES: " + unknownRealizabilities);
+			if (!remainingRealizabilities.isEmpty()) {
+				Output.println("UNKNOWN REALIZABILITIES: " + remainingRealizabilities);
 				Output.println();
 			}
 		}

@@ -25,7 +25,6 @@ public class ExcelWriter extends Writer {
 	final private List<Property> properties = new ArrayList<>();
 	final private List<Realizability> realizabilities = new ArrayList<>();
 
-
 	public ExcelWriter(String filename, Node node) {
 		this.file = new File(filename);
 		this.node = node;
@@ -60,10 +59,11 @@ public class ExcelWriter extends Writer {
 	}
 
 	@Override
-	public void writeUnknown(List<String> props,
-			Map<String, Counterexample> inductiveCounterexamples) {
+	public void writeUnknown(List<String> props, int trueFor,
+			Map<String, Counterexample> inductiveCounterexamples, double runtime) {
 		for (String prop : props) {
-			properties.add(new UnknownProperty(prop, inductiveCounterexamples.get(prop)));
+			properties.add(new UnknownProperty(prop, trueFor, inductiveCounterexamples.get(prop),
+					runtime));
 		}
 	}
 	
@@ -85,10 +85,10 @@ public class ExcelWriter extends Writer {
 	}
 	
 	@Override
-	public void writeUnknownRealizability(List<String> reals,
-			Map<String, Counterexample> inductiveCounterexamples) {
+	public void writeUnknownRealizabilities(List<String> reals, int trueFor,
+			Map<String, Counterexample> inductiveCounterexamples, double runtime) {
 		for (String real : reals) {
-			realizabilities.add(new UnknownRealizability(real, inductiveCounterexamples.get(real)));
+			realizabilities.add(new UnknownRealizability(real, trueFor, inductiveCounterexamples.get(real), runtime));
 		}
 	}
 }
