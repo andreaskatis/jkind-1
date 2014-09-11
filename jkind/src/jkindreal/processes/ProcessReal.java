@@ -208,26 +208,20 @@ public abstract class ProcessReal implements Runnable {
 			}
 			for (VarDecl element : spec.node.outputs) {
 				for (int i = 0; i < inputs.size(); i++) {
-					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
+//					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
 						StreamIndex si = new StreamIndex(element.id, k);
 						args.add(new Cons(si.getEncoded().str, new Symbol(element.type.toString().substring(0, 1).toUpperCase()+element.type.toString().substring(1))));
-					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
-						continue;
-					} else {
-						break;
-					}
+//					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
+//						continue;
+//					} else {
+//						break;
+//					}
 				}
 			}
 			for (VarDecl element : spec.node.locals) {
 				for (int i = 0; i < inputs.size(); i++) {
-					if ((!element.id.startsWith(inputs.get(i))) && (i==inputs.size()-1)) {
-						StreamIndex si = new StreamIndex(element.id, k);
-						args.add(new Cons(si.getEncoded().str, new Symbol(element.type.toString().substring(0, 1).toUpperCase()+element.type.toString().substring(1))));
-					} else if ((!element.id.startsWith(inputs.get(i))) && (i < inputs.size()-1)) {
-						continue;
-					} else {
-						break;
-					}
+					StreamIndex si = new StreamIndex(element.id, k);
+					args.add(new Cons(si.getEncoded().str, new Symbol(element.type.toString().substring(0, 1).toUpperCase()+element.type.toString().substring(1))));
 				}
 			}
 		}
