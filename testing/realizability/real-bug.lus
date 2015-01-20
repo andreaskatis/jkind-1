@@ -1,0 +1,10 @@
+node main(in1, in2, out : real) returns ();
+var
+    assms, prop : bool;
+let
+    assms = (in1 < in2);
+    prop = assms => (in1 < out and out < in2);
+    --%PROPERTY prop;
+
+    --%REALIZABILITY {in1, in2};
+tel;

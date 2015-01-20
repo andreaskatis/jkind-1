@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jkind.ExitCodes;
 import jkind.Output;
 import jkind.lustre.ArrayAccessExpr;
 import jkind.lustre.ArrayExpr;
@@ -68,9 +69,9 @@ import jkind.lustre.parsing.LustreParser.PlainTypeContext;
 import jkind.lustre.parsing.LustreParser.PreExprContext;
 import jkind.lustre.parsing.LustreParser.ProgramContext;
 import jkind.lustre.parsing.LustreParser.PropertyContext;
+import jkind.lustre.parsing.LustreParser.RealizabilityContext;
 import jkind.lustre.parsing.LustreParser.RealExprContext;
 import jkind.lustre.parsing.LustreParser.RealTypeContext;
-import jkind.lustre.parsing.LustreParser.RealizabilityContext;
 import jkind.lustre.parsing.LustreParser.RecordAccessExprContext;
 import jkind.lustre.parsing.LustreParser.RecordExprContext;
 import jkind.lustre.parsing.LustreParser.RecordTypeContext;
@@ -184,6 +185,14 @@ public class LustreToAstVisitor extends LustreBaseVisitor<Object> {
 		}
 		return props;
 	}
+
+	private List<Expr> assertions(List<AssertionContext> ctxs) {
+		List<Expr> assertions = new ArrayList<>();
+		for (AssertionContext ctx : ctxs) {
+			assertions.add(expr(ctx.expr()));
+		}
+		return assertions;
+	}
 	
 	private List<String> realizabilities(List<RealizabilityContext> ctxs) {
 		List<String> reals = new ArrayList<>();
@@ -195,14 +204,6 @@ public class LustreToAstVisitor extends LustreBaseVisitor<Object> {
 			reals.add(ids.toString());
 		}
 		return reals;
-	}
-
-	private List<Expr> assertions(List<AssertionContext> ctxs) {
-		List<Expr> assertions = new ArrayList<>();
-		for (AssertionContext ctx : ctxs) {
-			assertions.add(expr(ctx.expr()));
-		}
-		return assertions;
 	}
 
 	private Type topLevelType(String id, TopLevelTypeContext ctx) {
@@ -260,7 +261,16 @@ public class LustreToAstVisitor extends LustreBaseVisitor<Object> {
 
 	@Override
 	public Type visitArrayType(ArrayTypeContext ctx) {
-		return new ArrayType(loc(ctx), type(ctx.type()), Integer.parseInt(ctx.INT().getText()));
+		try {
+			int index = Integer.parseInt(ctx.INT().getText());
+			if (index == 0) {
+				fatal(ctx, "array size must be non-zero");
+			}
+			return new ArrayType(loc(ctx), type(ctx.type()), index);
+		} catch (NumberFormatException nfe) {
+			fatal(ctx, "array size too large: " + ctx.INT().getText());
+			return null;
+		}
 	}
 
 	@Override
@@ -436,6 +446,6 @@ public class LustreToAstVisitor extends LustreBaseVisitor<Object> {
 
 	private static void fatal(ParserRuleContext ctx, String text) {
 		Output.error(loc(ctx), text);
-		System.exit(-1);
+		System.exit(ExitCodes.PARSE_ERROR);
 	}
 }

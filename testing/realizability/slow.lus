@@ -1,0 +1,9 @@
+node main(in, out : real) returns ();
+var
+    prop : bool;
+let
+    prop = 2.0 * out = in;
+    --%PROPERTY prop;
+
+    --%REALIZABILITY {in};
+tel;
