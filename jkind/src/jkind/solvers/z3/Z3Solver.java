@@ -63,8 +63,9 @@ public class Z3Solver extends SmtLib2Solver {
 		
 		Symbol assum = new Symbol("assum" + assumCount++);
 		define(new VarDecl(assum.str, NamedType.BOOL));
-		send(new Cons("assert", new Cons("=>", assum, /*new Cons("exists", inputs,*/ new Cons("forall", outputs, new Cons("not", new Cons("and", transition, properties))))));
-		send(new Cons("check-sat", assum));
+		send(new Cons("assert", /*new Cons("=>", assum,*/ new Cons("forall", outputs, new Cons("not", new Cons("and", transition, properties)))));
+		//send(new Cons("assert", assum));
+		send(new Cons("check-sat-using qe-sat"));
 		send("(echo \"" + DONE + "\")");
 		String status = readFromSolver();
 		if (isSat(status)) {

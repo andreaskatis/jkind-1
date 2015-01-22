@@ -23,6 +23,8 @@ import jkind.lustre.values.Value;
 import jkind.results.Counterexample;
 import jkind.results.Signal;
 import jkind.results.layout.NodeLayout;
+import jkind.slicing.DependencySet;
+import jkind.slicing.ModelSlicer;
 import jkind.solvers.Model;
 import jkind.translation.Specification;
 import jkind.util.StreamIndex;
@@ -186,11 +188,11 @@ public class DirectorReal {
 				remainingRealizabilities.removeAll(im.invalid);
 				invalidRealizabilities.addAll(im.invalid);
 				inductiveCounterexamples.keySet().removeAll(im.invalid);
-				List<Set<String>> keep = new ArrayList<>();
+				List<DependencySet> keep = new ArrayList<>();
 				for (String props : spec.node.properties) {
 					keep.add(spec.dependencyMap.get(props));
 				}
-				Model slicedModel = im.model.slice_real(keep, getInputs(invalidRealizabilities.get(0)));
+				Model slicedModel = ModelSlicer.slice_real(im.model, keep, getInputs(invalidRealizabilities.get(0)));
 				Counterexample cex = extractCounterexample(im.k, slicedModel);
 				writer.writeInvalidRealizability(invalidRealizabilities.get(0), cex, runtime);
 			} else if (message instanceof CounterexampleMessageReal) {
@@ -248,7 +250,7 @@ public class DirectorReal {
 
 		for (String real : inductiveCounterexamples.keySet()) {
 			InductiveCounterexampleMessageReal icm = inductiveCounterexamples.get(real);
-			Model slicedModel = icm.model.slice(spec.dependencyMap.get(icm.realizability));
+			Model slicedModel = ModelSlicer.slice(icm.model, spec.dependencyMap.get(icm.realizability));
 			result.put(real, extractCounterexample(icm.k, slicedModel));
 		}
 

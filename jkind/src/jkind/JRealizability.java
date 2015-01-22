@@ -17,7 +17,7 @@ public class JRealizability {
 			Program program = Main.parseLustre(filename);
 			
 			Level nonlinear = Level.WARNING;
-			StaticAnalyzer.check(program, nonlinear);
+			StaticAnalyzer.check(program, SolverOption.Z3);
 
 			Node main = Translate.translate(program);
 			DependencyMap dependencyMap = new DependencyMap(main, main.properties);

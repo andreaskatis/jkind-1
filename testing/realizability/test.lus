@@ -1,0 +1,14 @@
+node _MAIN(
+  test_impl_Instance__output : bool;
+  test_impl_Instance__input : bool 
+
+) returns (
+);
+var
+  _SYS_GUARANTEE_0 : bool;
+let
+  --%MAIN
+  _SYS_GUARANTEE_0 = ((false and test_impl_Instance__output) = (not(true or test_impl_Instance__input)));
+  --%PROPERTY _SYS_GUARANTEE_0;
+  --%REALIZABILITY {test_impl_Instance__input};
+tel;
