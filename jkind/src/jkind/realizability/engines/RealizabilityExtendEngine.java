@@ -2,15 +2,14 @@ package jkind.realizability.engines;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
+import jkind.aeval.AevalResult;
+import jkind.aeval.AevalSolver;
+import jkind.aeval.SkolemRelation;
+import jkind.aeval.ValidResult;
 import jkind.engines.StopException;
 import jkind.lustre.NamedType;
 import jkind.lustre.VarDecl;
-import jkind.realizability.engines.messages.BaseStepMessage;
-import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
-import jkind.realizability.engines.messages.Message;
-import jkind.realizability.engines.messages.RealizableMessage;
-import jkind.realizability.engines.messages.UnknownMessage;
-import jkind.realizability.engines.messages.UnrealizableMessage;
+import jkind.realizability.engines.messages.*;
 import jkind.solvers.Model;
 import jkind.solvers.Result;
 import jkind.solvers.SatResult;
@@ -19,9 +18,13 @@ import jkind.solvers.UnsatResult;
 import jkind.translation.Specification;
 import jkind.util.StreamIndex;
 
+import java.util.ArrayList;
+
 public class RealizabilityExtendEngine extends RealizabilityEngine {
 	private int kLimit = 0;
 	private RealizabilityBaseEngine baseEngine;
+	private AevalSolver aesolver;
+
 
 	public RealizabilityExtendEngine(Specification spec, JRealizabilitySettings settings,
 			RealizabilityDirector director) {
@@ -37,6 +40,7 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 		super.initializeSolver();
 		solver.define(new VarDecl(INIT.str, NamedType.BOOL));
 	}
+
 
 	@Override
 	public void main() {
@@ -89,6 +93,29 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 
 		if (result instanceof UnsatResult) {
 			sendRealizable(k);
+
+			//Existential variables need different
+			//naming due to AE-VAL's different variable
+			//scope mechanism. Properties are part of the
+			//outputs so these should be renamed as well.
+			//New names can be derived if we simply use the
+			//next value of k for this AE-VAL call.
+			aesolver = new AevalSolver(settings.filename);
+			aesolver.comment("K = " + (k + 1));
+			createAevalVariables(aesolver, k);
+			assertGuardandSkolVars(aesolver, k);
+			AevalResult aeresult = aesolver.synthesize(getRealizabilityOutputs(k+1), getAevalTransition(k, k == 0),
+					StreamIndex.conjoinEncodings(spec.node.properties, k+1));
+			if (aeresult instanceof ValidResult) {
+				implementation.add(((ValidResult) aeresult).getSkolem());
+			} else {
+				//case where Z3 result conflicts with AE-VAL
+				//what should be happening?
+				throw new StopException();
+			}
+
+			sendImplementation(implementation, k);
+
 			throw new StopException();
 		} else if (result instanceof SatResult) {
 			Model model = ((SatResult) result).getModel();
@@ -107,6 +134,12 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 	private void sendExtendCounterexample(int k, Model model) {
 		if (settings.extendCounterexample) {
 			director.incoming.add(new ExtendCounterexampleMessage(k, model));
+		}
+	}
+	
+	private void sendImplementation(ArrayList<SkolemRelation> implementation, int k) {
+		if (settings.synthesis) {
+			director.incoming.add(new ExtendImplementationMessage(k, implementation));
 		}
 	}
 }

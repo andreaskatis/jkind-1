@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import jkind.JRealizabilitySettings;
+import jkind.aeval.SkolemRelation;
 import jkind.analysis.LinearChecker;
 import jkind.lustre.Expr;
 import jkind.lustre.LustreUtil;
@@ -14,6 +15,7 @@ import jkind.realizability.engines.messages.Message;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.sexp.Symbol;
+import jkind.aeval.AevalSolver;
 import jkind.solvers.z3.Z3Solver;
 import jkind.translation.Lustre2Sexp;
 import jkind.translation.Specification;
@@ -26,8 +28,12 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected final JRealizabilitySettings settings;
 	protected final RealizabilityDirector director;
 
+	//probably need to add a printwriter here for implementations
+
 	protected Z3Solver solver;
 	protected final BlockingQueue<Message> incoming = new LinkedBlockingQueue<>();
+
+	protected ArrayList<SkolemRelation> implementation;
 
 	// The director process will read this from another thread, so we
 	// make it volatile
@@ -39,6 +45,7 @@ public abstract class RealizabilityEngine implements Runnable {
 		this.spec = spec;
 		this.settings = settings;
 		this.director = director;
+		this.implementation = new ArrayList<>();
 	}
 
 	protected abstract void main();
@@ -99,6 +106,69 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 	}
 
+	protected void createAevalVariables(AevalSolver aesolver, int k) {
+		for (VarDecl vd : getOffsetVarDecls(k-1)) {
+			aesolver.defineSVar(vd);
+			aesolver.defineGuardVar(vd);
+			aesolver.defineTVar(vd);
+		}
+		List<VarDecl> realouts = getRealizabilityOutputVarDecls();
+		for (VarDecl vd : getOffsetVarDecls(k)) {
+			aesolver.defineSVar(vd);
+			aesolver.defineGuardVar(vd);
+			for (VarDecl out : realouts) {
+				if (!vd.id.startsWith("$"+out.id)) {
+					aesolver.defineTVar(vd);
+				} else {
+					StreamIndex si = new StreamIndex(out.id, k+1);
+					aesolver.defineSkolVar(new VarDecl(si.getEncoded().str, vd.type));
+					aesolver.defineTVar(new VarDecl(si.getEncoded().str, vd.type));
+				}
+			}
+		}
+
+		for (VarDecl vd : Util.getVarDecls(spec.node)) {
+			Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
+			if (constraint != null) {
+				aesolver.assertSPart(constraint.accept(new Lustre2Sexp(k)));
+			}
+		}
+
+		if (k > 0) {
+			aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, k-1));
+		}
+	}
+
+	protected void assertGuardandSkolVars(AevalSolver aesolver, int k) {
+		//this needs to change if we remove assertTranslation
+		//to not include k-th vars as guards
+		Symbol zero = new Symbol("0");
+		List<Sexp> guardargs = new ArrayList<>();
+		List<Sexp> skolargs = new ArrayList<>();
+		List<VarDecl> realouts = getRealizabilityOutputVarDecls();
+		for (VarDecl vd : getOffsetVarDecls(k-1)) {
+			Symbol prevname = new Symbol(vd.id);
+			guardargs.add(new Cons("=", prevname, prevname));
+		}
+		for (VarDecl vd : getOffsetVarDecls(k)) {
+			Symbol name = new Symbol(vd.id);
+			guardargs.add(new Cons("=", name, name));
+			for (VarDecl out : realouts) {
+				if (!vd.id.startsWith("$"+out.id)) {
+					continue;
+				} else {
+					Symbol skolname = new StreamIndex(out.id, k+1).getEncoded();
+					skolargs.add(new Cons("=", skolname, skolname));
+				}
+			}
+		}
+			guardargs.add(new Cons("=", zero, zero));
+		skolargs.add(new Cons("=", zero, zero));
+		aesolver.assertGuards(new Cons(guardargs));
+		aesolver.assertSkolvars(new Cons(skolargs));
+		return;
+	}
+
 	protected List<VarDecl> getOffsetVarDecls(int k) {
 		return getOffsetVarDecls(k, Util.getVarDecls(spec.node));
 	}
@@ -122,6 +192,30 @@ public abstract class RealizabilityEngine implements Runnable {
 
 	protected Sexp getTransition(int k, boolean init) {
 		return getTransition(k, Sexp.fromBoolean(init));
+	}
+
+	protected Sexp getAevalTransition(int k, Sexp init) {
+		List<Sexp> args = new ArrayList<>();
+		args.add(init);
+		args.addAll(getSymbols(getOffsetVarDecls(k - 1)));
+		List<VarDecl> outputs = getRealizabilityOutputVarDecls();
+		List<VarDecl> vardecls = getOffsetVarDecls(k);
+		for (VarDecl out : outputs) {
+			for (VarDecl vd : vardecls) {
+				if (!vd.id.startsWith("$"+out.id)) {
+					args.add(new Symbol(vd.id));
+					break;
+				} else {
+					args.add(new StreamIndex(out.id, k+1).getEncoded());
+					break;
+				}
+			}
+		}
+		return new Cons(spec.getTransitionRelation().getName(), args);
+	}
+
+	protected Sexp getAevalTransition(int k, boolean init) {
+		return getAevalTransition(k, Sexp.fromBoolean(init));
 	}
 
 	protected Sexp getRealizabilityOutputs(int k) {

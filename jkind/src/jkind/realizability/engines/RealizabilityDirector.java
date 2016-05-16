@@ -1,21 +1,19 @@
 package jkind.realizability.engines;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.sun.istack.internal.Pool;
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.Main;
 import jkind.Output;
-import jkind.realizability.engines.messages.BaseStepMessage;
-import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
-import jkind.realizability.engines.messages.Message;
-import jkind.realizability.engines.messages.RealizableMessage;
-import jkind.realizability.engines.messages.UnknownMessage;
-import jkind.realizability.engines.messages.UnrealizableMessage;
+import jkind.aeval.SkolemRelation;
+import jkind.realizability.engines.messages.*;
 import jkind.realizability.writers.ConsoleWriter;
 import jkind.realizability.writers.ExcelWriter;
 import jkind.realizability.writers.Writer;
@@ -34,6 +32,8 @@ public class RealizabilityDirector {
 
 	private int baseStep = 0;
 	private ExtendCounterexampleMessage extendCounterexample;
+	private BaseImplementationMessage baseImplementation;
+	private ExtendImplementationMessage extendImplementation;
 	private boolean done = false;
 
 	private List<RealizabilityEngine> engines = new ArrayList<>();
@@ -81,6 +81,8 @@ public class RealizabilityDirector {
 
 		if (!done) {
 			writer.writeUnknown(baseStep, convertExtendCounterexample(), getRuntime(startTime));
+		} else {
+			writeImplementation(getImplementation());
 		}
 
 		writer.end();
@@ -166,6 +168,8 @@ public class RealizabilityDirector {
 				BaseStepMessage bsm = (BaseStepMessage) message;
 				writer.writeBaseStep(bsm.step);
 				baseStep = bsm.step;
+			} else if (message instanceof BaseImplementationMessage) {
+				BaseImplementationMessage bm = (BaseImplementationMessage) message;
 			} else {
 				throw new JKindException("Unknown message type in director: "
 						+ message.getClass().getCanonicalName());
@@ -194,5 +198,31 @@ public class RealizabilityDirector {
 
 	private Counterexample extractCounterexample(int k, Model model) {
 		return CounterexampleExtractor.extract(spec, k, model);
+	}
+
+	private ArrayList<SkolemRelation> getImplementation() {
+		if (baseImplementation == null || extendImplementation == null) {
+			return null;
+		}
+
+		ArrayList<SkolemRelation> finalImplementation = baseImplementation.getBaseImplementation();
+		finalImplementation.add(extendImplementation.getExtendImplementation());
+		return finalImplementation;
+	}
+
+	private void writeImplementation(ArrayList<SkolemRelation> implementation) {
+		try {
+			FileWriter implwriter = new FileWriter("implementation.txt");
+			implwriter.write("// for each variable in I or S,\n" +
+					"// create an array of size k.\n" +
+					"// then initialize initial state values");
+			for (SkolemRelation impl : implementation) {
+				implwriter.write("//read_inputs; \n");
+				implwriter.write(impl.getSkolemRelation());
+				implwriter.write("//update array history \n");
+			}
+		} catch (IOException e){
+			throw new JKindException("could not open implementation file", e);
+		}
 	}
 }

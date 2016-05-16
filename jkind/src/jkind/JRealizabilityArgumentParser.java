@@ -11,6 +11,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 	private static final String SCRATCH = "scratch";
 	private static final String TIMEOUT = "timeout";
 	private static final String XML = "xml";
+	private static final String SYNTHESIS = "synthesis";
 
 	private final JRealizabilitySettings settings;
 
@@ -33,6 +34,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		options.addOption(SCRATCH, false, "produce files for debugging purposes");
 		options.addOption(TIMEOUT, true, "maximum runtime in seconds (default 100)");
 		options.addOption(XML, false, "generate results in XML format");
+		options.addOption(SYNTHESIS, false, "report implementation for realizable contracts");
 		return options;
 	}
 
@@ -74,6 +76,10 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 
 		if (line.hasOption(XML)) {
 			settings.xml = true;
+		}
+
+		if (line.hasOption(SYNTHESIS)) {
+			settings.synthesis = true;
 		}
 	}
 }
