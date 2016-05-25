@@ -9,8 +9,15 @@ import jkind.aeval.ValidResult;
 import jkind.engines.StopException;
 import jkind.lustre.NamedType;
 import jkind.lustre.VarDecl;
-import jkind.realizability.engines.messages.*;
-import jkind.solvers.Model;
+\import jkind.solvers.Model;
+import jkind.realizability.engines.messages.BaseStepMessage;
+import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
+import jkind.realizability.engines.messages.InconsistentMessage;
+import jkind.realizability.engines.messages.Message;
+import jkind.realizability.engines.messages.RealizableMessage;
+import jkind.realizability.engines.messages.UnknownMessage;
+import jkind.realizability.engines.messages.UnrealizableMessage;
+import jkind.realizability.engines.messages.ExtendImplementationMessage;
 import jkind.solvers.Result;
 import jkind.solvers.SatResult;
 import jkind.solvers.UnknownResult;
@@ -63,6 +70,8 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			while (!incoming.isEmpty() || k > kLimit) {
 				Message message = incoming.take();
 				if (message instanceof UnrealizableMessage) {
+					throw new StopException();
+				} else if (message instanceof InconsistentMessage) {
 					throw new StopException();
 				} else if (message instanceof BaseStepMessage) {
 					BaseStepMessage baseStepMessage = (BaseStepMessage) message;
@@ -136,7 +145,7 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			director.incoming.add(new ExtendCounterexampleMessage(k, model));
 		}
 	}
-	
+
 	private void sendImplementation(ArrayList<SkolemRelation> implementation, int k) {
 		if (settings.synthesis) {
 			director.incoming.add(new ExtendImplementationMessage(k, implementation));

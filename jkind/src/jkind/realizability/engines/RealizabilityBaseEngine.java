@@ -9,11 +9,13 @@ import jkind.JRealizabilitySettings;
 import jkind.aeval.ValidResult;
 import jkind.engines.StopException;
 import jkind.realizability.engines.messages.BaseStepMessage;
+import jkind.realizability.engines.messages.InconsistentMessage;
 import jkind.realizability.engines.messages.Message;
 import jkind.realizability.engines.messages.RealizableMessage;
 import jkind.realizability.engines.messages.UnknownMessage;
 import jkind.realizability.engines.messages.UnrealizableMessage;
 import jkind.sexp.Sexp;
+import jkind.sexp.Symbol;
 import jkind.solvers.Model;
 import jkind.solvers.Result;
 import jkind.solvers.SatResult;
@@ -50,6 +52,7 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 				createVariables(k);
 				assertTransition(k);
 				//if assertTransition stays, then we need to assert it to SPart too.
+				checkConsistency(k);
 				checkRealizable(k);
 				assertProperties(k);
 			}
@@ -74,6 +77,14 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 
 	private void assertProperties(int k) {
 		solver.assertSexp(StreamIndex.conjoinEncodings(spec.node.properties, k));
+	}
+
+	private void checkConsistency(int k) {
+		Result result = solver.query(new Symbol("false"));
+		if (result instanceof UnsatResult) {
+			sendInconsistent(k);
+			throw new StopException();
+		}
 	}
 
 	private void checkRealizable(int k) {
@@ -142,6 +153,12 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 		BaseStepMessage bsm = new BaseStepMessage(k + 1);
 		director.incoming.add(bsm);
 		extendEngine.incoming.add(bsm);
+	}
+
+	private void sendInconsistent(int k) {
+		InconsistentMessage im = new InconsistentMessage(k + 1);
+		director.incoming.add(im);
+		extendEngine.incoming.add(im);
 	}
 
 	private void sendUnrealizable(int k, Model model) {
