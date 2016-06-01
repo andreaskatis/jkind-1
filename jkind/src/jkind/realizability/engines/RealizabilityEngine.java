@@ -1,15 +1,19 @@
 package jkind.realizability.engines;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import jkind.JKindException;
 import jkind.JRealizabilitySettings;
-import jkind.aeval.SkolemRelation;
 import jkind.analysis.LinearChecker;
 import jkind.lustre.Expr;
 import jkind.lustre.LustreUtil;
+import jkind.lustre.NamedType;
 import jkind.lustre.VarDecl;
 import jkind.realizability.engines.messages.Message;
 import jkind.sexp.Cons;
@@ -28,12 +32,13 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected final JRealizabilitySettings settings;
 	protected final RealizabilityDirector director;
 
-	//probably need to add a printwriter here for implementations
+	protected PrintWriter aevalscratch;
+
+
 
 	protected Z3Solver solver;
 	protected final BlockingQueue<Message> incoming = new LinkedBlockingQueue<>();
 
-	protected ArrayList<SkolemRelation> implementation;
 
 	// The director process will read this from another thread, so we
 	// make it volatile
@@ -45,7 +50,9 @@ public abstract class RealizabilityEngine implements Runnable {
 		this.spec = spec;
 		this.settings = settings;
 		this.director = director;
-		this.implementation = new ArrayList<>();
+
+		this.aevalscratch = getaevalScratch();
+
 	}
 
 	protected abstract void main();
@@ -59,8 +66,12 @@ public abstract class RealizabilityEngine implements Runnable {
 			throwable = t;
 		} finally {
 			if (solver != null) {
-				solver.stop();
+				solver.stop	();
 				solver = null;
+			}
+			if (aevalscratch != null) {
+				aevalscratch.close();
+				aevalscratch = null;
 			}
 		}
 	}
@@ -106,25 +117,41 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 	}
 
-	protected void createAevalVariables(AevalSolver aesolver, int k) {
-		for (VarDecl vd : getOffsetVarDecls(k-1)) {
-			aesolver.defineSVar(vd);
-			aesolver.defineGuardVar(vd);
-			aesolver.defineTVar(vd);
+	protected void createAevalVariables(AevalSolver aesolver, int k, String check) {
+		aesolver.defineSVar(spec.getTransitionRelation());
+		aesolver.defineTVar(spec.getTransitionRelation());
+
+		if (check == "extend") {
+			aesolver.defineSVar(new VarDecl(INIT.str, NamedType.BOOL));
+			aesolver.defineGuardVar(new VarDecl(INIT.str, NamedType.BOOL));
+			aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL));
 		}
-		List<VarDecl> realouts = getRealizabilityOutputVarDecls();
+		for (int i = -1; i <= k-1; i = i +1) {
+			for (VarDecl vd : getOffsetVarDecls(i)) {
+				aesolver.defineSVar(vd);
+				aesolver.defineGuardVar(vd);
+				if (i == k-1) {
+					aesolver.defineTVar(vd);
+				}
+			}
+		}
+
 		for (VarDecl vd : getOffsetVarDecls(k)) {
 			aesolver.defineSVar(vd);
 			aesolver.defineGuardVar(vd);
-			for (VarDecl out : realouts) {
-				if (!vd.id.startsWith("$"+out.id)) {
-					aesolver.defineTVar(vd);
-				} else {
-					StreamIndex si = new StreamIndex(out.id, k+1);
-					aesolver.defineSkolVar(new VarDecl(si.getEncoded().str, vd.type));
-					aesolver.defineTVar(new VarDecl(si.getEncoded().str, vd.type));
-				}
-			}
+		}
+
+		List<VarDecl> offsetinvars = getOffsetVarDecls(
+				k, getRealizabilityInputVarDecls());
+		List<VarDecl> offsetoutvars = getOffsetVarDecls(
+									k+2, getRealizabilityOutputVarDecls());
+		for (VarDecl in : offsetinvars) {
+			aesolver.defineTVar(in);
+		}
+
+		for (VarDecl out : offsetoutvars) {
+			aesolver.defineSkolVar(out);
+			aesolver.defineTVar(out);
 		}
 
 		for (VarDecl vd : Util.getVarDecls(spec.node)) {
@@ -135,37 +162,35 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 
 		if (k > 0) {
+			aesolver.assertSPart(getTransition(k-1,k-1==0));
 			aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, k-1));
 		}
 	}
 
-	protected void assertGuardandSkolVars(AevalSolver aesolver, int k) {
-		//this needs to change if we remove assertTranslation
-		//to not include k-th vars as guards
+	protected void assertGuardandSkolVars(AevalSolver aesolver, int k, String check) {
+
 		Symbol zero = new Symbol("0");
 		List<Sexp> guardargs = new ArrayList<>();
 		List<Sexp> skolargs = new ArrayList<>();
-		List<VarDecl> realouts = getRealizabilityOutputVarDecls();
-		for (VarDecl vd : getOffsetVarDecls(k-1)) {
-			Symbol prevname = new Symbol(vd.id);
-			guardargs.add(new Cons("=", prevname, prevname));
+		if (check == "extend") {
+			guardargs.add(new Cons("=", INIT, INIT));
 		}
-		for (VarDecl vd : getOffsetVarDecls(k)) {
-			Symbol name = new Symbol(vd.id);
-			guardargs.add(new Cons("=", name, name));
-			for (VarDecl out : realouts) {
-				if (!vd.id.startsWith("$"+out.id)) {
-					continue;
-				} else {
-					Symbol skolname = new StreamIndex(out.id, k+1).getEncoded();
-					skolargs.add(new Cons("=", skolname, skolname));
-				}
+		List<VarDecl> realouts = getOffsetVarDecls(k+2,
+				getRealizabilityOutputVarDecls());
+		for (int i = -1; i <= k; i=i+1) {
+			for (VarDecl vd : getOffsetVarDecls(i)) {
+				Symbol name = new Symbol(vd.id);
+				guardargs.add(new Cons("=", name, name));
 			}
 		}
-			guardargs.add(new Cons("=", zero, zero));
+		for (VarDecl out : realouts) {
+			Symbol name = new Symbol(out.id);
+			skolargs.add(new Cons("=", name, name));
+		}
+		guardargs.add(new Cons("=", zero, zero));
 		skolargs.add(new Cons("=", zero, zero));
-		aesolver.assertGuards(new Cons(guardargs));
-		aesolver.assertSkolvars(new Cons(skolargs));
+		aesolver.assertGuards(new Cons("&&", guardargs));
+		aesolver.assertSkolvars(new Cons("&&", skolargs));
 		return;
 	}
 
@@ -198,20 +223,19 @@ public abstract class RealizabilityEngine implements Runnable {
 		List<Sexp> args = new ArrayList<>();
 		args.add(init);
 		args.addAll(getSymbols(getOffsetVarDecls(k - 1)));
-		List<VarDecl> outputs = getRealizabilityOutputVarDecls();
-		List<VarDecl> vardecls = getOffsetVarDecls(k);
-		for (VarDecl out : outputs) {
-			for (VarDecl vd : vardecls) {
-				if (!vd.id.startsWith("$"+out.id)) {
-					args.add(new Symbol(vd.id));
-					break;
-				} else {
-					args.add(new StreamIndex(out.id, k+1).getEncoded());
-					break;
-				}
-			}
-		}
+		args.addAll(getSymbols(getOffsetVarDecls(k,
+				getRealizabilityInputVarDecls())));
+		args.addAll(getSymbols(getOffsetVarDecls(k+2,
+				getRealizabilityOutputVarDecls())));
 		return new Cons(spec.getTransitionRelation().getName(), args);
+	}
+
+	protected Sexp getAevalInductiveTransition(int k) {
+		if (k == 0) {
+			return getAevalTransition(0, INIT);
+		} else {
+			return getAevalTransition(k, false);
+		}
 	}
 
 	protected Sexp getAevalTransition(int k, boolean init) {
@@ -244,6 +268,13 @@ public abstract class RealizabilityEngine implements Runnable {
 		return all;
 	}
 
+	private List<VarDecl> getRealizabilityInputVarDecls() {
+		List<String> realizabilityInputs = spec.node.realizabilityInputs;
+		List<VarDecl> all = Util.getVarDecls(spec.node);
+		all.removeIf(vd -> !realizabilityInputs.contains(vd.id));
+		return all;
+	}
+
 	protected Sexp varDeclsToQuantifierArguments(List<VarDecl> varDecls, int k) {
 		List<Sexp> args = new ArrayList<>();
 		for (VarDecl vd : varDecls) {
@@ -260,5 +291,25 @@ public abstract class RealizabilityEngine implements Runnable {
 			result.add(new Symbol(vd.id));
 		}
 		return result;
+	}
+
+	private PrintWriter getaevalScratch( ) {
+		if (settings.scratch && settings.synthesis) {
+
+			String filename = settings.filename + ".aeval" + "." + name + ".smt2";
+			try {
+				return new PrintWriter(new FileOutputStream(filename), true);
+			} catch (FileNotFoundException e) {
+				throw new JKindException("Unable to open scratch file: " + filename, e);
+			}
+		} else {
+			return null;
+		}
+	}
+
+	public void aecomment(String str) {
+		if (aevalscratch != null) {
+			aevalscratch.println(str);
+		}
 	}
 }

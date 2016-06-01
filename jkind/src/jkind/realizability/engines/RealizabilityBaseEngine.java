@@ -1,11 +1,13 @@
 package jkind.realizability.engines;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
+import jkind.aeval.SkolemRelation;
 import jkind.aeval.ValidResult;
 import jkind.engines.StopException;
 import jkind.realizability.engines.messages.BaseStepMessage;
@@ -26,10 +28,12 @@ import jkind.util.StreamIndex;
 import jkind.aeval.AevalSolver;
 import jkind.aeval.AevalResult;
 
+
 public class RealizabilityBaseEngine extends RealizabilityEngine {
 	private RealizabilityExtendEngine extendEngine;
 	private static final int REDUCE_TIMEOUT_MS = 200;
 	private AevalSolver aesolver;
+
 
 
 
@@ -51,7 +55,6 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 				processMessages();
 				createVariables(k);
 				assertTransition(k);
-				//if assertTransition stays, then we need to assert it to SPart too.
 				checkConsistency(k);
 				checkRealizable(k);
 				assertProperties(k);
@@ -93,29 +96,32 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 
 		if (result instanceof UnsatResult) {
 			sendBaseStep(k);
-
 			//Existential variables need different
-			//naming due to AE-VAL's different variable
-			//scope mechanism. Properties are part of the
+			//naming due to AE-VAL's variable
+			//scoping. Properties are part of the
 			//outputs so these should be renamed as well.
 			//New names can be derived if we simply use the
 			//next value of k for this AE-VAL call.
-			aesolver = new AevalSolver(settings.filename);
-			aesolver.comment("K = " + (k + 1));
-			createAevalVariables(aesolver, k);
-			assertGuardandSkolVars(aesolver, k);
-			AevalResult aeresult = aesolver.synthesize(getRealizabilityOutputs(k+1), getAevalTransition(k, k == 0),
-					StreamIndex.conjoinEncodings(spec.node.properties, k+1));
-			if (aeresult instanceof ValidResult) {
-				implementation.add(((ValidResult) aeresult).getSkolem());
-			} else {
-				//case where Z3 result conflicts with AE-VAL
-				//what should be happening?
-				throw new StopException();
+			if (settings.synthesis) {
+				aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
+				aecomment("; K = " + (k + 1));
+				//In order to have a better scratch file,
+				//I need to create each file's variables seperately.
+				createAevalVariables(aesolver, k, name);
+				aesolver.assertSPart(getTransition(k, k == 0));
+				assertGuardandSkolVars(aesolver, k, name);
+				AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
+						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
+				if (aeresult instanceof ValidResult) {
+					director.baseImplementation.add(new SkolemRelation(((ValidResult) aeresult).getSkolem()));
+				} else {
+					//case where Z3 result conflicts with AE-VAL
+					throw new JKindException("Conflicting results between Z3 and AE-VAL");
+				}
 			}
 		}
 
-		//should add refinement methods for PDR-like synthesis
+		//should add refinement methods for PDR-like synthesis in case of SAT
 		if (result instanceof SatResult) {
 			Model model = ((SatResult) result).getModel();
 			if (settings.reduce) {
@@ -126,7 +132,6 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 		} else if (result instanceof UnknownResult) {
 			sendUnknown();
 		}
-		throw new StopException();
 	}
 
 	private void reduceAndSendUnrealizable(int k, Model model) {
@@ -176,4 +181,5 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 		director.incoming.add(um);
 		extendEngine.incoming.add(um);
 	}
+
 }

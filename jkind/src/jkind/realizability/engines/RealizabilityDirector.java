@@ -1,20 +1,17 @@
 package jkind.realizability.engines;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.sun.istack.internal.Pool;
 import jkind.ExitCodes;
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.Main;
 import jkind.Output;
 import jkind.aeval.SkolemRelation;
-import jkind.realizability.engines.messages.*;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
 import jkind.realizability.engines.messages.InconsistentMessage;
@@ -38,10 +35,12 @@ public class RealizabilityDirector {
 	private Specification spec;
 	private Writer writer;
 
+	private PrintWriter writerImplementation;
+	protected ArrayList<SkolemRelation> baseImplementation;
+	protected SkolemRelation extendImplementation;
+
 	private int baseStep = 0;
 	private ExtendCounterexampleMessage extendCounterexample;
-	private BaseImplementationMessage baseImplementation;
-	private ExtendImplementationMessage extendImplementation;
 	private boolean done = false;
 
 	private List<RealizabilityEngine> engines = new ArrayList<>();
@@ -53,6 +52,8 @@ public class RealizabilityDirector {
 		this.settings = settings;
 		this.spec = spec;
 		this.writer = getWriter(spec);
+		this.writerImplementation = getImplementationWriter();
+		this.baseImplementation = new ArrayList<>();
 	}
 
 	private Writer getWriter(Specification spec) {
@@ -60,12 +61,48 @@ public class RealizabilityDirector {
 			if (settings.excel) {
 				return new ExcelWriter(settings.filename + ".xls", spec.node);
 			} else if (settings.xml) {
-				return new XmlWriter(settings.filename + ".xml", spec.typeMap);
+				if (settings.synthesis) {
+					return new XmlWriter(settings.filename + "_synth.xml", spec.typeMap);
+				} else {
+					return new XmlWriter(settings.filename + ".xml", spec.typeMap);
+				}
 			} else {
 				return new ConsoleWriter(new RealizabilityNodeLayout(spec.node));
 			}
 		} catch (IOException e) {
 			throw new JKindException("Unable to open output file", e);
+		}
+	}
+
+	private PrintWriter getImplementationWriter() {
+		if (settings.synthesis) {
+			String filename = settings.filename + ".impl";
+			try {
+				return new PrintWriter(new FileOutputStream(filename), true);
+			} catch (FileNotFoundException e) {
+				throw new JKindException("Unable to open scratch file: " + filename, e);
+			}
+		} else {
+			return null;
+		}
+	}
+
+	public void writeImplementation(ArrayList<SkolemRelation> base, SkolemRelation extend) {
+		if (writerImplementation != null) {
+			int k = 0;
+			for (SkolemRelation b : base) {
+				writerImplementation.println("//Base "+k);
+				writerImplementation.println("//read_inputs;");
+				writerImplementation.println(b.getSkolemRelation());
+				writerImplementation.println("//update array history \n");
+				k++;
+			}
+			if (extend != null) {
+				writerImplementation.println("//Extend");
+				writerImplementation.println("//read_inputs;");
+				writerImplementation.println(extend.getSkolemRelation());
+				writerImplementation.println("//update array history \n");
+			}
 		}
 	}
 
@@ -84,13 +121,12 @@ public class RealizabilityDirector {
 			} catch (InterruptedException e) {
 			}
 		}
-
 		processMessages(startTime);
-
+		if (settings.synthesis) {
+			writeImplementation(baseImplementation,extendImplementation);
+		}
 		if (!done) {
 			writer.writeUnknown(baseStep, convertExtendCounterexample(), getRuntime(startTime));
-		} else {
-			writeImplementation(getImplementation());
 		}
 
 		writer.end();
@@ -179,8 +215,6 @@ public class RealizabilityDirector {
 				BaseStepMessage bsm = (BaseStepMessage) message;
 				writer.writeBaseStep(bsm.step);
 				baseStep = bsm.step;
-			} else if (message instanceof BaseImplementationMessage) {
-				BaseImplementationMessage bm = (BaseImplementationMessage) message;
 			} else if (message instanceof InconsistentMessage) {
 				InconsistentMessage im = (InconsistentMessage) message;
 				done = true;
@@ -213,31 +247,5 @@ public class RealizabilityDirector {
 
 	private Counterexample extractCounterexample(int k, Model model) {
 		return CounterexampleExtractor.extract(spec, k, model);
-	}
-
-	private ArrayList<SkolemRelation> getImplementation() {
-		if (baseImplementation == null || extendImplementation == null) {
-			return null;
-		}
-
-		ArrayList<SkolemRelation> finalImplementation = baseImplementation.getBaseImplementation();
-		finalImplementation.add(extendImplementation.getExtendImplementation());
-		return finalImplementation;
-	}
-
-	private void writeImplementation(ArrayList<SkolemRelation> implementation) {
-		try {
-			FileWriter implwriter = new FileWriter("implementation.txt");
-			implwriter.write("// for each variable in I or S,\n" +
-					"// create an array of size k.\n" +
-					"// then initialize initial state values");
-			for (SkolemRelation impl : implementation) {
-				implwriter.write("//read_inputs; \n");
-				implwriter.write(impl.getSkolemRelation());
-				implwriter.write("//update array history \n");
-			}
-		} catch (IOException e){
-			throw new JKindException("could not open implementation file", e);
-		}
 	}
 }

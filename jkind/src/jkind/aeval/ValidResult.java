@@ -12,7 +12,7 @@ public class ValidResult extends AevalResult {
         this(null);
     }
 
-    public SkolemRelation getSkolem() {
-        return skolem;
+    public String getSkolem() {
+        return skolem.getSkolemRelation();
     }
 }

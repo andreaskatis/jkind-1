@@ -26,19 +26,61 @@ public class AevalSolver extends AevalProcess{
     protected BufferedWriter toGuards;
     protected BufferedWriter toSkolvars;
 
-    public AevalSolver(String scratchBase) {
-        super(scratchBase);
+    protected FileOutputStream SFileStream;
+    protected FileOutputStream TFileStream;
+    protected FileOutputStream GuardsFileStream;
+    protected FileOutputStream SkolvarsFileStream;
+
+    protected File SFile;
+    protected File TFile;
+    protected File GuardsFile;
+    protected File SkolvarsFile;
+    protected String check;
+    protected PrintWriter scratch;
+
+    public AevalSolver(String scratchBase, String check, PrintWriter scratch) {
+        super(scratchBase, check);
+        this.check = check;
+        this.scratch = scratch;
+        SFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_s_part.smt2");
+        TFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_t_part.smt2");
+        GuardsFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_guards_vars.smt2");
+        SkolvarsFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_skol_vars.smt2");
         try {
+
+            SFileStream = new FileOutputStream(SFile);
+            TFileStream = new FileOutputStream(TFile);
+            GuardsFileStream = new FileOutputStream(GuardsFile);
+            SkolvarsFileStream = new FileOutputStream(SkolvarsFile);
+
             toSPart = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(scratchBase.split("\\.")[0] + "_s_part.smt2"), "utf-8"));
+                    new OutputStreamWriter(SFileStream, "utf-8"));
             toTPart = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(scratchBase.split("\\.")[0] + "_t_part.smt2"), "utf-8"));
+                    new OutputStreamWriter(TFileStream, "utf-8"));
             toGuards = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(scratchBase.split("\\.")[0] + "_guards_vars.smt2"), "utf-8"));
+                    new OutputStreamWriter(GuardsFileStream, "utf-8"));
             toSkolvars = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(scratchBase.split("\\.")[0] + "_skol_vars.smt2"), "utf-8"));
+                    new OutputStreamWriter(SkolvarsFileStream, "utf-8"));
         } catch (IOException ex) {
             throw new JKindException("Unable to open file", ex);
+        }
+    }
+
+    public void deleteFiles() {
+        try {
+            SFileStream.close();
+            SFile.delete();
+
+            TFileStream.close();
+            TFile.delete();
+
+            GuardsFileStream.close();
+            GuardsFile.delete();
+
+            SkolvarsFileStream.close();
+            SkolvarsFile.delete();
+        } catch (IOException e) {
+            throw new JKindException("Could not delete AE-VAL files");
         }
     }
 
@@ -48,7 +90,9 @@ public class AevalSolver extends AevalProcess{
 
     protected void sendSPart(Sexp sexp) {
         String str = Quoting.quoteSexp(sexp).toString();
-        scratch(str);
+        if(scratch != null) {
+            scratch.println(str);
+        }
         try {
             toSPart.append(str);
             toSPart.newLine();
@@ -59,13 +103,11 @@ public class AevalSolver extends AevalProcess{
         }
     }
 
-    public void assertTPart(Sexp sexp) {
-        sendTPart(new Cons("assert", sexp));
-    }
-
     protected void sendTPart(Sexp sexp) {
         String str = Quoting.quoteSexp(sexp).toString();
-        scratch(str);
+        if(scratch != null) {
+            scratch.println(str);
+        }
         try {
             toTPart.append(str);
             toTPart.newLine();
@@ -77,12 +119,18 @@ public class AevalSolver extends AevalProcess{
     }
 
     public void assertGuards(Sexp sexp) {
+        String str = Quoting.quoteSexp(sexp).toString();
+        if(scratch != null) {
+            scratch.println(str);
+        }
         sendGuards(new Cons("assert", sexp));
     }
 
     protected void sendGuards(Sexp sexp) {
         String str = Quoting.quoteSexp(sexp).toString();
-        scratch(str);
+        if(scratch != null) {
+            scratch.println(str);
+        }
         try {
             toGuards.append(str);
             toGuards.newLine();
@@ -94,12 +142,18 @@ public class AevalSolver extends AevalProcess{
     }
 
     public void assertSkolvars(Sexp sexp) {
+        String str = Quoting.quoteSexp(sexp).toString();
+        if(scratch != null) {
+            scratch.println(str);
+        }
         sendSkolvars(new Cons("assert", sexp));
     }
 
     protected void sendSkolvars(Sexp sexp) {
         String str = Quoting.quoteSexp(sexp).toString();
-        scratch(str);
+        if(scratch != null) {
+            scratch.println(str);
+        }
         try {
             toSkolvars.append(str);
             toSkolvars.newLine();
@@ -156,28 +210,24 @@ public class AevalSolver extends AevalProcess{
         return new Cons(args);
     }
 
-    public AevalResult synthesize(Sexp outputs, Sexp transition, Sexp properties) {
+    public AevalResult synthesize(Sexp transition, Sexp properties) {
         AevalResult result;
 
-        Sexp query = new Cons("assert", new Cons("and", transition, new Cons ("not", properties)));
-//        if (outputs != null) {
-//            //these outputs HAVE to be renamed!
-//            query = new Cons("forall", outputs, query);
-//        }
+        Sexp query = new Cons("assert", new Cons("and", transition, properties));
+
         sendGuards(new Cons("check-sat"));
         sendSkolvars(new Cons("check-sat"));
         sendTPart(query);
-        callAeval();
+        callAeval(check);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
-            String[] extracted = status.split("\n");
-            SkolemRelation skolem = new SkolemRelation(extracted[extracted.length-1]);
+            String[] extracted = status.split("extracted skolem:");
+            SkolemRelation skolem = new SkolemRelation(extracted[extracted.length - 1]);
             result = new ValidResult(skolem);
         } else {
             //probably parse valid subset model for pdr refinement here.
             result = new InvalidResult();
         }
-
         return result;
     }
 
@@ -188,35 +238,25 @@ public class AevalSolver extends AevalProcess{
             while (true) {
                 line = fromAeval.readLine();
                 if (line == null) {
-                    throw new JKindException(getName() + " terminated unexpectedly");
+                    break;
                 } else if (line.contains("error \"") || line.contains("Error:")) {
-                    // Flush the output since errors span multiple lines
-                    while ((line = fromAeval.readLine()) != null) {
-                        comment(getName() + ": " + line);
-                    }
                     throw new JKindException(getName()
                             + " error (see scratch file for details)");
-                } else if (line.contains("extracted skolem: ") ||
-                        line.contains("valid subset of S: ")) {
-
-                    content.append(line);
-                    break;
-                } else {
+                }
+                else {
                     content.append(line);
                     content.append("\n");
                 }
             }
-
+            deleteFiles();
             return content.toString();
         } catch (RecognitionException e) {
+            deleteFiles();
             throw new JKindException("Error parsing " + getName() + " output", e);
         } catch (IOException e) {
+            deleteFiles();
             throw new JKindException("Unable to read from " + getName(), e);
         }
-    }
-
-    public void aecomment(String str) {
-        scratch("; " + str);
     }
 
     protected final Map<String, Type> varTypes = new HashMap<>();

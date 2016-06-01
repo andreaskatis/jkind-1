@@ -18,18 +18,15 @@ import jkind.JKindException;
 public abstract class AevalProcess {
 
     protected Process process;
-    //need multiple scratches?
-    protected PrintWriter scratch;
     protected String scratchBase;
     protected BufferedReader fromAeval;
 
-    protected AevalProcess(String scratchBase) {
-        this.scratch = getScratch(scratchBase);
+    protected AevalProcess(String scratchBase, String check) {
         this.scratchBase = scratchBase;
     }
 
-    protected void callAeval() {
-        ProcessBuilder processBuilder = new ProcessBuilder(getCommand(this.scratchBase));
+    protected void callAeval(String check) {
+        ProcessBuilder processBuilder = new ProcessBuilder(getCommand(check, this.scratchBase));
         processBuilder.redirectErrorStream(true);
         try {
             process = processBuilder.start();
@@ -37,27 +34,17 @@ public abstract class AevalProcess {
             throw new JKindException("Unable to start AE-VAL by executing: "
                     + processBuilder.command().get(0), e);
         }
-        addShutdownHook();
         fromAeval = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+        addShutdownHook();
     }
 
-    private PrintWriter getScratch(String scratchBase) {
-        if (scratchBase == null) {
-            return null;
-        }
 
-        String filename = scratchBase + ".smt2";
-        try {
-            return new PrintWriter(new FileOutputStream(filename), true);
-        } catch (FileNotFoundException e) {
-            throw new JKindException("Unable to open scratch file: " + filename, e);
-        }
-    }
 
-    private List<String> getCommand(String scratchBase) {
+    private List<String> getCommand(String check, String scratchBase) {
         List<String> command = new ArrayList<>();
         command.add(getPath());
-        command.add(getArgs(scratchBase));
+        command.addAll(getArgs(check, scratchBase));
         return command;
     }
 
@@ -80,9 +67,12 @@ public abstract class AevalProcess {
         }
     }
 
-    private String getArgs(String scratchBase) {
-        String args = getSPart(scratchBase.split("\\.")[0]) + " " + getTPart(scratchBase.split("\\.")[0]) + " " +
-                getGuards(scratchBase.split("\\.")[0]) + " " + getSkolvars(scratchBase.split("\\.")[0]);
+    private List<String> getArgs(String check, String scratchBase) {
+        List<String> args = new ArrayList<>();
+        args.add(getSPart(scratchBase.split("\\.")[0] + "_" + check));
+        args.add(getTPart(scratchBase.split("\\.")[0] + "_" + check));
+        args.add(getGuards(scratchBase.split("\\.")[0] + "_" + check));
+        args.add(getSkolvars(scratchBase.split("\\.")[0] + "_" + check));
         return args;
     }
 
@@ -135,19 +125,5 @@ public abstract class AevalProcess {
             process = null;
         }
 
-        if (scratch != null) {
-            scratch.close();
-            scratch = null;
-        }
-    }
-
-    public void scratch(String str) {
-        if (scratch != null) {
-            scratch.println(str);
-        }
-    }
-
-    public void comment(String str) {
-        scratch("; " + str);
     }
 }

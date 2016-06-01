@@ -6,11 +6,9 @@ import jkind.aeval.SkolemRelation;
 import java.util.ArrayList;
 
 public class ExtendImplementationMessage extends Message {
-    public final int k;
     public final ArrayList<SkolemRelation> implementation;
 
-    public ExtendImplementationMessage(int k, ArrayList<SkolemRelation> implementation) {
-        this.k = k;
+    public ExtendImplementationMessage(ArrayList<SkolemRelation> implementation) {
         this.implementation = implementation;
     }
 
