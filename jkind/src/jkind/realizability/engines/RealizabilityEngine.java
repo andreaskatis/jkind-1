@@ -118,18 +118,24 @@ public abstract class RealizabilityEngine implements Runnable {
 	}
 
 	protected void createAevalVariables(AevalSolver aesolver, int k, String check) {
+		if (settings.scratch) {
+			aesolver.scratch.println("; Transition relation");
+		}
 		aesolver.defineSVar(spec.getTransitionRelation());
 		aesolver.defineTVar(spec.getTransitionRelation());
 
+		if (settings.scratch) {
+			aesolver.scratch.println("; Universally quantified variables");
+		}
 		if (check == "extend") {
 			aesolver.defineSVar(new VarDecl(INIT.str, NamedType.BOOL));
-			aesolver.defineGuardVar(new VarDecl(INIT.str, NamedType.BOOL));
+//			aesolver.defineGuardVar(new VarDecl(INIT.str, NamedType.BOOL));
 			aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL));
 		}
 		for (int i = -1; i <= k-1; i = i +1) {
 			for (VarDecl vd : getOffsetVarDecls(i)) {
 				aesolver.defineSVar(vd);
-				aesolver.defineGuardVar(vd);
+//				aesolver.defineGuardVar(vd);
 				if (i == k-1) {
 					aesolver.defineTVar(vd);
 				}
@@ -138,7 +144,7 @@ public abstract class RealizabilityEngine implements Runnable {
 
 		for (VarDecl vd : getOffsetVarDecls(k)) {
 			aesolver.defineSVar(vd);
-			aesolver.defineGuardVar(vd);
+//			aesolver.defineGuardVar(vd);
 		}
 
 		List<VarDecl> offsetinvars = getOffsetVarDecls(
@@ -149,8 +155,11 @@ public abstract class RealizabilityEngine implements Runnable {
 			aesolver.defineTVar(in);
 		}
 
+		if (settings.scratch) {
+			aesolver.scratch.println("; Existentially quantified variables");
+		}
 		for (VarDecl out : offsetoutvars) {
-			aesolver.defineSkolVar(out);
+//			aesolver.defineSkolVar(out);
 			aesolver.defineTVar(out);
 		}
 
@@ -161,6 +170,9 @@ public abstract class RealizabilityEngine implements Runnable {
 			}
 		}
 
+		if (settings.scratch) {
+			aesolver.scratch.println("; Assertions for universal part of the formula");
+		}
 		if (k > 0) {
 			aesolver.assertSPart(getTransition(k-1,k-1==0));
 			aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, k-1));
@@ -189,8 +201,14 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 		guardargs.add(new Cons("=", zero, zero));
 		skolargs.add(new Cons("=", zero, zero));
-		aesolver.assertGuards(new Cons("&&", guardargs));
-		aesolver.assertSkolvars(new Cons("&&", skolargs));
+		if (settings.scratch) {
+			aesolver.scratch.println("; Guard variables assertion");
+		}
+//		aesolver.assertGuards(new Cons("&&", guardargs));
+		if (settings.scratch) {
+			aesolver.scratch.println("; Skolem variables assertion");
+		}
+//		aesolver.assertSkolvars(new Cons("&&", skolargs));
 		return;
 	}
 
