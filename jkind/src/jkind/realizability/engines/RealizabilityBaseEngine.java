@@ -100,7 +100,6 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 				aecomment("; K = " + (k + 1));
 				createAevalVariables(aesolver, k, name);
 				aesolver.assertSPart(getTransition(k, k == 0));
-				assertGuardandSkolVars(aesolver, k, name);
 				AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
 						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
 				if (aeresult instanceof ValidResult) {//		aesolver.assertSkolvars(new Cons("&&", skolargs));

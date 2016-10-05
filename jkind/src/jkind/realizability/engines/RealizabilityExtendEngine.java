@@ -111,7 +111,6 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 				aecomment("; K = " + (k + 1));
 				createAevalVariables(aesolver, k, name);
 				aesolver.assertSPart(getInductiveTransition(k));
-				assertGuardandSkolVars(aesolver, k, name);
 				AevalResult aeresult = aesolver.synthesize(getAevalInductiveTransition(k),
 						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
 				if (aeresult instanceof ValidResult) {

@@ -71,8 +71,6 @@ public abstract class AevalProcess {
         List<String> args = new ArrayList<>();
         args.add(getSPart(scratchBase.split("\\.")[0] + "_" + check));
         args.add(getTPart(scratchBase.split("\\.")[0] + "_" + check));
-//        args.add(getGuards(scratchBase.split("\\.")[0] + "_" + check));
-//        args.add(getSkolvars(scratchBase.split("\\.")[0] + "_" + check));
         return args;
     }
 
@@ -83,14 +81,6 @@ public abstract class AevalProcess {
     private String getTPart(String scratchBase) {
         return scratchBase + "_t_part.smt2";
     }
-
-//    private String getGuards(String scratchBase) {
-//        return scratchBase + "_guards_vars.smt2";
-//    }
-//
-//    private String getSkolvars(String scratchBase) {
-//        return scratchBase + "_skol_vars.smt2";
-//    }
 
 
     protected String getName() {

@@ -129,13 +129,11 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 		if (check == "extend") {
 			aesolver.defineSVar(new VarDecl(INIT.str, NamedType.BOOL));
-//			aesolver.defineGuardVar(new VarDecl(INIT.str, NamedType.BOOL));
 			aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL));
 		}
 		for (int i = -1; i <= k-1; i = i +1) {
 			for (VarDecl vd : getOffsetVarDecls(i)) {
 				aesolver.defineSVar(vd);
-//				aesolver.defineGuardVar(vd);
 				if (i == k-1) {
 					aesolver.defineTVar(vd);
 				}
@@ -144,7 +142,6 @@ public abstract class RealizabilityEngine implements Runnable {
 
 		for (VarDecl vd : getOffsetVarDecls(k)) {
 			aesolver.defineSVar(vd);
-//			aesolver.defineGuardVar(vd);
 		}
 
 		List<VarDecl> offsetinvars = getOffsetVarDecls(
@@ -159,7 +156,6 @@ public abstract class RealizabilityEngine implements Runnable {
 			aesolver.scratch.println("; Existentially quantified variables");
 		}
 		for (VarDecl out : offsetoutvars) {
-//			aesolver.defineSkolVar(out);
 			aesolver.defineTVar(out);
 		}
 
@@ -174,43 +170,24 @@ public abstract class RealizabilityEngine implements Runnable {
 			aesolver.scratch.println("; Assertions for universal part of the formula");
 		}
 		if (k > 0) {
-			aesolver.assertSPart(getTransition(k-1,k-1==0));
-			aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, k-1));
-		}
-	}
-
-	protected void assertGuardandSkolVars(AevalSolver aesolver, int k, String check) {
-
-		Symbol zero = new Symbol("0");
-		List<Sexp> guardargs = new ArrayList<>();
-		List<Sexp> skolargs = new ArrayList<>();
-		if (check == "extend") {
-			guardargs.add(new Cons("=", INIT, INIT));
-		}
-		List<VarDecl> realouts = getOffsetVarDecls(k+2,
-				getRealizabilityOutputVarDecls());
-		for (int i = -1; i <= k; i=i+1) {
-			for (VarDecl vd : getOffsetVarDecls(i)) {
-				Symbol name = new Symbol(vd.id);
-				guardargs.add(new Cons("=", name, name));
+			if (check == "extend") {
+				for (int i = 0; i < k; i++) {
+					if (i == 0) {
+						aesolver.assertSPart(getTransition(i, INIT));
+					} else {
+						aesolver.assertSPart(getTransition(i, false));
+					}
+					aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, i));
+				}
+			} else {
+				for (int i = 0; i < k; i++) {
+					aesolver.assertSPart(getTransition(i, i == 0));
+					aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, i));
+				}
 			}
 		}
-		for (VarDecl out : realouts) {
-			Symbol name = new Symbol(out.id);
-			skolargs.add(new Cons("=", name, name));
-		}
-		guardargs.add(new Cons("=", zero, zero));
-		skolargs.add(new Cons("=", zero, zero));
-		if (settings.scratch) {
-			aesolver.scratch.println("; Guard variables assertion");
-		}
-//		aesolver.assertGuards(new Cons("&&", guardargs));
-		if (settings.scratch) {
-			aesolver.scratch.println("; Skolem variables assertion");
-		}
-//		aesolver.assertSkolvars(new Cons("&&", skolargs));
-		return;
 	}
+
 
 	protected List<VarDecl> getOffsetVarDecls(int k) {
 		return getOffsetVarDecls(k, Util.getVarDecls(spec.node));
@@ -282,6 +259,7 @@ public abstract class RealizabilityEngine implements Runnable {
 	private List<VarDecl> getRealizabilityOutputVarDecls() {
 		List<String> realizabilityInputs = spec.node.realizabilityInputs;
 		List<VarDecl> all = Util.getVarDecls(spec.node);
+
 		all.removeIf(vd -> realizabilityInputs.contains(vd.id));
 		return all;
 	}

@@ -38,6 +38,7 @@ public class RealizabilityDirector {
 	private PrintWriter writerImplementation;
 	protected ArrayList<SkolemRelation> baseImplementation;
 	protected SkolemRelation extendImplementation;
+	protected int k;
 
 	private int baseStep = 0;
 	private ExtendCounterexampleMessage extendCounterexample;
@@ -54,6 +55,7 @@ public class RealizabilityDirector {
 		this.writer = getWriter(spec);
 		this.writerImplementation = getImplementationWriter();
 		this.baseImplementation = new ArrayList<>();
+		this.k = 0;
 	}
 
 	private Writer getWriter(Specification spec) {
@@ -87,15 +89,13 @@ public class RealizabilityDirector {
 		}
 	}
 
-	public void writeImplementation(ArrayList<SkolemRelation> base, SkolemRelation extend) {
+	public void writeImplementation(int k, ArrayList<SkolemRelation> base, SkolemRelation extend) {
 		if (writerImplementation != null) {
-			int k = 0;
-			for (SkolemRelation b : base) {
-				writerImplementation.println("//Base "+k);
+			for (int step = 0; step<=k; step++) {
+				writerImplementation.println("//Base "+step);
 				writerImplementation.println("//read_inputs;");
-				writerImplementation.println(b.getSkolemRelation());
+				writerImplementation.println(base.get(step).getSkolemRelation());
 				writerImplementation.println("//update array history \n");
-				k++;
 			}
 			if (extend != null) {
 				writerImplementation.println("//Extend");
@@ -123,7 +123,7 @@ public class RealizabilityDirector {
 		}
 		processMessages(startTime);
 		if (settings.synthesis) {
-			writeImplementation(baseImplementation,extendImplementation);
+			writeImplementation(k,baseImplementation,extendImplementation);
 		}
 		if (!done) {
 			writer.writeUnknown(baseStep, convertExtendCounterexample(), getRuntime(startTime));
@@ -199,6 +199,7 @@ public class RealizabilityDirector {
 			if (message instanceof RealizableMessage) {
 				RealizableMessage rm = (RealizableMessage) message;
 				done = true;
+				k = rm.k;
 				writer.writeRealizable(rm.k, runtime);
 			} else if (message instanceof UnrealizableMessage) {
 				UnrealizableMessage um = (UnrealizableMessage) message;
