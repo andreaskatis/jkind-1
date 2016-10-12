@@ -102,8 +102,7 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 				aesolver.assertSPart(getTransition(k, k == 0));
 				AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
 						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
-				if (aeresult instanceof ValidResult) {//		aesolver.assertSkolvars(new Cons("&&", skolargs));
-
+				if (aeresult instanceof ValidResult) {
 					director.baseImplementation.add(new SkolemRelation(((ValidResult) aeresult).getSkolem()));
 				} else {
 					//case where Z3 result conflicts with AE-VAL
