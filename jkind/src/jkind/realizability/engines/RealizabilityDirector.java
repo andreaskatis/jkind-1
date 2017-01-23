@@ -92,7 +92,7 @@ public class RealizabilityDirector {
 	public void writeImplementation(int k, ArrayList<SkolemRelation> base, SkolemRelation extend) {
 		if (writerImplementation != null) {
 			if (k !=0) {
-				for (int step = 0; step <= k; step++) {
+				for (int step = 0; step < k; step++) {
 					writerImplementation.println("//Base " + step);
 					writerImplementation.println("//read_inputs;");
 					writerImplementation.println(base.get(step).getSkolemRelation());

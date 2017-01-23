@@ -108,7 +108,7 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			//next value of k for this AE-VAL call.
 			if (settings.synthesis) {
 				aesolver = new AevalSolver(settings.filename, name, aevalscratch);
-				aecomment("; K = " + (k + 1));
+				aecomment("; K = " + k);
 				createAevalVariables(aesolver, k, name);
 				aesolver.assertSPart(getInductiveTransition(k));
 				AevalResult aeresult = aesolver.synthesize(getAevalInductiveTransition(k),

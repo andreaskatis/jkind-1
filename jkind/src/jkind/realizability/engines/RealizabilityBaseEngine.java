@@ -97,6 +97,7 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 			sendBaseStep(k);
 			if (settings.synthesis) {
 				aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
+//				aecomment("; K = " +  k);
 				aecomment("; K = " + (k + 1));
 				createAevalVariables(aesolver, k, name);
 				aesolver.assertSPart(getTransition(k, k == 0));
