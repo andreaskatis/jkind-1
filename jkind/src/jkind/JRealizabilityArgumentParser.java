@@ -34,7 +34,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		options.addOption(SCRATCH, false, "produce files for debugging purposes");
 		options.addOption(TIMEOUT, true, "maximum runtime in seconds (default 100)");
 		options.addOption(XML, false, "generate results in XML format");
-		options.addOption(SYNTHESIS, false, "report implementation for realizable contracts");
+		options.addOption(SYNTHESIS, false, "synthesize implementation for realizable contracts");
 		return options;
 	}
 

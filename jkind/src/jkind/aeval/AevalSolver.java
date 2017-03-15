@@ -53,9 +53,7 @@ public class AevalSolver extends AevalProcess{
     }
 
     public void deleteFiles() {
-        //Does not manage to delete all files.
-        //If the extend engine returns realizable, the files for the last
-        //base check step are not being deleted correctly.
+        //Does not delete all files in a consistent manner.
         try {
             SFileStream.close();
             SFile.delete();

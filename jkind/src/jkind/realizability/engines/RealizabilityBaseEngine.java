@@ -90,37 +90,94 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 	}
 
 	private void checkRealizable(int k) {
-		Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
-				getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
+//		Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
+//				getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
+//
+//		if (result instanceof UnsatResult) {
+//			sendBaseStep(k);
+//			if (settings.synthesis) {
+//				aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
+////				aecomment("; K = " +  k);
+//				aecomment("; K = " + (k + 1));
+//				createAevalVariables(aesolver, k, name);
+//				aesolver.assertSPart(getTransition(k, k == 0));
+//				AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
+//						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
+//				if (aeresult instanceof ValidResult) {
+//					director.baseImplementation.add(new SkolemRelation(((ValidResult) aeresult).getSkolem()));
+//				} else {
+//					//case where Z3 result conflicts with AE-VAL
+//					throw new JKindException("Conflicting results between Z3 and AE-VAL");
+//				}
+//			}
+//		}
+//
+//		if (result instanceof SatResult) {
+//			Model model = ((SatResult) result).getModel();
+//			if (settings.reduce) {
+//				reduceAndSendUnrealizable(k, model);
+//			} else {
+//				sendUnrealizable(k, model);
+//			}
+//		} else if (result instanceof UnknownResult) {
+//			sendUnknown();
+//		}
 
-		if (result instanceof UnsatResult) {
-			sendBaseStep(k);
-			if (settings.synthesis) {
-				aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
-//				aecomment("; K = " +  k);
-				aecomment("; K = " + (k + 1));
-				createAevalVariables(aesolver, k, name);
-				aesolver.assertSPart(getTransition(k, k == 0));
-				AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
-						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
-				if (aeresult instanceof ValidResult) {
-					director.baseImplementation.add(new SkolemRelation(((ValidResult) aeresult).getSkolem()));
-				} else {
-					//case where Z3 result conflicts with AE-VAL
-					throw new JKindException("Conflicting results between Z3 and AE-VAL");
-				}
-			}
-		}
+		//can simply say "do regular realizability check but if k!=0 && settings.synthesis,
+		if (settings.synthesis) {
 
-		if (result instanceof SatResult) {
-			Model model = ((SatResult) result).getModel();
-			if (settings.reduce) {
-				reduceAndSendUnrealizable(k, model);
+			//This already happens a level above with checkconsistency
+//			if (k!=0) {
+//				Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
+//						getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
+//				if (result instanceof UnsatResult) {
+//					sendBaseStep(k);
+//				}
+//
+//				if (result instanceof SatResult) {
+//					Model model = ((SatResult) result).getModel();
+//					if (settings.reduce) {
+//						reduceAndSendUnrealizable(k, model);
+//					} else {
+//						sendUnrealizable(k, model);
+//					}
+//				} else if (result instanceof UnknownResult) {
+//					sendUnknown();
+//				}
+//			}
+
+			aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
+//			aecomment("; K = " +  k);
+			aecomment("; K = " + (k + 1));
+			createAevalVariables(aesolver, k, name);
+			aesolver.assertSPart(getTransition(k, k == 0));
+			// assert input and state to ensure
+			AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
+					StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
+			if (aeresult instanceof ValidResult) {
+				sendBaseStep(k);
+				director.baseImplementation.add(new SkolemRelation(((ValidResult) aeresult).getSkolem()));
 			} else {
-				sendUnrealizable(k, model);
+				//we can possibly run a Z3 check here instead, to get the counterexample.
+				throw new JKindException("Unrealizable. Use realizability check for cex.");
 			}
-		} else if (result instanceof UnknownResult) {
-			sendUnknown();
+		} else {
+			Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
+					getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
+			if (result instanceof UnsatResult) {
+				sendBaseStep(k);
+			}
+
+			if (result instanceof SatResult) {
+				Model model = ((SatResult) result).getModel();
+				if (settings.reduce) {
+					reduceAndSendUnrealizable(k, model);
+				} else {
+					sendUnrealizable(k, model);
+				}
+			} else if (result instanceof UnknownResult) {
+				sendUnknown();
+			}
 		}
 	}
 
