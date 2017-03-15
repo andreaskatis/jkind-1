@@ -1,0 +1,37 @@
+node top(
+  etat1 : bool;
+  etat2 : bool;
+  etat3 : bool;
+  a_init : int;
+  V26_i : int;
+  V28_a : int;
+  V70_garde1 : bool
+
+) returns (
+  OK : bool
+);
+var
+  V31_env : bool;
+  V74_X : bool;
+  V79_Sofar : bool;
+  V87_First : int;
+let
+  OK = (V31_env => (V26_i >= 0));
+
+  --V26_i = (V28_a -> (if etat1 then (if V70_garde1 then ((pre V26_i) - 1) else (pre V26_i)) else (pre V26_i)));
+
+  --V28_a = (a_init -> (pre V28_a));
+
+  V31_env = ((V79_Sofar and ((not etat1) -> true)) and (V87_First > 0));
+
+  --V70_garde1 = ((pre V26_i) >= 1);
+
+  V74_X = (not (etat2 and etat3));
+
+  V79_Sofar = (V74_X -> (V74_X and (pre V79_Sofar)));
+
+  V87_First = (a_init -> (pre V87_First));
+
+  --%PROPERTY OK;
+  --%REALIZABLE etat1, etat2, etat3, a_init;
+tel;

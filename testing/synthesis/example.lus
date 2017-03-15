@@ -1,0 +1,17 @@
+node top(x : bool; state: int) returns (	);
+var
+  bias : int;
+  prop1, prop2, prop3, prop4, prop_all : bool;
+  bias_max : bool;
+let
+
+  bias = 0 -> (if x then 1 else -1) + pre(bias);
+  bias_max = false -> (bias >= 2 or bias <= -2) or pre(bias_max);
+  prop1 = (state = 0 => (bias = 0));
+  prop2 = true -> (pre(state = 0) and x) => state = 2;
+  prop3 = true -> (pre(state = 0) and not x) => state = 1;
+  prop4 = bias_max => state = 3;
+  prop_all = prop1 and prop2 and prop3 and prop4;
+  --%PROPERTY prop_all;
+  --%REALIZABLE x;
+tel;

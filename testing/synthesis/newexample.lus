@@ -1,0 +1,24 @@
+node top(x : int; state: int) returns (  );
+var
+  bias : int;
+  guarantee1, guarantee2, guarantee3,
+  guarantee4, guarantee5, guarantee_all : bool;
+  bias_max : bool;
+let
+  bias = 0 -> (if x = 1 then 1 else -1) + pre(bias);
+  bias_max = false ->
+	(bias >= 2 or bias <= -2) or pre(bias_max);
+  assert (x = 0) or (x = 1);
+  guarantee1 = (state = 0 => (bias = 0));
+  guarantee2 = true ->
+  	(pre(state = 0) and x = 1) => state = 2;
+  guarantee3 = true ->
+  	(pre(state = 0) and x = 0) => state = 1;
+  guarantee4 = bias_max => state = 3;
+  guarantee5 = state = 0 or state = 1
+                    or state = 2 or state = 3;
+  guarantee_all = guarantee1 and guarantee2 and
+          guarantee3 and guarantee4 and guarantee5;
+  --%PROPERTY guarantee_all;
+  --%REALIZABLE x;
+tel;
