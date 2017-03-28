@@ -11,7 +11,7 @@ import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.Main;
 import jkind.Output;
-import jkind.aeval.SkolemRelation;
+import jkind.aeval.SkolemFunction;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
 import jkind.realizability.engines.messages.InconsistentMessage;
@@ -36,8 +36,9 @@ public class RealizabilityDirector {
 	private Writer writer;
 
 	private PrintWriter writerImplementation;
-	protected ArrayList<SkolemRelation> baseImplementation;
-	protected SkolemRelation extendImplementation;
+	protected ArrayList<SkolemFunction> baseImplementation;
+	protected SkolemFunction extendImplementation;
+	public SkolemFunction fixpointImplementation;
 	protected int k;
 
 	private int baseStep = 0;
@@ -65,6 +66,8 @@ public class RealizabilityDirector {
 			} else if (settings.xml) {
 				if (settings.synthesis) {
 					return new XmlWriter(settings.filename + "_synth.xml", spec.typeMap);
+				} else if (settings.fixpoint) {
+					return new XmlWriter(settings.filename + "_fixpoint.xml", spec.typeMap);
 				} else {
 					return new XmlWriter(settings.filename + ".xml", spec.typeMap);
 				}
@@ -77,7 +80,7 @@ public class RealizabilityDirector {
 	}
 
 	private PrintWriter getImplementationWriter() {
-		if (settings.synthesis) {
+		if (settings.synthesis || settings.fixpoint) {
 			String filename = settings.filename + ".impl";
 			try {
 				return new PrintWriter(new FileOutputStream(filename), true);
@@ -89,7 +92,7 @@ public class RealizabilityDirector {
 		}
 	}
 
-	public void writeImplementation(int k, ArrayList<SkolemRelation> base, SkolemRelation extend) {
+	public void writeImplementation(int k, ArrayList<SkolemFunction> base, SkolemFunction extend) {
 		if (writerImplementation != null) {
 			if (k !=0) {
 				for (int step = 0; step < k; step++) {
@@ -105,6 +108,15 @@ public class RealizabilityDirector {
 				writerImplementation.println(extend.getSkolemRelation());
 				writerImplementation.println("//update array history \n");
 			}
+		}
+	}
+
+	public void writeFixpointImplementation(SkolemFunction impl) {
+		if (writerImplementation != null && impl != null) {
+			writerImplementation.println("//Fixpoint");
+			writerImplementation.println("//read_inputs;");
+			writerImplementation.println(impl.getSkolemRelation());
+			writerImplementation.println("//update array history \n");
 		}
 	}
 
@@ -127,6 +139,11 @@ public class RealizabilityDirector {
 		if (settings.synthesis) {
 			writeImplementation(k,baseImplementation,extendImplementation);
 		}
+
+		if (settings.fixpoint) {
+			writeFixpointImplementation(fixpointImplementation);
+		}
+
 		if (!done) {
 			writer.writeUnknown(baseStep, convertExtendCounterexample(), getRuntime(startTime));
 		}
@@ -176,13 +193,20 @@ public class RealizabilityDirector {
 	}
 
 	private void startThreads() {
-		RealizabilityBaseEngine baseEngine = new RealizabilityBaseEngine(spec, settings, this);
-		registerProcess(baseEngine);
 
-		RealizabilityExtendEngine extendEngine = new RealizabilityExtendEngine(spec, settings, this);
-		baseEngine.setExtendEngine(extendEngine);
-		extendEngine.setBaseEngine(baseEngine);
-		registerProcess(extendEngine);
+		if (settings.fixpoint) {
+			RealizabilityFixpointEngine fixpointEngine = new RealizabilityFixpointEngine(spec, settings, this);
+			registerProcess(fixpointEngine);
+		} else {
+
+			RealizabilityBaseEngine baseEngine = new RealizabilityBaseEngine(spec, settings, this);
+			registerProcess(baseEngine);
+
+			RealizabilityExtendEngine extendEngine = new RealizabilityExtendEngine(spec, settings, this);
+			baseEngine.setExtendEngine(extendEngine);
+			extendEngine.setBaseEngine(baseEngine);
+			registerProcess(extendEngine);
+		}
 
 		for (Thread thread : threads) {
 			thread.start();

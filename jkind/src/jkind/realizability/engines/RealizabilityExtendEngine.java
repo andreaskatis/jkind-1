@@ -4,7 +4,7 @@ import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.aeval.AevalResult;
 import jkind.aeval.AevalSolver;
-import jkind.aeval.SkolemRelation;
+import jkind.aeval.SkolemFunction;
 import jkind.aeval.ValidResult;
 import jkind.engines.StopException;
 import jkind.lustre.NamedType;
@@ -111,10 +111,10 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 //				aecomment("; K = " + k);
 //				createAevalVariables(aesolver, k, name);
 //				aesolver.assertSPart(getInductiveTransition(k));
-//				AevalResult aeresult = aesolver.synthesize(getAevalInductiveTransition(k),
+//				AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(k),
 //						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
 //				if (aeresult instanceof ValidResult) {
-//					director.extendImplementation = new SkolemRelation(((ValidResult) aeresult).getSkolem());
+//					director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
 //				} else {
 //					//case where Z3 result conflicts with AE-VAL
 //					throw new JKindException("Conflict of results between Z3 and AE-VAL");
@@ -157,10 +157,10 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			aecomment("; K = " + k);
 			createAevalVariables(aesolver, k, name);
 			aesolver.assertSPart(getInductiveTransition(k));
-			AevalResult aeresult = aesolver.synthesize(getAevalInductiveTransition(k),
+			AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(k),
 					StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
 			if (aeresult instanceof ValidResult) {
-				director.extendImplementation = new SkolemRelation(((ValidResult) aeresult).getSkolem());
+				director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
 				sendRealizable(k);
 				throw new StopException();
 			}

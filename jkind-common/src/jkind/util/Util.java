@@ -45,6 +45,17 @@ public class Util {
 		return decls;
 	}
 
+	public static List<VarDecl> getRealizabilityOutputVarDecls(Node node) {
+		List<VarDecl> decls = new ArrayList<>();
+		List<VarDecl> realizabilityoutputs = new ArrayList<>();
+		realizabilityoutputs.addAll(node.inputs);
+		realizabilityoutputs.removeIf(vd -> node.realizabilityInputs.contains(vd.id));
+		decls.addAll(realizabilityoutputs);
+		decls.addAll(node.outputs);
+		decls.addAll(node.locals);
+		return decls;
+	}
+
 	public static Map<String, Type> getTypeMap(Node node) {
 		Map<String, Type> map = new HashMap<>();
 		for (VarDecl v : getVarDecls(node)) {

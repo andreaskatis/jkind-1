@@ -10,5 +10,5 @@ public class InvalidResult extends AevalResult {
 
     public InvalidResult() { this(null); }
 
-    public ValidSubset getValidSubset() { return subset; }
+    public String getValidSubset() { return subset.getValidSubset(); }
 }

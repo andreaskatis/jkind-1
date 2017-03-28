@@ -6,8 +6,7 @@ import java.util.List;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
-import jkind.aeval.SkolemRelation;
-import jkind.aeval.ValidResult;
+import jkind.aeval.*;
 import jkind.engines.StopException;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.InconsistentMessage;
@@ -24,8 +23,6 @@ import jkind.solvers.UnknownResult;
 import jkind.solvers.UnsatResult;
 import jkind.translation.Specification;
 import jkind.util.StreamIndex;
-import jkind.aeval.AevalSolver;
-import jkind.aeval.AevalResult;
 
 
 public class RealizabilityBaseEngine extends RealizabilityEngine {
@@ -101,10 +98,10 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 //				aecomment("; K = " + (k + 1));
 //				createAevalVariables(aesolver, k, name);
 //				aesolver.assertSPart(getTransition(k, k == 0));
-//				AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
+//				AevalResult aeresult = aesolver.realizabilityQuery(getAevalTransition(k, k == 0),
 //						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
 //				if (aeresult instanceof ValidResult) {
-//					director.baseImplementation.add(new SkolemRelation(((ValidResult) aeresult).getSkolem()));
+//					director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));
 //				} else {
 //					//case where Z3 result conflicts with AE-VAL
 //					throw new JKindException("Conflicting results between Z3 and AE-VAL");
@@ -152,14 +149,16 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 			createAevalVariables(aesolver, k, name);
 			aesolver.assertSPart(getTransition(k, k == 0));
 			// assert input and state to ensure
-			AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
+			AevalResult aeresult = aesolver.realizabilityQuery(getAevalTransition(k, k == 0),
 					StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
 			if (aeresult instanceof ValidResult) {
 				sendBaseStep(k);
-				director.baseImplementation.add(new SkolemRelation(((ValidResult) aeresult).getSkolem()));
-			} else {
+				director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));
+			} else if (aeresult instanceof InvalidResult){
 				//we can possibly run a Z3 check here instead, to get the counterexample.
 				throw new JKindException("Unrealizable. Use realizability check for cex.");
+			} else {
+				throw new JKindException("Unknown");
 			}
 		} else {
 			Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),

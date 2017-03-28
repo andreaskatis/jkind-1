@@ -1,9 +1,7 @@
 package jkind.realizability.writers;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import jkind.aeval.SkolemRelation;
 import jkind.results.Counterexample;
 
 public abstract class Writer {

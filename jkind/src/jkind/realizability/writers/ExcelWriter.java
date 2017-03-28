@@ -1,12 +1,9 @@
 package jkind.realizability.writers;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import jkind.aeval.SkolemRelation;
 import jkind.lustre.Node;
 import jkind.results.Counterexample;
 import jkind.results.layout.RealizabilityNodeLayout;

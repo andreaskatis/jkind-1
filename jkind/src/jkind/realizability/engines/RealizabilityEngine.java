@@ -23,6 +23,7 @@ import jkind.aeval.AevalSolver;
 import jkind.solvers.z3.Z3Solver;
 import jkind.translation.Lustre2Sexp;
 import jkind.translation.Specification;
+import jkind.util.SexpUtil;
 import jkind.util.StreamIndex;
 import jkind.util.Util;
 
@@ -60,6 +61,7 @@ public abstract class RealizabilityEngine implements Runnable {
 	@Override
 	public final void run() {
 		try {
+			//Z3 could still be useful here for Unrealizable results in JSyn/Fixpoint
 			initializeSolver();
 			main();
 		} catch (Throwable t) {
@@ -122,20 +124,20 @@ public abstract class RealizabilityEngine implements Runnable {
 			aesolver.scratch.println("; Transition relation");
 		}
 		aesolver.defineSVar(spec.getTransitionRelation());
-		aesolver.defineTVar(spec.getTransitionRelation());
+		aesolver.defineTVar(spec.getTransitionRelation(), false);
 
 		if (settings.scratch) {
 			aesolver.scratch.println("; Universally quantified variables");
 		}
 		if (check == "extend") {
 			aesolver.defineSVar(new VarDecl(INIT.str, NamedType.BOOL));
-			aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL));
+			aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), false);
 		}
 		for (int i = -1; i <= k-1; i = i +1) {
 			for (VarDecl vd : getOffsetVarDecls(i)) {
 				aesolver.defineSVar(vd);
 				if (i == k-1) {
-					aesolver.defineTVar(vd);
+					aesolver.defineTVar(vd, false);
 				}
 			}
 		}
@@ -149,14 +151,14 @@ public abstract class RealizabilityEngine implements Runnable {
 		List<VarDecl> offsetoutvars = getOffsetVarDecls(
 									k+2, getRealizabilityOutputVarDecls());
 		for (VarDecl in : offsetinvars) {
-			aesolver.defineTVar(in);
+			aesolver.defineTVar(in, false);
 		}
 
 		if (settings.scratch) {
 			aesolver.scratch.println("; Existentially quantified variables");
 		}
 		for (VarDecl out : offsetoutvars) {
-			aesolver.defineTVar(out);
+			aesolver.defineTVar(out, true);
 		}
 
 		for (VarDecl vd : Util.getVarDecls(spec.node)) {
@@ -187,6 +189,43 @@ public abstract class RealizabilityEngine implements Runnable {
 			}
 		}
 	}
+
+
+
+
+
+
+	protected Sexp getUniversalInputVariablesAssertion(){
+		List<Sexp> conjuncts = new ArrayList<>();
+		List<Sexp> equalities = new ArrayList<>();
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityOutputVarDecls())));
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityInputVarDecls())));
+		for (Sexp c : conjuncts) {
+			equalities.add(new Cons("=", c, c));
+		}
+		equalities.add(new Cons("=", INIT, INIT));
+		return SexpUtil.conjoin(equalities);
+	}
+
+	protected Sexp getUniversalOutputVariablesAssertion(){
+		List<Sexp> conjuncts = new ArrayList<>();
+		List<Sexp> equatities = new ArrayList<>();
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityOutputVarDecls())));
+		for (Sexp c : conjuncts) {
+			equatities.add(new Cons("=", c, c));
+		}
+		return SexpUtil.conjoin(equatities);
+	}
+
+	protected Sexp getAssertions() {
+		Sexp assertions = Lustre2Sexp.getConjunctedAssertions(spec.node);
+		return assertions;
+	}
+
+//	protected Sexp getNextStepAssertions() {
+//		Sexp assertions = Lustre2Sexp.getNextStepConjunctedAssertions(spec.node);
+//		return assertions;
+//	}
 
 
 	protected List<VarDecl> getOffsetVarDecls(int k) {
@@ -233,6 +272,18 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 	}
 
+	protected Sexp getAevalFixpointTransition() {
+		List<Sexp> args = new ArrayList<>();
+		args.add(INIT);
+		args.addAll(getSymbols(getOffsetVarDecls(0,
+				getRealizabilityOutputVarDecls())));
+		args.addAll(getSymbols(getOffsetVarDecls(0,
+				getRealizabilityInputVarDecls())));
+		args.addAll(getSymbols(getOffsetVarDecls(3,
+				getRealizabilityOutputVarDecls())));
+		return new Cons(spec.getFixpointTransitionRelation().getName(), args);
+	}
+
 	protected Sexp getAevalTransition(int k, boolean init) {
 		return getAevalTransition(k, Sexp.fromBoolean(init));
 	}
@@ -256,7 +307,7 @@ public abstract class RealizabilityEngine implements Runnable {
 
 	protected static final Symbol INIT = Lustre2Sexp.INIT;
 
-	private List<VarDecl> getRealizabilityOutputVarDecls() {
+	public List<VarDecl> getRealizabilityOutputVarDecls() {
 		List<String> realizabilityInputs = spec.node.realizabilityInputs;
 		List<VarDecl> all = Util.getVarDecls(spec.node);
 
@@ -264,7 +315,7 @@ public abstract class RealizabilityEngine implements Runnable {
 		return all;
 	}
 
-	private List<VarDecl> getRealizabilityInputVarDecls() {
+	public List<VarDecl> getRealizabilityInputVarDecls() {
 		List<String> realizabilityInputs = spec.node.realizabilityInputs;
 		List<VarDecl> all = Util.getVarDecls(spec.node);
 		all.removeIf(vd -> !realizabilityInputs.contains(vd.id));
@@ -290,7 +341,7 @@ public abstract class RealizabilityEngine implements Runnable {
 	}
 
 	private PrintWriter getaevalScratch( ) {
-		if (settings.scratch && settings.synthesis) {
+		if (settings.scratch && (settings.synthesis || settings.fixpoint)) {
 
 			String filename = settings.filename + ".aeval" + "." + name + ".smt2";
 			try {

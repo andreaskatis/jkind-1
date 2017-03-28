@@ -12,6 +12,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 	private static final String TIMEOUT = "timeout";
 	private static final String XML = "xml";
 	private static final String SYNTHESIS = "synthesis";
+	private static final String FIXPOINT = "fixpoint";
 
 	private final JRealizabilitySettings settings;
 
@@ -34,7 +35,8 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		options.addOption(SCRATCH, false, "produce files for debugging purposes");
 		options.addOption(TIMEOUT, true, "maximum runtime in seconds (default 100)");
 		options.addOption(XML, false, "generate results in XML format");
-		options.addOption(SYNTHESIS, false, "synthesize implementation for realizable contracts");
+		options.addOption(SYNTHESIS, false, "synthesize implementation using k-inductive proof");
+		options.addOption(FIXPOINT, false, "synthesize implementation using inductive fixpoint");
 		return options;
 	}
 
@@ -80,6 +82,10 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 
 		if (line.hasOption(SYNTHESIS)) {
 			settings.synthesis = true;
+		}
+
+		if (line.hasOption(FIXPOINT)) {
+			settings.fixpoint = true;
 		}
 	}
 }

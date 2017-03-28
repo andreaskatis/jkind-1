@@ -34,4 +34,9 @@ public class Specification {
 		}
 		return ivcTransitionRelation;
 	}
+
+	public Relation getFixpointTransitionRelation() {
+		transitionRelation = Lustre2Sexp.constructFixpointTransitionRelation(node);
+		return transitionRelation;
+	}
 }

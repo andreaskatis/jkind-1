@@ -84,10 +84,58 @@ public class AevalSolver extends AevalProcess{
         }
     }
 
-    protected void sendTPart(Sexp sexp) {
-        //If I add a print to scratch, I get duplicates
-        //due to the same thing being added in both S and T files
+    public void assertTPart(Sexp sexp, boolean scr) {
+        sendTPart(new Cons("assert", sexp), scr);
+    }
+
+    protected void sendTPart(Sexp sexp, boolean scr) {
         String str = Quoting.quoteSexp(sexp).toString();
+        if(scratch != null && scr) {
+            scratch.println(str);
+        }
+        try {
+            toTPart.append(str);
+            toTPart.newLine();
+            toTPart.flush();
+        } catch (IOException e) {
+            throw new JKindException("Unable to write to " + getName() + ", "
+                    + "probably due to internal JKind error", e);
+        }
+    }
+
+    public void sendBlockedRegionSPart(String str) {
+        if(scratch !=null) {
+            scratch.println(str);
+        }
+        try {
+            toSPart.append(str);
+            toSPart.newLine();
+            toSPart.flush();
+        } catch (IOException e) {
+            throw new JKindException("Unable to write to " + getName() + ", "
+                    + "probably due to internal JKind error", e);
+        }
+    }
+
+    public void sendBlockedRegionTPart(String str) {
+        if(scratch !=null) {
+            scratch.println(str);
+        }
+        try {
+            toTPart.append(str);
+            toTPart.newLine();
+            toTPart.flush();
+        } catch (IOException e) {
+            throw new JKindException("Unable to write to " + getName() + ", "
+                    + "probably due to internal JKind error", e);
+        }
+    }
+
+    public void sendSubsetTPart(String str) {
+        if(scratch !=null) {
+            scratch.println(str);
+        }
+
         try {
             toTPart.append(str);
             toTPart.newLine();
@@ -112,9 +160,9 @@ public class AevalSolver extends AevalProcess{
         sendSPart(new Cons("declare-fun", new Symbol(decl.id), new Symbol("()"), type(decl.type)));
 
     }
-    public void defineTVar(VarDecl decl) {
+    public void defineTVar(VarDecl decl, boolean scr) {
         varTypes.put(decl.id, decl.type);
-        sendTPart(new Cons("declare-fun", new Symbol(decl.id), new Symbol("()"), type(decl.type)));
+        sendTPart(new Cons("declare-fun", new Symbol(decl.id), new Symbol("()"), type(decl.type)), scr);
     }
 
 
@@ -123,9 +171,9 @@ public class AevalSolver extends AevalProcess{
                 type(NamedType.BOOL), relation.getBody()));
     }
 
-    public void defineTVar(Relation relation) {
+    public void defineTVar(Relation relation, boolean scr) {
         sendTPart(new Cons("define-fun", new Symbol(relation.getName()), inputs(relation.getInputs()),
-                type(NamedType.BOOL), relation.getBody()));
+                type(NamedType.BOOL), relation.getBody()), scr);
     }
 
     private Sexp inputs(List<VarDecl> inputs) {
@@ -136,25 +184,45 @@ public class AevalSolver extends AevalProcess{
         return new Cons(args);
     }
 
-    public AevalResult synthesize(Sexp transition, Sexp properties) {
+    public AevalResult realizabilityQuery(Sexp transition, Sexp properties) {
         AevalResult result;
 
         Sexp query = new Cons("assert", new Cons("and", transition, properties));
 
         if (scratch!=null) {
-            scratch.println("; Assertion for existential part of the formula");
-            scratch.println(Quoting.quoteSexp(query).toString());
+            scratch.println("; Assertion for Transition Relation - existential part of the formula");
         }
-        sendTPart(query);
+        sendTPart(query, true);
         callAeval(check);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             String[] extracted = status.split("extracted skolem:");
-            SkolemRelation skolem = new SkolemRelation(extracted[extracted.length - 1]);
+            SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
             result = new ValidResult(skolem);
+        } else if (status.contains("Result: invalid")){
+            String[] extracted = status.split("valid subset:");
+            ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+            result = new InvalidResult(subset);
         } else {
-            //probably parse valid subset model for pdr refinement here.
-            result = new InvalidResult();
+            result = new UnknownResult();
+        }
+        return result;
+    }
+
+    public AevalResult refinementQuery() {
+        AevalResult result;
+        callAeval(check);
+        String status = readFromAeval();
+        if (status.contains("Result: valid")) {
+            String[] extracted = status.split("extracted skolem:");
+            SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
+            result = new ValidResult(skolem);
+        } else if (status.contains("Result: invalid")){
+            String[] extracted = status.split("valid subset:");
+            ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+            result = new InvalidResult(subset);
+        } else {
+            result = new UnknownResult();
         }
         return result;
     }
