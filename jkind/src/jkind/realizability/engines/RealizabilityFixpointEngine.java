@@ -131,7 +131,6 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         }
 
         aesolver.assertTPart(getAssertions(), true);
-        //aesolver.assertTPart(getNextStepAssertions(), true);
 
         String subsetassertion = subset.getValidSubset().split("assert")[1];
         String negatedsubset = "(assert (not" + subsetassertion + ")";
