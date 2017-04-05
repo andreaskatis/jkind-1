@@ -196,13 +196,21 @@ public class AevalSolver extends AevalProcess{
         callAeval(check);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
-            String[] extracted = status.split("extracted skolem:");
-            SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
-            result = new ValidResult(skolem);
+            if (status.contains("WARNING: ")) {
+                result = new UnknownResult();
+            } else {
+                String[] extracted = status.split("extracted skolem:");
+                SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
+                result = new ValidResult(skolem);
+            }
         } else if (status.contains("Result: invalid")){
-            String[] extracted = status.split("valid subset:");
-            ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
-            result = new InvalidResult(subset);
+            if (status.contains("WARNING: ")) {
+                result = new UnknownResult();
+            } else {
+                String[] extracted = status.split("valid subset:");
+                ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+                result = new InvalidResult(subset);
+            }
         } else {
             result = new UnknownResult();
         }
@@ -218,9 +226,13 @@ public class AevalSolver extends AevalProcess{
             SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
             result = new ValidResult(skolem);
         } else if (status.contains("Result: invalid")){
-            String[] extracted = status.split("valid subset:");
-            ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
-            result = new InvalidResult(subset);
+            if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
+                result = new UnknownResult();
+            } else {
+                String[] extracted = status.split("valid subset:");
+                ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+                result = new InvalidResult(subset);
+            }
         } else {
             result = new UnknownResult();
         }
@@ -233,11 +245,22 @@ public class AevalSolver extends AevalProcess{
             StringBuilder content = new StringBuilder();
             while (true) {
                 line = fromAeval.readLine();
+
+                if(scratch != null) {
+                    scratch.println(";" + getName() + ": " + line);
+                }
+
                 if (line == null) {
                     break;
                 } else if (line.contains("error \"") || line.contains("Error:")) {
-                    content.append(line);
-                    content.append("\n");
+                    while ((line = fromAeval.readLine()) != null) {
+                        if(scratch != null) {
+                            scratch.println(";" + getName() + ": " + line);
+                        }
+                        if (isCheckSat(line)) {
+                            break;
+                        }
+                    }
                     throw new JKindException(getName()
                             + " error (see scratch file for details)");
                 } else if (line.contains("(check-sat)")) {
@@ -260,6 +283,10 @@ public class AevalSolver extends AevalProcess{
     }
 
     protected final Map<String, Type> varTypes = new HashMap<>();
+
+    protected boolean isCheckSat(String line) {
+        return line.contains(CHECKSAT);
+    }
 
 }
 

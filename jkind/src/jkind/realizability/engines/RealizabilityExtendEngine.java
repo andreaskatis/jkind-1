@@ -141,17 +141,17 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			//outputs so these should be renamed as well.
 			//New names can be derived if we simply use the
 			//next value of k for this AE-VAL call.
-			if (k==0) {
-				Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
-						getInductiveTransition(k), StreamIndex.conjoinEncodings(spec.node.properties, k));
-				if (result instanceof SatResult) {
-					Model model = ((SatResult) result).getModel();
-					sendExtendCounterexample(k + 1, model);
-					return;
-				} else if (result instanceof UnknownResult) {
-					throw new StopException();
-				}
-			}
+//			if (k==0) {
+//				Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
+//						getInductiveTransition(k), StreamIndex.conjoinEncodings(spec.node.properties, k));
+//				if (result instanceof SatResult) {
+//					Model model = ((SatResult) result).getModel();
+//					sendExtendCounterexample(k + 1, model);
+//					return;
+//				} else if (result instanceof UnknownResult) {
+//					throw new StopException();
+//				}
+//			}
 
 			aesolver = new AevalSolver(settings.filename, name, aevalscratch);
 			aecomment("; K = " + k);

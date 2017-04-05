@@ -54,6 +54,7 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 	}
 
 	public static Relation constructFixpointTransitionRelation(Node node) {
+		Lustre2Sexp previsitor = new Lustre2Sexp(0);
 		Lustre2Sexp visitor = new Lustre2Sexp(1);
 		List<Sexp> conjuncts = new ArrayList<>();
 
@@ -64,9 +65,18 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 			conjuncts.add(sexp);
 		}
 
+//		for (Expr assertion : node.assertions) {
+//			conjuncts.add(assertion.accept(previsitor));
+//		}
+
+		for (Expr assertion : node.assertions) {
+			conjuncts.add(assertion.accept(visitor));
+		}
+
 		List<VarDecl> inputs = new ArrayList<>();
 		inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
-		inputs.addAll(visitor.pre(Util.getRealizabilityOutputVarDecls(node)));
+		inputs.addAll(visitor.pre(Util.getVarDecls(node)));
+//		inputs.addAll(visitor.pre(Util.getRealizabilityOutputVarDecls(node)));
 		inputs.addAll(visitor.curr(Util.getVarDecls(node)));
 		return new Relation(Relation.T, inputs, SexpUtil.conjoin(conjuncts));
 	}
@@ -269,7 +279,7 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 	}
 
 	public static Sexp getConjunctedAssertions(Node node) {
-		Lustre2Sexp visitor = new Lustre2Sexp(0);
+		Lustre2Sexp visitor = new Lustre2Sexp(1);
 		List<Sexp> conjuncts = new ArrayList<>();
 
 		for (Expr assertion : node.assertions) {
@@ -279,14 +289,14 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 		return SexpUtil.conjoin(conjuncts);
 	}
 
-//	public static Sexp getNextStepConjunctedAssertions(Node node) {
-//		Lustre2Sexp visitor = new Lustre2Sexp(1);
-//		List<Sexp> conjuncts = new ArrayList<>();
-//
-//		for (Expr assertion : node.assertions) {
-//			conjuncts.add(assertion.accept(visitor));
-//		}
-//
-//		return SexpUtil.conjoin(conjuncts);
-//	}
+	public static Sexp getNextStepConjunctedAssertions(Node node) {
+		Lustre2Sexp visitor = new Lustre2Sexp(1);
+		List<Sexp> conjuncts = new ArrayList<>();
+
+		for (Expr assertion : node.assertions) {
+			conjuncts.add(assertion.accept(visitor));
+		}
+
+		return SexpUtil.conjoin(conjuncts);
+	}
 }

@@ -16,6 +16,7 @@ import java.util.List;
 import jkind.JKindException;
 
 public abstract class AevalProcess {
+    protected static final String CHECKSAT = "(check-sat)";
 
     protected Process process;
     protected String scratchBase;

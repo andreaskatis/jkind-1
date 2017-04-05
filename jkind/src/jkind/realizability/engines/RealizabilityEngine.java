@@ -195,11 +195,14 @@ public abstract class RealizabilityEngine implements Runnable {
 
 
 
-	protected Sexp getUniversalInputVariablesAssertion(){
+	protected Sexp getUniversalVariablesAssertion(){
 		List<Sexp> conjuncts = new ArrayList<>();
 		List<Sexp> equalities = new ArrayList<>();
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityOutputVarDecls())));
 		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityInputVarDecls())));
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityOutputVarDecls())));
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(1, getRealizabilityInputVarDecls())));
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(1, getRealizabilityOutputVarDecls())));
+
 		for (Sexp c : conjuncts) {
 			equalities.add(new Cons("=", c, c));
 		}
@@ -207,10 +210,10 @@ public abstract class RealizabilityEngine implements Runnable {
 		return SexpUtil.conjoin(equalities);
 	}
 
-	protected Sexp getUniversalOutputVariablesAssertion(){
+	protected Sexp getUniversalOutputVariablesAssertion(int k){
 		List<Sexp> conjuncts = new ArrayList<>();
 		List<Sexp> equatities = new ArrayList<>();
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityOutputVarDecls())));
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityOutputVarDecls())));
 		for (Sexp c : conjuncts) {
 			equatities.add(new Cons("=", c, c));
 		}
@@ -222,10 +225,10 @@ public abstract class RealizabilityEngine implements Runnable {
 		return assertions;
 	}
 
-//	protected Sexp getNextStepAssertions() {
-//		Sexp assertions = Lustre2Sexp.getNextStepConjunctedAssertions(spec.node);
-//		return assertions;
-//	}
+	protected Sexp getNextStepAssertions() {
+		Sexp assertions = Lustre2Sexp.getNextStepConjunctedAssertions(spec.node);
+		return assertions;
+	}
 
 
 	protected List<VarDecl> getOffsetVarDecls(int k) {
@@ -275,12 +278,9 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected Sexp getAevalFixpointTransition() {
 		List<Sexp> args = new ArrayList<>();
 		args.add(INIT);
-		args.addAll(getSymbols(getOffsetVarDecls(0,
-				getRealizabilityOutputVarDecls())));
-		args.addAll(getSymbols(getOffsetVarDecls(0,
-				getRealizabilityInputVarDecls())));
-		args.addAll(getSymbols(getOffsetVarDecls(3,
-				getRealizabilityOutputVarDecls())));
+		args.addAll(getSymbols(getOffsetVarDecls(0)));
+		args.addAll(getSymbols(getOffsetVarDecls(1, getRealizabilityInputVarDecls())));
+		args.addAll(getSymbols(getOffsetVarDecls(3, getRealizabilityOutputVarDecls())));
 		return new Cons(spec.getFixpointTransitionRelation().getName(), args);
 	}
 

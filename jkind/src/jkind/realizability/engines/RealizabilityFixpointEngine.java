@@ -20,7 +20,9 @@ import java.util.List;
 
 public class RealizabilityFixpointEngine extends RealizabilityEngine {
     private AevalSolver aesolver;
+//    private List<ValidSubset> subsets = new ArrayList<>();
     private List<BlockedRegion> regions = new ArrayList<>();
+
 
     public RealizabilityFixpointEngine(Specification spec, JRealizabilitySettings settings,
                                    RealizabilityDirector director) {
@@ -45,16 +47,21 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         createQueryVariables(aesolver, regions, 0);
         AevalResult aeresult = aesolver.realizabilityQuery(getAevalFixpointTransition(),
                     StreamIndex.conjoinEncodings(spec.node.properties, 3));
+        //Transition without curr state assertions
+//        AevalResult aeresult = aesolver.realizabilityQuery(getAevalFixpointTransition(),
+//                    StreamIndex.conjoinEncodings(spec.node.properties, 3));
         if (aeresult instanceof ValidResult) {
             director.fixpointImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
             sendRealizable(k);
             throw new StopException();
         } else if (aeresult instanceof InvalidResult){
-            BlockedRegion region = extractBlockedRegion(k, new ValidSubset(((InvalidResult) aeresult).getValidSubset()));
+            ValidSubset subset = new ValidSubset(((InvalidResult) aeresult).getValidSubset());
+//            subsets.add(subset);
+            BlockedRegion region = extractBlockedRegion(k, subset);
             regions.add(region);
             //TODO: Run Z3 to get cex here instead.
-        } else {
-            throw new JKindException("Unknown");
+        } else if (aeresult instanceof UnknownResult){
+            throw new StopException();
         }
     }
 
@@ -98,12 +105,24 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
     protected void createSubQueryVariablesAndAssertions(AevalSolver aesolver, ValidSubset subset) {
         if (settings.scratch) {
+            aesolver.scratch.println("; Transition relation");
+        }
+        aesolver.defineTVar(spec.getFixpointTransitionRelation(), true);
+
+        if (settings.scratch) {
             aesolver.scratch.println("; Universally quantified variables");
         }
 
-        List<VarDecl> outvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
+        List<VarDecl> preoutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
 
-        for (VarDecl out : outvars) {
+        for (VarDecl out : preoutvars) {
+            aesolver.defineSVar(out);
+            aesolver.defineTVar(out, false);
+        }
+
+        List<VarDecl> curroutvars = getOffsetVarDecls(1, getRealizabilityOutputVarDecls());
+
+        for (VarDecl out : curroutvars) {
             aesolver.defineSVar(out);
             aesolver.defineTVar(out, false);
         }
@@ -114,9 +133,16 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
         aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), true);
 
-        List<VarDecl> invars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
+        List<VarDecl> preinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
+        List<VarDecl> currinvars = getOffsetVarDecls(1, getRealizabilityInputVarDecls());
+//        invars.addAll(getOffsetVarDecls(1, getRealizabilityInputVarDecls()));
 
-        for (VarDecl in : invars) {
+
+        for (VarDecl in : preinvars) {
+            aesolver.defineTVar(in, true);
+        }
+
+        for (VarDecl in : currinvars) {
             aesolver.defineTVar(in, true);
         }
 
@@ -124,15 +150,36 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             aesolver.scratch.println("; Assertions for universal part of the formula");
         }
 
-        aesolver.assertSPart(getUniversalOutputVariablesAssertion());
+
+//      It appears that the blocked regions are exact. That is, the first blocked region
+//      contains all the bad states in its space. Thus, a refinement query on the intersection
+//      of true and the negated first region will return a "false" valid subset.
+
+//        for (BlockedRegion r : regions) {
+//            aesolver.sendBlockedRegionSPart(r.getBlockedRegion());
+//        }
+
+        aesolver.assertSPart(getUniversalOutputVariablesAssertion(0));
+        aesolver.assertSPart(getUniversalOutputVariablesAssertion(1));
 
         if (settings.scratch) {
             aesolver.scratch.println("; Assertions for existential part of the formula");
         }
 
-        aesolver.assertTPart(getAssertions(), true);
+        aesolver.assertTPart(getTransition(1, INIT), true);
+//        aesolver.assertTPart(StreamIndex.conjoinEncodings(spec.node.properties, 1), true);
+//        aesolver.assertTPart(getAssertions(), true);
+//        aesolver.assertTPart(getNextStepAssertions(), true);
 
-        String subsetassertion = subset.getValidSubset().split("assert")[1];
+//        for (ValidSubset s : subsets) {
+//            String subsetassertion = s.getValidSubset().split("assert")[1];
+//            String negatedsubset = "(assert (not" + subsetassertion + ")";
+//            aesolver.sendSubsetTPart(negatedsubset);
+//        }
+
+
+//        String subsetassertion = (subset.getValidSubset()).replaceAll("\\$1", "\\$0").split("assert")[1];
+        String subsetassertion = (subset.getValidSubset()).split("assert")[1];
         String negatedsubset = "(assert (not" + subsetassertion + ")";
         aesolver.sendSubsetTPart(negatedsubset);
     }
@@ -141,6 +188,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         if (settings.scratch) {
             aesolver.scratch.println("; Transition relation");
         }
+        aesolver.defineSVar(spec.getFixpointTransitionRelation());
         aesolver.defineTVar(spec.getFixpointTransitionRelation(), true);
 
         if (settings.scratch) {
@@ -150,19 +198,29 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         aesolver.defineSVar(new VarDecl(INIT.str, NamedType.BOOL));
         aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), false);
 
+        List<VarDecl> preinvars = getOffsetVarDecls(k, getRealizabilityInputVarDecls());
+        List<VarDecl> currinvars = getOffsetVarDecls(k+1, getRealizabilityInputVarDecls());
+        List<VarDecl> offsetoutvars = getOffsetVarDecls(
+                k+3, getRealizabilityOutputVarDecls());
+        for (VarDecl in : preinvars) {
+            aesolver.defineSVar(in);
+            aesolver.defineTVar(in, false);
+        }
+
         List<VarDecl> preoutvars = getOffsetVarDecls(k, getRealizabilityOutputVarDecls());
         for (VarDecl vd : preoutvars) {
             aesolver.defineSVar(vd);
             aesolver.defineTVar(vd, false);
         }
 
-        List<VarDecl> offsetinvars = getOffsetVarDecls(
-                k, getRealizabilityInputVarDecls());
-        List<VarDecl> offsetoutvars = getOffsetVarDecls(
-                k+3, getRealizabilityOutputVarDecls());
-        for (VarDecl in : offsetinvars) {
+        for (VarDecl in : currinvars) {
             aesolver.defineSVar(in);
             aesolver.defineTVar(in, false);
+        }
+
+        List<VarDecl> curroutvars = getOffsetVarDecls(k+1, getRealizabilityOutputVarDecls());
+        for (VarDecl vd : curroutvars) {
+            aesolver.defineSVar(vd);
         }
 
         if (settings.scratch) {
@@ -183,9 +241,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             aesolver.scratch.println("; Assertions for universal part of the formula");
         }
 
-
-        aesolver.assertSPart(getAssertions());
-        aesolver.assertSPart(getUniversalInputVariablesAssertion());
+        aesolver.assertSPart(getTransition(1, INIT));
+//        aesolver.assertSPart(getAssertions());
+//        aesolver.assertSPart(getUniversalVariablesAssertion());
 
         if (regions != null) {
             if (settings.scratch) {
@@ -208,8 +266,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     }
 
     protected String convertOutputsToNextStep(String region) {
-        String converted = region.replaceAll("\\$0", "\\$3");
-        return converted;
+        String convertedone = region.replaceAll("\\$1", "\\$3");
+        //String convertedone = convertedzero.replaceAll("\\$1", "\\$3");
+        return convertedone;
     }
 
     private void sendRealizable(int k) {
