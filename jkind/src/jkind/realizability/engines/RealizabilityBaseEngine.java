@@ -87,62 +87,7 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 	}
 
 	private void checkRealizable(int k) {
-//		Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
-//				getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
-//
-//		if (result instanceof UnsatResult) {
-//			sendBaseStep(k);
-//			if (settings.synthesis) {
-//				aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
-////				aecomment("; K = " +  k);
-//				aecomment("; K = " + (k + 1));
-//				createAevalVariables(aesolver, k, name);
-//				aesolver.assertSPart(getTransition(k, k == 0));
-//				AevalResult aeresult = aesolver.realizabilityQuery(getAevalTransition(k, k == 0),
-//						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
-//				if (aeresult instanceof ValidResult) {
-//					director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));
-//				} else {
-//					//case where Z3 result conflicts with AE-VAL
-//					throw new JKindException("Conflicting results between Z3 and AE-VAL");
-//				}
-//			}
-//		}
-//
-//		if (result instanceof SatResult) {
-//			Model model = ((SatResult) result).getModel();
-//			if (settings.reduce) {
-//				reduceAndSendUnrealizable(k, model);
-//			} else {
-//				sendUnrealizable(k, model);
-//			}
-//		} else if (result instanceof UnknownResult) {
-//			sendUnknown();
-//		}
-
-		//can simply say "do regular realizability check but if k!=0 && settings.synthesis,
 		if (settings.synthesis) {
-
-			//This already happens a level above with checkconsistency
-//			if (k!=0) {
-//				Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
-//						getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
-//				if (result instanceof UnsatResult) {
-//					sendBaseStep(k);
-//				}
-//
-//				if (result instanceof SatResult) {
-//					Model model = ((SatResult) result).getModel();
-//					if (settings.reduce) {
-//						reduceAndSendUnrealizable(k, model);
-//					} else {
-//						sendUnrealizable(k, model);
-//					}
-//				} else if (result instanceof UnknownResult) {
-//					sendUnknown();
-//				}
-//			}
-
 			aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
 //			aecomment("; K = " +  k);
 			aecomment("; K = " + (k + 1));

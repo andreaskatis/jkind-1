@@ -95,44 +95,6 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 	}
 
 	private void checkRealizabilities(int k) {
-//		Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
-//				getInductiveTransition(k), StreamIndex.conjoinEncodings(spec.node.properties, k));
-//
-//		if (result instanceof UnsatResult) {
-//
-//			//Existential variables need different
-//			//naming due to AE-VAL's different variable
-//			//scope mechanism. Properties are part of the
-//			//outputs so these should be renamed as well.
-//			//New names can be derived if we simply use the
-//			//next value of k for this AE-VAL call.
-//			if (settings.synthesis) {
-//				aesolver = new AevalSolver(settings.filename, name, aevalscratch);
-//				aecomment("; K = " + k);
-//				createAevalVariables(aesolver, k, name);
-//				aesolver.assertSPart(getInductiveTransition(k));
-//				AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(k),
-//						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
-//				if (aeresult instanceof ValidResult) {
-//					director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
-//				} else {
-//					//case where Z3 result conflicts with AE-VAL
-//					throw new JKindException("Conflict of results between Z3 and AE-VAL");
-//
-//				}
-//			}
-//			sendRealizable(k);
-//
-//			throw new StopException();
-//		} else if (result instanceof SatResult) {
-//			Model model = ((SatResult) result).getModel();
-//			sendExtendCounterexample(k + 1, model);
-//		} else if (result instanceof UnknownResult) {
-//			throw new StopException();
-//		}
-
-		//Need a Z3 query for the pre initial state check.
-		//Then I can completely rely on AEVAL
 		if (settings.synthesis) {
 
 			//Existential variables need different
@@ -141,18 +103,6 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			//outputs so these should be renamed as well.
 			//New names can be derived if we simply use the
 			//next value of k for this AE-VAL call.
-//			if (k==0) {
-//				Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
-//						getInductiveTransition(k), StreamIndex.conjoinEncodings(spec.node.properties, k));
-//				if (result instanceof SatResult) {
-//					Model model = ((SatResult) result).getModel();
-//					sendExtendCounterexample(k + 1, model);
-//					return;
-//				} else if (result instanceof UnknownResult) {
-//					throw new StopException();
-//				}
-//			}
-
 			aesolver = new AevalSolver(settings.filename, name, aevalscratch);
 			aecomment("; K = " + k);
 			createAevalVariables(aesolver, k, name);
