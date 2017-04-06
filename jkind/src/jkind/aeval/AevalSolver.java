@@ -226,13 +226,13 @@ public class AevalSolver extends AevalProcess{
             SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
             result = new ValidResult(skolem);
         } else if (status.contains("Result: invalid")){
-            if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
-                result = new UnknownResult();
-            } else {
+//            if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
+//                result = new UnknownResult();
+//            } else {
                 String[] extracted = status.split("valid subset:");
                 ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
                 result = new InvalidResult(subset);
-            }
+            //}
         } else {
             result = new UnknownResult();
         }
@@ -252,7 +252,8 @@ public class AevalSolver extends AevalProcess{
 
                 if (line == null) {
                     break;
-                } else if (line.contains("error \"") || line.contains("Error:")) {
+                } else if (line.contains("error \"") || line.contains("Error:") ||
+                        line.contains("WARNING: ")) {
                     while ((line = fromAeval.readLine()) != null) {
                         if(scratch != null) {
                             scratch.println(";" + getName() + ": " + line);
