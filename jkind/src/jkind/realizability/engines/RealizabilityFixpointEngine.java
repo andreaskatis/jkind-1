@@ -44,9 +44,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     private void checkRealizable(int k) {
         aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
         aecomment("; Frame = " + (k));
-        createQueryVariables(aesolver, regions, 0);
+        createQueryVariables(aesolver, regions, -1);
         AevalResult aeresult = aesolver.realizabilityQuery(getAevalFixpointTransition(),
-                    StreamIndex.conjoinEncodings(spec.node.properties, 3));
+                    StreamIndex.conjoinEncodings(spec.node.properties, 2));
         //Transition without curr state assertions
 //        AevalResult aeresult = aesolver.realizabilityQuery(getAevalFixpointTransition(),
 //                    StreamIndex.conjoinEncodings(spec.node.properties, 3));
@@ -113,14 +113,14 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             aesolver.scratch.println("; Universally quantified variables");
         }
 
-        List<VarDecl> preoutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
+        List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls());
 
         for (VarDecl out : preoutvars) {
             aesolver.defineSVar(out);
             aesolver.defineTVar(out, false);
         }
 
-        List<VarDecl> curroutvars = getOffsetVarDecls(1, getRealizabilityOutputVarDecls());
+        List<VarDecl> curroutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
 
         for (VarDecl out : curroutvars) {
             aesolver.defineSVar(out);
@@ -133,8 +133,8 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
         aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), true);
 
-        List<VarDecl> preinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
-        List<VarDecl> currinvars = getOffsetVarDecls(1, getRealizabilityInputVarDecls());
+        List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls());
+        List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
 //        invars.addAll(getOffsetVarDecls(1, getRealizabilityInputVarDecls()));
 
 
@@ -159,14 +159,14 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 //            aesolver.sendBlockedRegionSPart(r.getBlockedRegion());
 //        }
 
+        aesolver.assertSPart(getUniversalOutputVariablesAssertion(-1));
         aesolver.assertSPart(getUniversalOutputVariablesAssertion(0));
-        aesolver.assertSPart(getUniversalOutputVariablesAssertion(1));
 
         if (settings.scratch) {
             aesolver.scratch.println("; Assertions for existential part of the formula");
         }
 
-        aesolver.assertTPart(getTransition(1, INIT), true);
+        aesolver.assertTPart(getTransition(0, INIT), true);
 //        aesolver.assertTPart(StreamIndex.conjoinEncodings(spec.node.properties, 1), true);
 //        aesolver.assertTPart(getAssertions(), true);
 //        aesolver.assertTPart(getNextStepAssertions(), true);
@@ -241,7 +241,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             aesolver.scratch.println("; Assertions for universal part of the formula");
         }
 
-        aesolver.assertSPart(getTransition(1, INIT));
+        aesolver.assertSPart(getTransition(0, INIT));
 //        aesolver.assertSPart(getAssertions());
 //        aesolver.assertSPart(getUniversalVariablesAssertion());
 
@@ -266,7 +266,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     }
 
     protected String convertOutputsToNextStep(String region) {
-        String convertedone = region.replaceAll("\\$1", "\\$3");
+        String convertedone = region.replaceAll("\\$0", "\\$2");
         //String convertedone = convertedzero.replaceAll("\\$1", "\\$3");
         return convertedone;
     }

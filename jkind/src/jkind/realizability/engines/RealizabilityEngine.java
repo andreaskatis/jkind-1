@@ -278,9 +278,9 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected Sexp getAevalFixpointTransition() {
 		List<Sexp> args = new ArrayList<>();
 		args.add(INIT);
-		args.addAll(getSymbols(getOffsetVarDecls(0)));
-		args.addAll(getSymbols(getOffsetVarDecls(1, getRealizabilityInputVarDecls())));
-		args.addAll(getSymbols(getOffsetVarDecls(3, getRealizabilityOutputVarDecls())));
+		args.addAll(getSymbols(getOffsetVarDecls(-1)));
+		args.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityInputVarDecls())));
+		args.addAll(getSymbols(getOffsetVarDecls(2, getRealizabilityOutputVarDecls())));
 		return new Cons(spec.getFixpointTransitionRelation().getName(), args);
 	}
 
