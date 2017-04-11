@@ -68,10 +68,10 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 //		for (Expr assertion : node.assertions) {
 //			conjuncts.add(assertion.accept(previsitor));
 //		}
-
-		for (Expr assertion : node.assertions) {
-			conjuncts.add(assertion.accept(visitor));
-		}
+//
+//		for (Expr assertion : node.assertions) {
+//			conjuncts.add(assertion.accept(visitor));
+//		}
 
 		List<VarDecl> inputs = new ArrayList<>();
 		inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
@@ -279,7 +279,7 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 	}
 
 	public static Sexp getConjunctedAssertions(Node node) {
-		Lustre2Sexp visitor = new Lustre2Sexp(1);
+		Lustre2Sexp visitor = new Lustre2Sexp(-1);
 		List<Sexp> conjuncts = new ArrayList<>();
 
 		for (Expr assertion : node.assertions) {
@@ -290,7 +290,7 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 	}
 
 	public static Sexp getNextStepConjunctedAssertions(Node node) {
-		Lustre2Sexp visitor = new Lustre2Sexp(1);
+		Lustre2Sexp visitor = new Lustre2Sexp(0);
 		List<Sexp> conjuncts = new ArrayList<>();
 
 		for (Expr assertion : node.assertions) {

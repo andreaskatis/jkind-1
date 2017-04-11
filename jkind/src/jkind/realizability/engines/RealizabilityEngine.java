@@ -198,10 +198,10 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected Sexp getUniversalVariablesAssertion(){
 		List<Sexp> conjuncts = new ArrayList<>();
 		List<Sexp> equalities = new ArrayList<>();
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(-1, getRealizabilityInputVarDecls())));
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(-1, getRealizabilityOutputVarDecls())));
 		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityInputVarDecls())));
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityOutputVarDecls())));
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(1, getRealizabilityInputVarDecls())));
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(1, getRealizabilityOutputVarDecls())));
+		//conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityOutputVarDecls())));
 
 		for (Sexp c : conjuncts) {
 			equalities.add(new Cons("=", c, c));
@@ -219,6 +219,20 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 		return SexpUtil.conjoin(equatities);
 	}
+
+
+	protected Sexp getUniversalInputVariablesAssertion(int k){
+		List<Sexp> conjuncts = new ArrayList<>();
+		List<Sexp> equalities = new ArrayList<>();
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityInputVarDecls())));
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(k+1, getRealizabilityInputVarDecls())));
+		for (Sexp c : conjuncts) {
+			equalities.add(new Cons("=", c, c));
+		}
+		equalities.add(new Cons("=", INIT, INIT));
+		return SexpUtil.conjoin(equalities);
+	}
+
 
 	protected Sexp getAssertions() {
 		Sexp assertions = Lustre2Sexp.getConjunctedAssertions(spec.node);
