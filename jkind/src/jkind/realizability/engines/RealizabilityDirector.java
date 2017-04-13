@@ -2,6 +2,7 @@ package jkind.realizability.engines;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -65,9 +66,9 @@ public class RealizabilityDirector {
 				return new ExcelWriter(settings.filename + ".xls", spec.node);
 			} else if (settings.xml) {
 				if (settings.synthesis) {
-					return new XmlWriter(settings.filename + "_synth.xml", spec.typeMap);
+					return new XmlWriter(settings.filename + "_jsyn.xml", spec.typeMap);
 				} else if (settings.fixpoint) {
-					return new XmlWriter(settings.filename + "_fixpoint.xml", spec.typeMap);
+					return new XmlWriter(settings.filename + "_jfixpoint.xml", spec.typeMap);
 				} else {
 					return new XmlWriter(settings.filename + ".xml", spec.typeMap);
 				}
@@ -81,7 +82,7 @@ public class RealizabilityDirector {
 
 	private PrintWriter getImplementationWriter() {
 		if (settings.synthesis || settings.fixpoint) {
-			String filename = settings.filename + ".impl";
+			String filename = settings.filename.split("\\.")[0] + "_skolem.smt2";
 			try {
 				return new PrintWriter(new FileOutputStream(filename), true);
 			} catch (FileNotFoundException e) {
@@ -94,29 +95,71 @@ public class RealizabilityDirector {
 
 	public void writeImplementation(int k, ArrayList<SkolemFunction> base, SkolemFunction extend) {
 		if (writerImplementation != null) {
+
+			Iterator<String> inputs = spec.node.realizabilityInputs.iterator();
+			Iterator<String> props = spec.node.properties.iterator();
+
+			if (inputs.hasNext()) {
+				writerImplementation.print(";-- INPUTS: ");
+				writerImplementation.print(inputs.next());
+			}
+			while (inputs.hasNext()) {
+				writerImplementation.print(", "+inputs.next());
+			}
+
+			writerImplementation.print("\n");
+
+			if (props.hasNext()) {
+				writerImplementation.print(";-- PROPERTIES: ");
+				writerImplementation.print(props.next());
+			}
+			while (props.hasNext()) {
+				writerImplementation.print(", "+props.next());
+			}
+
+			writerImplementation.print("\n");
+
 			if (k !=0) {
 				for (int step = 0; step < k; step++) {
-					writerImplementation.println("//Base " + step);
-					writerImplementation.println("//read_inputs;");
+					writerImplementation.println(";Skolem function for base " + step);
 					writerImplementation.println(base.get(step).getSkolemRelation());
-					writerImplementation.println("//update array history \n");
 				}
 			}
+
 			if (extend != null) {
-				writerImplementation.println("//Extend");
-				writerImplementation.println("//read_inputs;");
+				writerImplementation.println(";Skolem function for extend");
 				writerImplementation.println(extend.getSkolemRelation());
-				writerImplementation.println("//update array history \n");
 			}
 		}
 	}
 
 	public void writeFixpointImplementation(SkolemFunction impl) {
 		if (writerImplementation != null && impl != null) {
-			writerImplementation.println("//Fixpoint");
-			writerImplementation.println("//read_inputs;");
+
+			Iterator<String> inputs = spec.node.realizabilityInputs.iterator();
+			Iterator<String> props = spec.node.properties.iterator();
+
+			if (inputs.hasNext()) {
+				writerImplementation.print(";-- INPUTS: ");
+				writerImplementation.print(inputs.next());
+			}
+			while (inputs.hasNext()) {
+				writerImplementation.print(", "+inputs.next());
+			}
+
+			writerImplementation.print("\n");
+
+			if (props.hasNext()) {
+				writerImplementation.print(";-- PROPERTIES: ");
+				writerImplementation.print(props.next());
+			}
+			while (props.hasNext()) {
+				writerImplementation.print(", "+props.next());
+			}
+
+			writerImplementation.print("\n");
+			writerImplementation.println(";Skolem function for fixpoint");
 			writerImplementation.println(impl.getSkolemRelation());
-			writerImplementation.println("//update array history \n");
 		}
 	}
 
