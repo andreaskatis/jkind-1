@@ -88,11 +88,30 @@ public class AevalSolver extends AevalProcess{
         sendTPart(new Cons("assert", sexp), scr);
     }
 
+    public void assertTPartasString(String str, boolean scr) {
+        sendTPartasString("(assert "+str+")", scr);
+    }
+
     protected void sendTPart(Sexp sexp, boolean scr) {
         String str = Quoting.quoteSexp(sexp).toString();
         if(scratch != null && scr) {
             scratch.println(str);
         }
+        try {
+            toTPart.append(str);
+            toTPart.newLine();
+            toTPart.flush();
+        } catch (IOException e) {
+            throw new JKindException("Unable to write to " + getName() + ", "
+                    + "probably due to internal JKind error", e);
+        }
+    }
+
+    public void sendTPartasString(String str, boolean scr) {
+        if(scratch != null && scr) {
+            scratch.println(str);
+        }
+
         try {
             toTPart.append(str);
             toTPart.newLine();
@@ -229,9 +248,13 @@ public class AevalSolver extends AevalProcess{
 //            if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
 //                result = new UnknownResult();
 //            } else {
-                String[] extracted = status.split("valid subset:");
-                ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
-                result = new InvalidResult(subset);
+                if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
+                    result = new InvalidResult(new ValidSubset("Empty"));
+                } else {
+                    String[] extracted = status.split("valid subset:");
+                    ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+                    result = new InvalidResult(subset);
+                }
             //}
         } else {
             result = new UnknownResult();
@@ -243,17 +266,18 @@ public class AevalSolver extends AevalProcess{
         try {
             String line;
             StringBuilder content = new StringBuilder();
+            boolean result = false;
             while (true) {
                 line = fromAeval.readLine();
 
-                if(scratch != null) {
-                    scratch.println(";" + getName() + ": " + line);
-                }
 
                 if (line == null) {
                     break;
-                } else if (line.contains("error \"") || line.contains("Error:") ||
-                        line.contains("WARNING: ")) {
+                } else if ((line.contains("error \"") || line.contains("Error:") ||
+                        line.contains("WARNING: ")) && !result) {
+                    if(scratch != null) {
+                        scratch.println(";" + getName() + ": " + line);
+                    }
                     while ((line = fromAeval.readLine()) != null) {
                         if(scratch != null) {
                             scratch.println(";" + getName() + ": " + line);
@@ -264,15 +288,27 @@ public class AevalSolver extends AevalProcess{
                     }
                     throw new JKindException(getName()
                             + " error (see scratch file for details)");
-                } else if (line.contains("(check-sat)")) {
+                } else if (line.contains("(check-sat)") || line.startsWith(".subst:") || line.startsWith("subst:") || line.startsWith(".model:")
+                || line.startsWith("model:") || line.startsWith("compiling skolem")) {
                     continue;
-                }
-                else {
+                } else if (line.startsWith("E.v.:")) {
+                    result = true;
                     content.append(line);
                     content.append("\n");
+                    if(scratch != null) {
+                        scratch.println(";" + getName() + ": " + line);
+                    }
+                } else if (result) {
+                    content.append(line);
+                    content.append("\n");
+                    if(scratch != null) {
+                        scratch.println(";" + getName() + ": " + line);
+                    }
+                } else if (scratch != null) {
+                    scratch.println(";" + getName() + ": " + line);
                 }
             }
-            deleteFiles();
+            //deleteFiles();
             return content.toString();
         } catch (RecognitionException e) {
             deleteFiles();

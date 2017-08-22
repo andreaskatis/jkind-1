@@ -35,6 +35,16 @@ public class ConsoleWriter extends Writer {
 	}
 
 	@Override
+	public void writeUnrealizable(int k, List<String> conflicts, double runtime) {
+		writeLine();
+		String details = conflicts.isEmpty() ? "" : ": " + conflicts;
+		System.out.println("UNREALIZABLE" + details + " || K = " + k + " || Time = "
+				+ Util.secondsToTime(runtime));
+		writeLine();
+		System.out.println();
+	}
+
+	@Override
 	public void writeUnrealizable(Counterexample cex, List<String> conflicts, double runtime) {
 		writeLine();
 		String details = conflicts.isEmpty() ? "" : ": " + conflicts;
@@ -71,6 +81,24 @@ public class ConsoleWriter extends Writer {
 		writeLine();
 		System.out.println();
 	}
+
+    @Override
+    public void writeFixpointRealizable(int k, double runtime) {
+        writeLine();
+        System.out.println("REALIZABLE || REFINEMENTS = " + k + " || Time = " + Util.secondsToTime(runtime));
+        writeLine();
+        System.out.println();
+    }
+
+    @Override
+    public void writeFixpointUnrealizable(int k, List<String> conflicts, double runtime) {
+        writeLine();
+        String details = conflicts.isEmpty() ? "" : ": " + conflicts;
+        System.out.println("UNREALIZABLE" + details + " || REFINEMENTS = " + k + " || Time = "
+                + Util.secondsToTime(runtime));
+        writeLine();
+        System.out.println();
+    }
 
 	private void writeLine() {
 		System.out

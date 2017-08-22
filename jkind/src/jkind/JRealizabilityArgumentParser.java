@@ -13,6 +13,8 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 	private static final String XML = "xml";
 	private static final String SYNTHESIS = "synthesis";
 	private static final String FIXPOINT = "fixpoint";
+	private static final String FIXPOINT_T = "fixpoint_T";
+
 
 	private final JRealizabilitySettings settings;
 
@@ -37,6 +39,8 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		options.addOption(XML, false, "generate results in XML format");
 		options.addOption(SYNTHESIS, false, "synthesize implementation using k-inductive proof");
 		options.addOption(FIXPOINT, false, "synthesize implementation using inductive fixpoint");
+		options.addOption(FIXPOINT_T, false, "same as -fixpoint, but using the transition relation as a guide.");
+
 		return options;
 	}
 
@@ -86,6 +90,11 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 
 		if (line.hasOption(FIXPOINT)) {
 			settings.fixpoint = true;
+		}
+
+
+		if (line.hasOption(FIXPOINT_T)) {
+			settings.fixpoint_T = true;
 		}
 	}
 }

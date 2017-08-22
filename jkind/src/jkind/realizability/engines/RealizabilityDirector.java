@@ -67,7 +67,7 @@ public class RealizabilityDirector {
 			} else if (settings.xml) {
 				if (settings.synthesis) {
 					return new XmlWriter(settings.filename + "_jsyn.xml", spec.typeMap);
-				} else if (settings.fixpoint) {
+				} else if (settings.fixpoint || settings.fixpoint_T) {
 					return new XmlWriter(settings.filename + "_jfixpoint.xml", spec.typeMap);
 				} else {
 					return new XmlWriter(settings.filename + ".xml", spec.typeMap);
@@ -81,7 +81,7 @@ public class RealizabilityDirector {
 	}
 
 	private PrintWriter getImplementationWriter() {
-		if (settings.synthesis || settings.fixpoint) {
+		if (settings.synthesis || settings.fixpoint || settings.fixpoint_T) {
 			String filename = settings.filename.split("\\.")[0] + "_skolem.smt2";
 			try {
 				return new PrintWriter(new FileOutputStream(filename), true);
@@ -183,7 +183,7 @@ public class RealizabilityDirector {
 			writeImplementation(k,baseImplementation,extendImplementation);
 		}
 
-		if (settings.fixpoint) {
+		if (settings.fixpoint || settings.fixpoint_T) {
 			writeFixpointImplementation(fixpointImplementation);
 		}
 
@@ -237,7 +237,7 @@ public class RealizabilityDirector {
 
 	private void startThreads() {
 
-		if (settings.fixpoint) {
+		if (settings.fixpoint  || settings.fixpoint_T) {
 			RealizabilityFixpointEngine fixpointEngine = new RealizabilityFixpointEngine(spec, settings, this);
 			registerProcess(fixpointEngine);
 		} else {
@@ -269,13 +269,23 @@ public class RealizabilityDirector {
 				RealizableMessage rm = (RealizableMessage) message;
 				done = true;
 				k = rm.k;
-				writer.writeRealizable(rm.k, runtime);
+                if(settings.fixpoint) {
+                    writer.writeFixpointRealizable(rm.k, runtime);
+                } else {
+                    writer.writeRealizable(rm.k, runtime);
+                }
 			} else if (message instanceof UnrealizableMessage) {
 				UnrealizableMessage um = (UnrealizableMessage) message;
 				done = true;
-				Model sliced = slice(um.model, um.properties);
-				Counterexample cex = extractCounterexample(um.k, sliced);
-				writer.writeUnrealizable(cex, um.properties, runtime);
+				if (settings.fixpoint) {
+					writer.writeFixpointUnrealizable(um.k, um.properties, runtime);
+				} else if (settings.synthesis) {
+                    writer.writeUnrealizable(um.k, um.properties, runtime);
+                } else {
+					Model sliced = slice(um.model, um.properties);
+					Counterexample cex = extractCounterexample(um.k, sliced);
+					writer.writeUnrealizable(cex, um.properties, runtime);
+				}
 			} else if (message instanceof ExtendCounterexampleMessage) {
 				extendCounterexample = (ExtendCounterexampleMessage) message;
 			} else if (message instanceof UnknownMessage) {

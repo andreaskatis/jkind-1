@@ -53,6 +53,44 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 		return constructGeneralTransitionRelation(node, node.ivc);
 	}
 
+	public static Relation constructKindTransitionRelation(Node node) {
+		return constructKindGeneralTransitionRelation(node, Collections.emptyList());
+	}
+
+	private static Relation constructKindGeneralTransitionRelation(Node node, List<String> ivc) {
+		Lustre2Sexp visitor = new Lustre2Sexp(1);
+		List<Sexp> conjuncts = new ArrayList<>();
+
+		LinkedBiMap<String, Symbol> ivcMap = createIvcMap(ivc);
+
+		for (Equation eq : node.equations) {
+			Sexp body = eq.expr.accept(visitor);
+			Sexp head = eq.lhs.get(0).accept(visitor);
+			Sexp sexp = new Cons("=", head, body);
+
+			String id = eq.lhs.get(0).id;
+			if (ivcMap.containsKey(id)) {
+				sexp = new Cons("=>", ivcMap.get(id), sexp);
+			}
+			conjuncts.add(sexp);
+		}
+
+		for (Expr assertion : node.assertions) {
+			conjuncts.add(assertion.accept(visitor));
+		}
+
+		Sexp conj = SexpUtil.conjoin(conjuncts);
+		List<Sexp> bigconj = new ArrayList<>();
+		bigconj.add(new Cons("=>", INIT, conj));
+		bigconj.add(new Cons("=>", new Cons("not", INIT), conj));
+
+		List<VarDecl> inputs = new ArrayList<>();
+		inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
+		inputs.addAll(visitor.pre(Util.getVarDecls(node)));
+		inputs.addAll(visitor.curr(Util.getVarDecls(node)));
+		return new Relation(Relation.T, inputs, SexpUtil.conjoin(bigconj));
+	}
+
 	public static Relation constructFixpointTransitionRelation(Node node) {
 		Lustre2Sexp previsitor = new Lustre2Sexp(0);
 		Lustre2Sexp visitor = new Lustre2Sexp(1);
@@ -65,20 +103,13 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 			conjuncts.add(sexp);
 		}
 
-//		for (Expr assertion : node.assertions) {
-//			conjuncts.add(assertion.accept(previsitor));
-//		}
-//
-//		for (Expr assertion : node.assertions) {
-//			conjuncts.add(assertion.accept(visitor));
-//		}
-
 		List<VarDecl> inputs = new ArrayList<>();
 		inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
 		inputs.addAll(visitor.pre(Util.getVarDecls(node)));
 //		inputs.addAll(visitor.pre(Util.getRealizabilityOutputVarDecls(node)));
 		inputs.addAll(visitor.curr(Util.getVarDecls(node)));
 		return new Relation(Relation.T, inputs, SexpUtil.conjoin(conjuncts));
+
 	}
 
 	private static Relation constructGeneralTransitionRelation(Node node, List<String> ivc) {

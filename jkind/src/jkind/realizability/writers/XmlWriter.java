@@ -41,6 +41,12 @@ public class XmlWriter extends Writer {
 	}
 
 	@Override
+	public void writeUnrealizable(int k, List<String> conflicts, double runtime) {
+		//internal.writeInvalid(Util.REALIZABLE, "base", cex, conflicts, runtime);
+		summaryWriter.writeUnrealizable(k, conflicts, runtime);
+	}
+
+	@Override
 	public void writeUnrealizable(Counterexample cex, List<String> conflicts, double runtime) {
 		internal.writeInvalid(Util.REALIZABLE, "base", cex, conflicts, runtime);
 		summaryWriter.writeUnrealizable(cex, conflicts, runtime);
@@ -58,4 +64,17 @@ public class XmlWriter extends Writer {
 		internal.writeInconsistent(Util.REALIZABLE, "base", k, runtime);
 		summaryWriter.writeInconsistent(k, runtime);
 	}
+
+    @Override
+    public void writeFixpointRealizable(int k, double runtime) {
+        internal.writeValid(REALIZABLE_LIST, "fixpoint", k, runtime, Collections.emptyList(),
+                Collections.emptySet());
+        summaryWriter.writeFixpointRealizable(k, runtime);
+    }
+
+    @Override
+    public void writeFixpointUnrealizable(int k, List<String> conflicts, double runtime) {
+        //internal.writeInvalid(Util.REALIZABLE, "base", cex, conflicts, runtime);
+        summaryWriter.writeFixpointUnrealizable(k, conflicts, runtime);
+    }
 }

@@ -100,8 +100,7 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 				sendBaseStep(k);
 				director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));
 			} else if (aeresult instanceof InvalidResult){
-				//we can possibly run a Z3 check here instead, to get the counterexample.
-				throw new JKindException("Unrealizable. Use realizability check for cex.");
+				sendUnrealizable(k);
 			} else {
 				throw new JKindException("Unknown");
 			}
@@ -153,6 +152,16 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 
 	private void sendInconsistent(int k) {
 		InconsistentMessage im = new InconsistentMessage(k + 1);
+		director.incoming.add(im);
+		extendEngine.incoming.add(im);
+	}
+
+	private void sendUnrealizable(int k) {
+		sendUnrealizable(k, Collections.emptyList());
+	}
+
+	private void sendUnrealizable(int k, List<String> conflicts) {
+		UnrealizableMessage im = new UnrealizableMessage(k + 1, null, conflicts);
 		director.incoming.add(im);
 		extendEngine.incoming.add(im);
 	}

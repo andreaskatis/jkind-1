@@ -2,10 +2,7 @@ package jkind.realizability.engines;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
-import jkind.aeval.AevalResult;
-import jkind.aeval.AevalSolver;
-import jkind.aeval.SkolemFunction;
-import jkind.aeval.ValidResult;
+import jkind.aeval.*;
 import jkind.engines.StopException;
 import jkind.lustre.NamedType;
 import jkind.lustre.VarDecl;
@@ -113,6 +110,18 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 				director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
 				sendRealizable(k);
 				throw new StopException();
+			} else if (aeresult instanceof InvalidResult) {
+
+				//Unfortunately, there is a chance Z3 might not be able to solve the formulas.
+				//Best way to go about this will be if AE-VAL can provide models to invalid formulas.
+//				Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
+//						getInductiveTransition(k), StreamIndex.conjoinEncodings(spec.node.properties, k));
+//				if (result instanceof SatResult) {
+//					Model model = ((SatResult) result).getModel();
+//					sendExtendCounterexample(k + 1, model);
+//				} else if (result instanceof UnknownResult) {
+//					throw new StopException();
+//				}
 			}
 
 		} else {

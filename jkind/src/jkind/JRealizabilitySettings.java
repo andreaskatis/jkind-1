@@ -10,4 +10,5 @@ public class JRealizabilitySettings extends Settings {
 	public boolean scratch = false;
 	public boolean synthesis = false;
 	public boolean fixpoint = false;
+	public boolean fixpoint_T = false;
 }
