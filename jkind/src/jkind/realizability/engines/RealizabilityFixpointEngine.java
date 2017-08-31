@@ -53,6 +53,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
                     StreamIndex.conjoinEncodings(spec.node.properties, 2));
         if (aeresult instanceof ValidResult) {
+            //
             //trying z3's simplify
 //            String[] result = ((ValidResult) aeresult).getSkolem().split("\\(assert");
 //            String simplified = "(assert "+ solver.simplifyOutput(result[0] + "(simplify " + result[1]) + ")";
