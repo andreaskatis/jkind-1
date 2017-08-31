@@ -50,6 +50,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         aecomment("; Frame = " + (k));
         createQueryVariables(aesolver, region, k);
 //        createQueryVariables(aesolver, regions, k);
+        //
         AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
                     StreamIndex.conjoinEncodings(spec.node.properties, 2));
         if (aeresult instanceof ValidResult) {
