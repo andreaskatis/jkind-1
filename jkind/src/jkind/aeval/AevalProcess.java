@@ -26,8 +26,8 @@ public abstract class AevalProcess {
         this.scratchBase = scratchBase;
     }
 
-    protected void callAeval(String check) {
-        ProcessBuilder processBuilder = new ProcessBuilder(getCommand(check, this.scratchBase));
+    protected void callAeval(String check, boolean generateSkolem) {
+        ProcessBuilder processBuilder = new ProcessBuilder(getCommand(check, generateSkolem, this.scratchBase));
         processBuilder.redirectErrorStream(true);
         try {
             process = processBuilder.start();
@@ -42,9 +42,12 @@ public abstract class AevalProcess {
 
 
 
-    private List<String> getCommand(String check, String scratchBase) {
+    private List<String> getCommand(String check, boolean generateSkolem, String scratchBase) {
         List<String> command = new ArrayList<>();
         command.add(getPath());
+        if (generateSkolem) {
+            command.add("--skol");
+        }
         command.addAll(getArgs(check, scratchBase));
         return command;
     }

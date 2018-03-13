@@ -154,7 +154,7 @@ public abstract class SmtLib2Solver extends ProcessBasedSolver {
 					return null;
 				} else if (line.contains(" |-> ")) {
 					// Ignore Z3 optimization information
-				} else if (line.contains("error \"") || line.contains("Error:")) {
+				} else if (line.contains("error \"") || line.contains("Error:") || line.contains("unsupported")) {
 					// Flush the output since errors span multiple lines
 					while ((line = fromSolver.readLine()) != null) {
 						comment(getSolverName() + ": " + line);

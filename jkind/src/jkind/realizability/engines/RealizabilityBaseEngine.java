@@ -95,7 +95,7 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 			aesolver.assertSPart(getTransition(k, k == 0));
 			// assert input and state to ensure
 			AevalResult aeresult = aesolver.realizabilityQuery(getAevalTransition(k, k == 0),
-					StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
+					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), true);
 			if (aeresult instanceof ValidResult) {
 				sendBaseStep(k);
 				director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));

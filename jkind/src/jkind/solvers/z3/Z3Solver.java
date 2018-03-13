@@ -150,10 +150,34 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 		return realizabilityQuery(outputs, transition, properties, 0);
 	}
 
-    public String simplifyOutput(String region, String input) {
+    public String simplify(String region, String left, String right) {
         push();
-        send(input);
         if (region != null) {
+            send(region);
+        }
+        if (left != null) {
+            send(left);
+        }
+        if (right != null) {
+            send(right);
+        }
+        send("(apply ctx-solver-simplify)");
+        String result = readFromSolver();
+        pop();
+        String regexString = Pattern.quote("(goal\n") + "(?s)(.*?)" + Pattern.quote(":");
+        Pattern pattern = Pattern.compile(regexString);
+        Matcher matcher = pattern.matcher(result);
+        if (matcher.find()) {
+            String simplified = matcher.group(1);
+            return simplified;
+        } else {
+            throw new JKindException("Error extracting simplified formula from Z3.\n");
+        }
+    }
+
+    public String simplify(List<String> regions) {
+        push();
+        for (String region : regions) {
             send(region);
         }
         send("(apply ctx-solver-simplify)");

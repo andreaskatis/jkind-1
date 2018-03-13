@@ -203,30 +203,34 @@ public class AevalSolver extends AevalProcess{
         return new Cons(args);
     }
 
-    public AevalResult realizabilityQuery(Sexp transition, Sexp properties) {
+    public AevalResult realizabilityQuery(Sexp transition, Sexp properties, boolean generateSkolem) {
         AevalResult result;
 
         Sexp query = new Cons("assert", new Cons("and", transition, properties));
+//        Sexp query = new Cons("assert", new Cons("and", transition, new Cons ("not", properties)));
 
         if (scratch!=null) {
             scratch.println("; Assertion for Transition Relation - existential part of the formula");
         }
         sendTPart(query, true);
-        callAeval(check);
+        callAeval(check, generateSkolem);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
-            if (status.contains("WARNING: ")) {
+            if (status.contains("WARNING: Skolem can be arbitrary\n")) {
                 result = new UnknownResult();
             } else {
-                String[] extracted = status.split("extracted skolem:");
+                String[] extracted = status.split("Sanity check: .\\n");
+//                String[] extracted = status.split("extracted skolem:");
                 SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
                 result = new ValidResult(skolem);
             }
         } else if (status.contains("Result: invalid")){
-            if (status.contains("WARNING: ")) {
-                result = new UnknownResult();
+            if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
+                result = new InvalidResult(new ValidSubset("Empty"));
             } else {
-                String[] extracted = status.split("valid subset:");
+                String[] extracted = status.split("assert");
+                //the code below added defines in the subset
+//                String[] extracted = status.split("valid subset:");
                 ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
                 result = new InvalidResult(subset);
             }
@@ -238,11 +242,11 @@ public class AevalSolver extends AevalProcess{
 
     public AevalResult refinementQuery() {
         AevalResult result;
-        callAeval(check);
+        callAeval(check, false);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             String[] extracted = status.split("extracted skolem:");
-            SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
+            SkolemFunction skolem = new SkolemFunction("(declare-fun"+extracted[extracted.length - 1]);
             result = new ValidResult(skolem);
         } else if (status.contains("Result: invalid")){
 //            if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
@@ -251,8 +255,11 @@ public class AevalSolver extends AevalProcess{
                 if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
                     result = new InvalidResult(new ValidSubset("Empty"));
                 } else {
-                    String[] extracted = status.split("valid subset:");
+                    String[] extracted = status.split("assert");
                     ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+                      //the variable defines were part of the subset returned by the code below
+//                    String[] extracted = status.split("valid subset:");
+//                    ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
                     result = new InvalidResult(subset);
                 }
             //}
@@ -287,7 +294,7 @@ public class AevalSolver extends AevalProcess{
                         }
                     }
                     throw new JKindException(getName()
-                            + " error (see scratch file for details)");
+                            + " error (see " + SFile + " file for details)");
                 } else if (line.contains("(check-sat)") || line.startsWith(".subst:") || line.startsWith("subst:") || line.startsWith(".model:")
                 || line.startsWith("model:") || line.startsWith("compiling skolem")) {
                     continue;
@@ -315,7 +322,7 @@ public class AevalSolver extends AevalProcess{
             throw new JKindException("Error parsing " + getName() + " output", e);
         } catch (IOException e) {
             deleteFiles();
-            throw new JKindException("Unable to read from " + getName(), e);
+            throw new JKindException("Unable to read from " + getName() + " file :" + check, e);
         }
     }
 

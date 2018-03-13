@@ -59,7 +59,7 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected abstract void main();
 
 	@Override
-	public final void run() {
+	public void run() {
 		try {
 			initializeSolver();
 			main();
@@ -81,6 +81,35 @@ public abstract class RealizabilityEngine implements Runnable {
 		solver = new Z3Solver(getScratchBase(), LinearChecker.isLinear(spec.node));
 		solver.initialize();
 		solver.define(spec.getTransitionRelation());
+        if(settings.fixpoint || settings.fixpoint_T) {
+            solver.define(new VarDecl(INIT.str, NamedType.BOOL));
+            List<VarDecl> dummyoutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
+            List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls());
+            List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
+            List<VarDecl> skolemvars = getOffsetVarDecls(2, getRealizabilityOutputVarDecls());
+
+            for (VarDecl vd : dummyoutvars) {
+                solver.define(vd);
+            }
+
+            for (VarDecl in : preinvars) {
+                solver.define(in);
+            }
+
+            List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls());
+
+            for (VarDecl vd : preoutvars) {
+                solver.define(vd);
+            }
+
+            for (VarDecl in : currinvars) {
+                solver.define(in);
+            }
+
+            for (VarDecl in : skolemvars) {
+                solver.define(in);
+            }
+        }
 	}
 
 	protected String getScratchBase() {
@@ -189,36 +218,6 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 	}
 
-
-
-
-
-
-	protected Sexp getUniversalVariablesAssertion(){
-		List<Sexp> conjuncts = new ArrayList<>();
-		List<Sexp> equalities = new ArrayList<>();
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(-1, getRealizabilityInputVarDecls())));
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(-1, getRealizabilityOutputVarDecls())));
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityInputVarDecls())));
-        conjuncts.addAll(getSymbols(getOffsetVarDecls(0, getLocalVarDecls())));
-		for (Sexp c : conjuncts) {
-			equalities.add(new Cons("=", c, c));
-		}
-		equalities.add(new Cons("=", INIT, INIT));
-		return SexpUtil.conjoin(equalities);
-	}
-
-    protected Sexp getUniversalCurrLocalsAssertion(int k){
-        List<Sexp> conjuncts = new ArrayList<>();
-        List<Sexp> equatities = new ArrayList<>();
-        conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getLocalVarDecls())));
-        conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getOutputVarDecls())));
-        for (Sexp c : conjuncts) {
-            equatities.add(new Cons("=", c, c));
-        }
-        return SexpUtil.conjoin(equatities);
-    }
-
 	protected Sexp getUniversalOutputVariablesAssertion(int k){
 		List<Sexp> conjuncts = new ArrayList<>();
 		List<Sexp> equatities = new ArrayList<>();
@@ -264,6 +263,15 @@ public abstract class RealizabilityEngine implements Runnable {
 		return result;
 	}
 
+    protected List<VarDecl> getAbstractOffsetVarDecls(int k, List<VarDecl> varDecls) {
+        List<VarDecl> result = new ArrayList<>();
+        for (VarDecl vd : varDecls) {
+            StreamIndex si = new StreamIndex(vd.id+"-", k);
+            result.add(new VarDecl(si.getEncoded().str, vd.type));
+        }
+        return result;
+    }
+
 	protected Sexp getTransition(int k, Sexp init) {
 		List<Sexp> args = new ArrayList<>();
 		args.add(init);
@@ -284,11 +292,6 @@ public abstract class RealizabilityEngine implements Runnable {
 				getRealizabilityInputVarDecls())));
 		args.addAll(getSymbols(getOffsetVarDecls(k+2,
 				getRealizabilityOutputVarDecls())));
-        //testing locals on the left
-//        args.addAll(getSymbols(getOffsetVarDecls(k+2, getRealizabilityTrueOutputVarDecls())));
-//        args.addAll(getSymbols(getOffsetVarDecls(k, getOutputVarDecls())));
-//        args.addAll(getSymbols(getOffsetVarDecls(k, getLocalVarDecls())));
-
 		return new Cons(spec.getTransitionRelation().getName(), args);
 	}
 
@@ -332,15 +335,6 @@ public abstract class RealizabilityEngine implements Runnable {
 
 	protected static final Symbol INIT = Lustre2Sexp.INIT;
 
-    public List<VarDecl> getRealizabilityTrueOutputVarDecls() {
-        List<VarDecl> all = new ArrayList<>();
-        List<String> realizabilityInputs = spec.node.realizabilityInputs;
-        all.addAll(spec.node.inputs);
-
-        all.removeIf(vd -> realizabilityInputs.contains(vd.id));
-        return all;
-    }
-
 	public List<VarDecl> getRealizabilityOutputVarDecls() {
 		List<String> realizabilityInputs = spec.node.realizabilityInputs;
 		List<VarDecl> all = Util.getVarDecls(spec.node);
@@ -355,15 +349,6 @@ public abstract class RealizabilityEngine implements Runnable {
 		all.removeIf(vd -> !realizabilityInputs.contains(vd.id));
 		return all;
 	}
-
-    public List<VarDecl> getLocalVarDecls() {
-        List<VarDecl> all = spec.node.locals;
-        return all;
-    }
-    public List<VarDecl> getOutputVarDecls() {
-        List<VarDecl> all = spec.node.outputs;
-        return all;
-    }
 
 	protected Sexp varDeclsToQuantifierArguments(List<VarDecl> varDecls, int k) {
 		List<Sexp> args = new ArrayList<>();

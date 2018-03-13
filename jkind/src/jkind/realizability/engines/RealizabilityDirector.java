@@ -178,7 +178,7 @@ public class RealizabilityDirector {
 			} catch (InterruptedException e) {
 			}
 		}
-		processMessages(startTime);
+        processMessages(startTime);
 		if (settings.synthesis) {
 			writeImplementation(k,baseImplementation,extendImplementation);
 		}
@@ -237,7 +237,7 @@ public class RealizabilityDirector {
 
 	private void startThreads() {
 
-		if (settings.fixpoint  || settings.fixpoint_T) {
+		if (settings.fixpoint || settings.fixpoint_T) {
 			RealizabilityFixpointEngine fixpointEngine = new RealizabilityFixpointEngine(spec, settings, this);
 			registerProcess(fixpointEngine);
 		} else {
@@ -269,7 +269,7 @@ public class RealizabilityDirector {
 				RealizableMessage rm = (RealizableMessage) message;
 				done = true;
 				k = rm.k;
-                if(settings.fixpoint) {
+                if(settings.fixpoint || settings.fixpoint_T) {
                     writer.writeFixpointRealizable(rm.k, runtime);
                 } else {
                     writer.writeRealizable(rm.k, runtime);
@@ -277,7 +277,7 @@ public class RealizabilityDirector {
 			} else if (message instanceof UnrealizableMessage) {
 				UnrealizableMessage um = (UnrealizableMessage) message;
 				done = true;
-				if (settings.fixpoint) {
+				if (settings.fixpoint || settings.fixpoint_T) {
 					writer.writeFixpointUnrealizable(um.k, um.properties, runtime);
 				} else if (settings.synthesis) {
                     writer.writeUnrealizable(um.k, um.properties, runtime);
