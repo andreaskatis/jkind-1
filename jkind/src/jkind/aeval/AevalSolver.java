@@ -252,6 +252,7 @@ public class AevalSolver extends AevalProcess{
 //            if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
 //                result = new UnknownResult();
 //            } else {
+            //April 22 : attempting to use unsat cases as region
                 if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations")) {
                     result = new InvalidResult(new ValidSubset("Empty"));
                 } else {

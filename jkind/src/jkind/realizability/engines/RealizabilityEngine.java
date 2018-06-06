@@ -232,8 +232,8 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected Sexp getUniversalInputVariablesAssertion(int k){
 		List<Sexp> conjuncts = new ArrayList<>();
 		List<Sexp> equalities = new ArrayList<>();
-		conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityInputVarDecls())));
-		for (Sexp c : conjuncts) {
+        conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityInputVarDecls())));
+        for (Sexp c : conjuncts) {
 			equalities.add(new Cons("=", c, c));
 		}
 		return SexpUtil.conjoin(equalities);

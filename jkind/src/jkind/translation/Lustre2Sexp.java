@@ -103,6 +103,11 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 			conjuncts.add(sexp);
 		}
 
+        //April 11th : Why did I remove this? We don't need to play with offsets at the transition definition
+        for (Expr assertion : node.assertions) {
+            conjuncts.add(assertion.accept(visitor));
+        }
+
 		List<VarDecl> inputs = new ArrayList<>();
 		inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
 		inputs.addAll(visitor.pre(Util.getVarDecls(node)));

@@ -21,7 +21,9 @@ import jkind.util.Util;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class RegionExtractor implements Runnable {
@@ -32,23 +34,24 @@ public class RegionExtractor implements Runnable {
     private int k;
     private String name;
     private PrintWriter aevalscratch;
-    private Specification spec;
+    private Specification spec, factorSpec;
     private boolean negate;
     private boolean subrefine;
-    private RefinedRegion region;
+    private RefinedRegion region, blockedRegion;
     private RealizabilityFixpointEngine engine;
     private boolean skolemize;
     private List<VarDecl> factorOutputs;
     private String precondition;
 
 
-    public RegionExtractor(Specification spec, RealizabilityFixpointEngine engine, int k, RefinedRegion region, ValidSubset subset, boolean negate, boolean subrefine, List<VarDecl> factorOutputs, boolean skolemize, String precondition) {
+    public RegionExtractor(Specification spec, Specification factorSpec, RealizabilityFixpointEngine engine, int k, RefinedRegion region, ValidSubset subset, boolean negate, boolean subrefine, List<VarDecl> factorOutputs, boolean skolemize, String precondition, RefinedRegion blockedRegion) {
         this.settings = engine.settings;
         this.subset = subset;
         this.k = k;
         this.name = engine.name;
         this.aevalscratch = getaevalScratch(spec, name);
         this.spec = spec;
+        this.factorSpec = factorSpec;
         this.negate = negate;
         this.region = region;
         this.engine = engine;
@@ -56,15 +59,17 @@ public class RegionExtractor implements Runnable {
         this.skolemize = skolemize;
         this.factorOutputs = factorOutputs;
         this.precondition = precondition;
+        this.blockedRegion = blockedRegion;
     }
 
-    public RegionExtractor(Specification spec, RealizabilityFixpointSubEngine engine, int k, RefinedRegion region, ValidSubset subset, boolean negate, boolean subrefine) {
+    public RegionExtractor(Specification spec, Specification factorSpec, RealizabilityFixpointSubEngine engine, int k, RefinedRegion region, ValidSubset subset, boolean negate, boolean subrefine) {
         this.settings = engine.settings;
         this.subset = subset;
         this.k = k;
         this.name = engine.name;
         this.aevalscratch = getaevalScratch(spec, name);
         this.spec = spec;
+        this.factorSpec = factorSpec;
         this.negate = negate;
         this.region = region;
         this.engine = engine;
@@ -73,17 +78,17 @@ public class RegionExtractor implements Runnable {
     }
 
     public void run() {
-//        System.out.println(spec.node.properties + ", refinement = " + k);
-        aesolver = new AevalSolver(settings.filename, name + "subset" + spec.node.properties.get(0) + spec.node.properties.get(spec.node.properties.size()-1) + "_"+ factorOutputs.get(0).id + factorOutputs.get(factorOutputs.size()-1).id + "_" + skolemize + k, aevalscratch);
-        aevalscratch.println(";Refinement = " + k);
+        System.out.println(factorSpec.node.properties + ", refinement = " + k);
+        aesolver = new AevalSolver(settings.filename, name + "subset" + factorSpec.node.properties.get(0) + factorSpec.node.properties.get(factorSpec.node.properties.size()-1) + "_"+ factorOutputs.get(0).id + factorOutputs.get(factorOutputs.size()-1).id + "_" + skolemize + k, aevalscratch);
+        //aevalscratch.println(";Refinement = " + k);
         createSubQueryVariablesAndAssertions(aesolver, subset, k);
         result = aesolver.refinementQuery();
         if (result instanceof ValidResult) {
         } else if (result instanceof InvalidResult) {
-            System.out.println(spec.node.properties + "refinement=" + k + ", invalid result," + negate + subrefine);
+            System.out.println(factorSpec.node.properties + "refinement=" + k + ", invalid result," + negate + subrefine);
             String subset = ((InvalidResult) result).getValidSubset();
             if (subset.equals("Empty")) {
-                region = null;
+                region = new RefinedRegion("Empty");
             } else {
                 region = new RefinedRegion("(assert (not" + (subset + ")"));
             }
@@ -95,16 +100,16 @@ public class RegionExtractor implements Runnable {
 
 
     protected void createSubQueryVariablesAndAssertions(AevalSolver aesolver, ValidSubset subset, int k) {
-
-        aesolver.defineTVar(spec.getFixpointTransitionRelation(), true);
+        boolean contains = false;
+        aesolver.defineTVar(factorSpec.getFixpointTransitionRelation(), true);
 
 
         if (settings.scratch) {
             aesolver.scratch.println("; Universally quantified variables");
         }
 
-        List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls());
-        List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls());
+        List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls(spec));
+        List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls(spec));
 
 
         for (VarDecl in : preinvars) {
@@ -124,7 +129,7 @@ public class RegionExtractor implements Runnable {
 
         aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), true);
 
-        List<VarDecl> realOutputs = getRealizabilityOutputVarDecls();
+        List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(spec);
 
         if (skolemize) {
             List<String> factorIds = new ArrayList<>();
@@ -132,15 +137,16 @@ public class RegionExtractor implements Runnable {
                 factorIds.add(factorOutput.id);
             }
             realOutputs.removeIf(vd -> factorIds.contains(vd.id));
-
-            List<String> locIds = new ArrayList<>();
-            for (VarDecl loc : spec.node.locals) {
-                locIds.add(loc.id);
-            }
-            realOutputs.removeIf(vd -> locIds.contains(vd.id));
+//                  Are locals existentially quantified?
+            realOutputs.removeIf(vd -> factorSpec.node.properties.contains(vd.id));
+//            List<String> locIds = new ArrayList<>();
+//            for (VarDecl loc : factorSpec.node.locals) {
+//                locIds.add(loc.id);
+//            }
+//            realOutputs.removeIf(vd -> locIds.contains(vd.id));
         }
 
-        List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
+        List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls(spec));
         List<VarDecl> curroutvars = getOffsetVarDecls(0, realOutputs);
 
         for (VarDecl in : currinvars) {
@@ -161,32 +167,75 @@ public class RegionExtractor implements Runnable {
                 StreamIndex si = new StreamIndex(factorOutput.id, 0);
                 aesolver.defineTVar(new VarDecl(si.getEncoded().str, factorOutput.type), true);
             }
-            for (VarDecl loc : getOffsetVarDecls(0, spec.node.locals)) {
-                aesolver.defineTVar(loc, true);
+//            //Are locals existentially quantified?
+            for (String prop :factorSpec.node.properties) {
+                StreamIndex si = new StreamIndex(prop, 0);
+                aesolver.defineTVar(new VarDecl(si.getEncoded().str, NamedType.BOOL), true);
             }
+//            for (VarDecl loc : getOffsetVarDecls(0, factorSpec.node.locals)) {
+//                aesolver.defineTVar(loc, true);
+//            }
         }
 
         if (settings.scratch) {
             aesolver.scratch.println("; Constraints for universal part of the formula");
         }
+
+        if (negate) {
             for (VarDecl vd : Util.getVarDecls(spec.node)) {
                 Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
                 if (constraint != null) {
                     aesolver.assertSPart(constraint.accept(new Lustre2Sexp(-1)));
                 }
             }
+        }
+
+//        for (VarDecl vd : getRealizabilityOutputVarDecls(factorSpec)) {
+        for (VarDecl vd : realOutputs) {
+//            for (VarDecl vd : Util.getVarDecls(factorSpec.node)) {
+            Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
+            if (constraint != null) {
+                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(0)));
+            }
+        }
 
         if (settings.scratch) {
             aesolver.scratch.println("; Assertions for universal part of the formula");
         }
-            if (region != null && !region.getRefinedRegion().equals("true")) {
-                aesolver.sendBlockedRegionSPart(region.getRefinedRegion());
+
+//        if (k > 0 && region != null && !region.getRefinedRegion().equals("true")) {
+        if (region != null && !region.getRefinedRegion().equals("true")) {
+            List<String> factorIds = new ArrayList<>();
+            for (VarDecl factor : factorOutputs) {
+                factorIds.add(factor.id);
             }
+            if (region.getRefinedRegion().contains("%init")) {
+                contains = true;
+            }
+            for (String id : factorIds) {
+                if (region.getRefinedRegion().contains(id+"$0")) {
+                    contains = true;
+                }
+            }
+            for (VarDecl in : currinvars) {
+                if (region.getRefinedRegion().contains(in.id)) {
+                    contains = true;
+                }
+            }
+//                && !region.getRefinedRegion().contains("$0")) {
+            if (!contains) {
+                aesolver.sendBlockedRegionSPart(region.getRefinedRegion());
+            } else {
+//                if (blockedRegion != null && !blockedRegion.getRefinedRegion().equals("true")) {
+//                    aesolver.sendBlockedRegionSPart(blockedRegion.getRefinedRegion());
+//                }
+            }
+        }
         aesolver.assertSPart(getUniversalInputVariablesAssertion(-1));
         aesolver.assertSPart(getUniversalOutputVariablesAssertion(-1));
-        if (skolemize) {
+//        if (skolemize) {
             aesolver.assertSPart(getFactoredUniversalOutputVariablesAssertion(0));
-        }
+//        }
 
         if (settings.scratch) {
             aesolver.scratch.println("; Assertions for existential part of the formula");
@@ -196,32 +245,42 @@ public class RegionExtractor implements Runnable {
             aesolver.assertTPart(getTransition(0, INIT), true);
         }
         if (!negate) {
-            aesolver.assertTPart(new Cons("not", StreamIndex.conjoinEncodings(spec.node.properties, 0)), true);
+            aesolver.assertTPart(new Cons("not", StreamIndex.conjoinEncodings(factorSpec.node.properties, 0)), true);
         }
         if(negate) {
-            aesolver.assertTPart(getNextStepAssertions(), true);
+//            aesolver.assertTPart(getNextStepAssertions(), true);
         }
 
         if (settings.scratch) {
             aesolver.scratch.println("; Constraints for existential part of the formula");
         }
         if (negate) {
+//            for (VarDecl vd : Util.getVarDecls(factorSpec.node)) {
             for (VarDecl vd : Util.getVarDecls(spec.node)) {
                 Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
                 if (constraint != null) {
+                    aesolver.assertTPart(constraint.accept(new Lustre2Sexp(-1)), true);
                     aesolver.assertTPart(constraint.accept(new Lustre2Sexp(0)), true);
                 }
             }
         }
 
         if (subrefine) {
-            aesolver.assertTPart(new Cons("not", StreamIndex.conjoinEncodings(spec.node.properties, 0)), true);
+            aesolver.assertTPart(new Cons("not", StreamIndex.conjoinEncodings(factorSpec.node.properties, 0)), true);
         } else {
             aesolver.sendSubsetTPart(subset.getValidSubset());
         }
 
         if (region != null && !region.getRefinedRegion().equals("true") && !region.getRefinedRegion().equals("Empty")) {
-            aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(region.getRefinedRegion(), preoutvars, true));
+//            if (k ==0) {
+//                aesolver.sendBlockedRegionTPart(region.getRefinedRegion());
+//            } else {
+            if (!contains) {
+                aesolver.sendBlockedRegionTPart(region.getRefinedRegion());
+            } else {
+                aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(region.getRefinedRegion(), preoutvars, false));
+            }
+//            }
         }
 
 //        if (precondition != null && !precondition.equals("true") && !precondition.equals("Empty")) {
@@ -261,14 +320,22 @@ public class RegionExtractor implements Runnable {
 
     protected String convertOutputsToNextStep(String region, List<VarDecl> offsetVarDecls, boolean lhs) {
         String converted = region;
+        String newvarid;
         if (lhs) {
             converted = converted.replaceAll("\\$~1", "\\$0");
         } else {
-            for (VarDecl off : offsetVarDecls) {
-                String varid = off.id;
-                if (converted.contains(varid)) {
-                    String newvarid = varid.replaceAll("\\$~1", "\\$2");
-                    converted = converted.replace(varid, newvarid);
+//            if(skolemize) {
+//                for (VarDecl factor : factorOutputs) {
+//                    if (converted.contains(factor.id + "\\$0")) {
+//                        System.out.println("whoops");
+//                    }
+//                    converted = converted.replaceAll(factor.id + "\\$~1", factor.id + "\\$0");
+//                }
+//            }
+            for (VarDecl var : offsetVarDecls) {
+                if (converted.contains(var.id)) {
+                    newvarid = var.id.replaceAll("\\$~1", "\\$0");
+                    converted = converted.replace(var.id, newvarid);
                 }
             }
         }
@@ -293,18 +360,20 @@ public class RegionExtractor implements Runnable {
     protected Sexp getFactoredUniversalOutputVariablesAssertion(int k){
         List<Sexp> conjuncts = new ArrayList<>();
         List<Sexp> equatities = new ArrayList<>();
-        List<VarDecl> outputs = getRealizabilityOutputVarDecls();
+        List<VarDecl> outputs = getRealizabilityOutputVarDecls(spec);
         List<String> factorIds = new ArrayList<>();
         List<String> locIds = new ArrayList<>();
         for (VarDecl fvd : factorOutputs) {
             factorIds.add(fvd.id);
         }
-        for (VarDecl loc : spec.node.locals) {
+        for (VarDecl loc : factorSpec.node.locals) {
             locIds.add(loc.id);
         }
 
         outputs.removeIf(vd -> factorIds.contains(vd.id));
-        outputs.removeIf(vd -> locIds.contains(vd.id));
+        // are locals existentially quantified?
+        outputs.removeIf(vd -> factorSpec.node.properties.contains(vd.id));
+//        outputs.removeIf(vd -> locIds.contains(vd.id));
 
         conjuncts.addAll(getSymbols(getOffsetVarDecls(k, outputs)));
         for (Sexp c : conjuncts) {
@@ -316,7 +385,7 @@ public class RegionExtractor implements Runnable {
     protected Sexp getUniversalOutputVariablesAssertion(int k){
         List<Sexp> conjuncts = new ArrayList<>();
         List<Sexp> equatities = new ArrayList<>();
-        conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityOutputVarDecls())));
+        conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityOutputVarDecls(spec))));
         for (Sexp c : conjuncts) {
             equatities.add(new Cons("=", c, c));
         }
@@ -327,7 +396,7 @@ public class RegionExtractor implements Runnable {
     protected Sexp getUniversalInputVariablesAssertion(int k){
         List<Sexp> conjuncts = new ArrayList<>();
         List<Sexp> equalities = new ArrayList<>();
-        conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityInputVarDecls())));
+        conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityInputVarDecls(spec))));
         for (Sexp c : conjuncts) {
             equalities.add(new Cons("=", c, c));
         }
@@ -336,17 +405,17 @@ public class RegionExtractor implements Runnable {
 
 
     protected Sexp getAssertions() {
-        Sexp assertions = Lustre2Sexp.getConjunctedAssertions(spec.node);
+        Sexp assertions = Lustre2Sexp.getConjunctedAssertions(factorSpec.node);
         return assertions;
     }
 
     protected Sexp getNextStepAssertions() {
-        Sexp assertions = Lustre2Sexp.getNextStepConjunctedAssertions(spec.node);
+        Sexp assertions = Lustre2Sexp.getNextStepConjunctedAssertions(factorSpec.node);
         return assertions;
     }
 
     protected List<VarDecl> getOffsetVarDecls(int k) {
-        return getOffsetVarDecls(k, Util.getVarDecls(spec.node));
+        return getOffsetVarDecls(k, Util.getVarDecls(factorSpec.node));
     }
 
     protected List<VarDecl> getOffsetVarDecls(int k, List<VarDecl> varDecls) {
@@ -358,7 +427,7 @@ public class RegionExtractor implements Runnable {
         return result;
     }
     protected List<VarDecl> getAbstractOffsetVarDecls(int k) {
-        return getAbstractOffsetVarDecls(k, Util.getVarDecls(spec.node));
+        return getAbstractOffsetVarDecls(k, Util.getVarDecls(factorSpec.node));
     }
 
     protected List<VarDecl> getAbstractOffsetVarDecls(int k, List<VarDecl> varDecls) {
@@ -376,7 +445,7 @@ public class RegionExtractor implements Runnable {
         args.add(init);
         args.addAll(getSymbols(getAbstractOffsetVarDecls(k - 1)));
         args.addAll(getSymbols(getAbstractOffsetVarDecls(k)));
-        return new Cons(spec.getTransitionRelation().getName(), args);
+        return new Cons(factorSpec.getTransitionRelation().getName(), args);
     }
 
     protected Sexp getTransition(int k, Sexp init) {
@@ -384,12 +453,12 @@ public class RegionExtractor implements Runnable {
         args.add(init);
         args.addAll(getSymbols(getOffsetVarDecls(k - 1)));
         args.addAll(getSymbols(getOffsetVarDecls(k)));
-        return new Cons(spec.getTransitionRelation().getName(), args);
+        return new Cons(factorSpec.getTransitionRelation().getName(), args);
     }
 
     protected static final Symbol INIT = Lustre2Sexp.INIT;
 
-    public List<VarDecl> getRealizabilityOutputVarDecls() {
+    public List<VarDecl> getRealizabilityOutputVarDecls(Specification spec) {
         List<String> realizabilityInputs = spec.node.realizabilityInputs;
         List<VarDecl> all = Util.getVarDecls(spec.node);
 
@@ -397,7 +466,7 @@ public class RegionExtractor implements Runnable {
         return all;
     }
 
-    public List<VarDecl> getRealizabilityInputVarDecls() {
+    public List<VarDecl> getRealizabilityInputVarDecls(Specification spec) {
         List<String> realizabilityInputs = spec.node.realizabilityInputs;
         List<VarDecl> all = Util.getVarDecls(spec.node);
         all.removeIf(vd -> !realizabilityInputs.contains(vd.id));

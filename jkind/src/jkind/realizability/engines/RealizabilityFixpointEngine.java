@@ -51,6 +51,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     }
 
     private void factorizeandcheckRealizable() {
+        boolean maximalsubset = false;
         String factorPrecondition = "true";
         RefinedRegion region = new RefinedRegion("true");
         Map<VarDecl, Integer> factorMap = new LinkedHashMap<>();
@@ -69,7 +70,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         List<VarDecl> realizabilityOutputs = Util.getVarDecls(spec.node);
 
         realizabilityOutputs.removeIf(vd -> realizabilityInputs.contains(vd.id));
-        realizabilityOutputs.removeIf(vd -> spec.node.locals.contains(vd));
+        // April 10th : Attempting to add locals to factor identification procedure
+        //realizabilityOutputs.removeIf(vd -> spec.node.locals.contains(vd));
+        realizabilityOutputs.removeIf(vd -> spec.node.properties.contains(vd.id));
 
         //iterate through each sliced node. Identify the greatest index for which a specific output appears.
         for (VarDecl out : realizabilityOutputs) {
@@ -78,25 +81,28 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 List<String> noderealizabilityInputs = fnode.realizabilityInputs;
                 List<VarDecl> noderealizabilityOutputs = Util.getVarDecls(fnode);
                 noderealizabilityOutputs.removeIf(vd -> noderealizabilityInputs.contains(vd.id));
-                noderealizabilityOutputs.removeIf(vd -> fnode.locals.contains(vd));
+                // April 10th : Attempting to add locals to factor identification procedure
+                //noderealizabilityOutputs.removeIf(vd -> fnode.locals.contains(vd));
                 for (VarDecl nout : noderealizabilityOutputs) {
                     if (nout.id.equals(outname)) {
-                        factorMap.put(out, fnodes.indexOf(fnode));
+                        factorMap.put(out, fnodes.indexOf(fnode) + 1);
                         break;
                     }
                 }
             }
         }
 
+        //Sort map in value (fnode index) ascending order - The first output's last appearance occurs at the <value>-th property
         Map<VarDecl, Integer> orderedMap = factorMap.entrySet().stream().sorted(Map.Entry.comparingByValue())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 
         System.out.println(orderedMap);
-
+        int factorCounter =0;
         if (!orderedMap.isEmpty() && Collections.min(orderedMap.values()) < fnodes.size()) {
-            for (int i = 0; i < fnodes.size(); i++) {
-                List<VarDecl> factorIds = realizabilityOutputs;
-//                List<VarDecl> factorIds = new ArrayList<>();
+            int lastProperty = 0;
+            for (int i = 1; i <= fnodes.size(); i++) {
+//                List<VarDecl> factorIds = realizabilityOutputs;
+                List<VarDecl> factorIds = new ArrayList<>();
                 List<VarDecl> univIds = new ArrayList<>();
 
                 for (Map.Entry<VarDecl, Integer> entry : orderedMap.entrySet()) {
@@ -109,46 +115,73 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                     }
                 }
 
-//                if (!factorIds.isEmpty()) {
-                    System.out.println("Outputs for property #" + (i+1) + " : " + factorIds);
-                    for (Map.Entry<VarDecl, Integer> entry : orderedMap.entrySet()) {
-                        if (entry.getValue() < i) {
-                            factorIds.add(entry.getKey());
-                        }
-                    }
-                    List<String> propsublist = spec.node.properties.subList(0, i+1);
+                if (!factorIds.isEmpty()) {
+                    factorCounter++;
+                    System.out.println("Outputs for property #" + (i) + " : " + factorIds);
+//                    for (Map.Entry<VarDecl, Integer> entry : orderedMap.entrySet()) {
+//                        if (entry.getValue() < i) {
+//                            factorIds.add(entry.getKey());
+//                        }
+//                    }
+                    List<String> propsublist = spec.node.properties.subList(lastProperty, i);
                     Node factoredNode = new NodeBuilder(spec.node).clearProperties().addProperties(propsublist).build();
                     factoredNode = LustreSlicer.slice(factoredNode, spec.dependencyMap);
                     Specification factoredNodeSpec = new Specification(factoredNode);
 
                     try {
-                        RealizabilityFixpointSubEngine factoredEngine = new RealizabilityFixpointSubEngine(factoredNodeSpec,
-                                settings, director, false, region, factorPrecondition, factorIds);
+                        RealizabilityFixpointSubEngine factoredEngine = new RealizabilityFixpointSubEngine(spec, factoredNodeSpec,
+//                                settings, director, false, region, factorPrecondition, factorIds);
+                                settings, director, true, maximalsubset, region, factorPrecondition, factorIds);
                         Thread factorThread = new Thread(factoredEngine);
                         factorThread.start();
                         factorThread.join();
-                        region = new RefinedRegion(factoredEngine.getFixpointRegion());
-                        if (region.getRefinedRegion().equals("Empty") || factoredEngine.getPrecondition().equals("Empty")) {
-                            sendUnrealizable(0);
-                            throw new StopException();
+                        maximalsubset = factoredEngine.getMaximalSubsetFlag();
+                        System.out.println(maximalsubset);
+                        if (region != null) {
+                            region = new RefinedRegion(factoredEngine.getFixpointRegion());
+//                            System.out.println(region.getRefinedRegion());
+                            if (region.getRefinedRegion().equals("Empty")) {
+                                sendUnrealizable(0);
+                                throw new StopException();
+                            }
                         }
 
-                        factorPrecondition = factoredEngine.getPrecondition();
+//                        if (factoredEngine.getPrecondition() != null) {
+//                            factorPrecondition = factoredEngine.getPrecondition();
+//                            if (factoredEngine.getPrecondition().equals("Empty")) {
+//                                sendUnrealizable(0);
+//                                throw new StopException();
+//                            }
+//                        }
 
-//                        String[] extracted = factoredEngine.getSkolem().split("assert");
-//                String simplskolem = "(assert (and " + solver.simplify("(assert " + extracted[extracted.length - 1], null, null) + " true))";
-//                        String simplskolem = "(assert " + extracted[extracted.length - 1];
-//                        skolems.add(simplskolem);
+//                        if (region.getRefinedRegion().equals("Empty") || factoredEngine.getPrecondition().equals("Empty")) {
+//                            sendUnrealizable(0);
+//                            throw new StopException();
+//                        }
+
+                        String[] extracted = factoredEngine.getSkolem().split("assert");
+                        String simplskolem = "(assert " + extracted[extracted.length - 1];
+                        skolems.add(simplskolem);
                     } catch (InterruptedException ie) {
 
                     }
-//                } else {
-//                    continue;
-//                }
+                    lastProperty =i;
+                } else {
+                    continue;
+                }
+            }
+            String implementation = "";
+            for (String skolem : skolems) {
+                implementation = implementation + skolem;
+            }
+            director.fixpointImplementation = new SkolemFunction(implementation);
+            sendRealizable(factorCounter);
+        } else if (Collections.min(orderedMap.values()) == fnodes.size()) {
+            for (int k = 0; k < settings.n; k++) {
+                comment("K = " + (k + 1));
+                checkRealizable(k);
             }
         }
-
-        sendRealizable(0);
 //            for (Map.Entry<VarDecl, Integer> entry : orderedMap.entrySet()) {
 //                System.out.println(entry);
 //                //for each subsequent step, add the precondition to the new engine.
@@ -186,14 +219,18 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 //            }
 
 //        ---- COMMENTED OUT FOR FIXPOINTCEPTION -----
-//        preCondition = factorPrecondition;
-//        this.region = region;
+        if (preCondition != null && !preCondition.equals("true")) {
+            preCondition = factorPrecondition;
+        }
+        if (!region.getRefinedRegion().equals("true")) {
+            this.region = region;
+        }
 ////        if (!skolems.isEmpty()) {
 //            for (int k = 0; k < settings.n; k++) {
 //                comment("K = " + (k + 1));
 //                checkRealizable(k);
 //            }
-//        ---------------------------------
+////        ---------------------------------
 
 //            director.fixpointImplementation = new SkolemFunction(skolem);
 //            sendRealizable(0);
@@ -371,7 +408,10 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             aesolver.scratch.println("; Existentially quantified variables");
         }
 
-        aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), true);
+        VarDecl init = new VarDecl(INIT.str, NamedType.BOOL);
+
+//        aesolver.defineSVar(init);
+        aesolver.defineTVar(init, true);
 
 
         List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
@@ -390,7 +430,8 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             aesolver.scratch.println("; Constraints for universal part of the formula");
         }
 
-        for (VarDecl vd : Util.getVarDecls(spec.node)) {
+        for (VarDecl vd : getRealizabilityOutputVarDecls()) {
+//        for (VarDecl vd : Util.getVarDecls(spec.node)) {
             Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
             if (constraint != null) {
                 aesolver.assertSPart(constraint.accept(new Lustre2Sexp(-1)));
@@ -414,8 +455,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         }
 //        aesolver.assertTPart(StreamIndex.conjoinEncodings(spec.node.properties, 0), true);
 
+//        aesolver.assertTPart(getTransition(0, false), true);
         aesolver.assertTPart(getTransition(0, INIT), true);
-        aesolver.assertTPart(getNextStepAssertions(), true);
+//        aesolver.assertTPart(getNextStepAssertions(), true);
 
         if (settings.scratch) {
             aesolver.scratch.println("; Constraints for existential part of the formula");
@@ -511,7 +553,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             aesolver.scratch.println("; Constraints for universal part of the formula");
         }
 
-        aesolver.assertSPart(getNextStepAssertions());
+//        aesolver.assertSPart(getNextStepAssertions());
 
         for (VarDecl vd : getRealizabilityOutputVarDecls()) {
             Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
@@ -524,7 +566,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         for (VarDecl vd : getRealizabilityInputVarDecls()) {
             Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
             if (constraint != null) {
-                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(-1)));
+//                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(-1)));
                 aesolver.assertSPart(constraint.accept(new Lustre2Sexp(0)));
             }
         }
@@ -545,6 +587,10 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         if (settings.scratch) {
             aesolver.scratch.println("; Constraints for existential part of the formula");
         }
+
+
+        //output assertions should be included in the existential part.
+//        aesolver.assertTPart(getNextStepAssertions(), true);
 
         for (VarDecl vd : getRealizabilityOutputVarDecls()) {
             Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
@@ -572,7 +618,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 //                String[] extracted = sk.split("assert");
 //                aesolver.sendBlockedRegionTPart(convertOutputsToNextStep("(assert " + extracted[extracted.length - 1], 0, getOffsetVarDecls(0, getRealizabilityOutputVarDecls()), false));
 //            }
-            if (!preCondition.equals("true")) {
+            if (preCondition != null && !preCondition.equals("true")) {
                 aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(preCondition, 0, getOffsetVarDecls(0, getRealizabilityOutputVarDecls()), false));
             }
         }
