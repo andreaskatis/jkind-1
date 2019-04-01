@@ -117,6 +117,27 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 
 	}
 
+    public static Relation constructRefinementFixpointTransitionRelation(Node node) {
+        Lustre2Sexp previsitor = new Lustre2Sexp(0);
+        Lustre2Sexp visitor = new Lustre2Sexp(1);
+        List<Sexp> conjuncts = new ArrayList<>();
+
+        for (Equation eq : node.equations) {
+            Sexp body = eq.expr.accept(visitor);
+            Sexp head = eq.lhs.get(0).accept(visitor);
+            Sexp sexp = new Cons("=", head, body);
+            conjuncts.add(sexp);
+        }
+
+        List<VarDecl> inputs = new ArrayList<>();
+        inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
+        inputs.addAll(visitor.pre(Util.getVarDecls(node)));
+//		inputs.addAll(visitor.pre(Util.getRealizabilityOutputVarDecls(node)));
+        inputs.addAll(visitor.curr(Util.getVarDecls(node)));
+        return new Relation(Relation.T, inputs, SexpUtil.conjoin(conjuncts));
+//        return new Relation("TnoA", inputs, SexpUtil.conjoin(conjuncts));
+    }
+
 	private static Relation constructGeneralTransitionRelation(Node node, List<String> ivc) {
 		Lustre2Sexp visitor = new Lustre2Sexp(1);
 		List<Sexp> conjuncts = new ArrayList<>();

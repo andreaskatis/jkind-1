@@ -11,4 +11,5 @@ public class JRealizabilitySettings extends Settings {
 	public boolean synthesis = false;
 	public boolean fixpoint = false;
 	public boolean fixpoint_T = false;
+    public boolean compact = false;
 }

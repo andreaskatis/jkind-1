@@ -3,6 +3,7 @@ package jkind.realizability.engines;
         import jkind.JKindException;
         import jkind.JRealizabilitySettings;
         import jkind.aeval.*;
+        import jkind.lustre.NamedType;
         import jkind.lustre.VarDecl;
         import jkind.realizability.engines.fixpoint.RefinedRegion;
         import jkind.sexp.Cons;
@@ -30,10 +31,10 @@ public class SplitFramesExtractor implements Runnable {
     private Specification spec, factorSpec;
     private RefinedRegion region, preRegion, remainderRegion;
     private RealizabilityFixpointEngine engine;
-    private List<VarDecl> factorOutputs;
+    private List<VarDecl> factorOutputs, uncomputedOutputs;
 
 
-    public SplitFramesExtractor(Specification spec, Specification factorSpec, RealizabilityFixpointEngine engine, int k, RefinedRegion region, List<VarDecl> factorOutputs) {
+    public SplitFramesExtractor(Specification spec, Specification factorSpec, RealizabilityFixpointEngine engine, int k, RefinedRegion region, List<VarDecl> factorOutputs, List<VarDecl> uncomputedOutputs) {
         this.settings = engine.settings;
         this.k = k;
         this.name = engine.name;
@@ -43,6 +44,7 @@ public class SplitFramesExtractor implements Runnable {
         this.region = region;
         this.engine = engine;
         this.factorOutputs = factorOutputs;
+        this.uncomputedOutputs = uncomputedOutputs;
     }
 
     public void run() {
@@ -52,7 +54,7 @@ public class SplitFramesExtractor implements Runnable {
         createSubQueryVariablesAndAssertions(aesolver, k, true);
         result = aesolver.refinementQuery();
         if (result instanceof ValidResult) {
-            preRegion = new RefinedRegion("true");
+            preRegion = new RefinedRegion(region.getRefinedRegion());
         } else if (result instanceof InvalidResult) {
             System.out.println(factorSpec.node.properties + "splitting=" + k + ", invalid result,");
             String subset = ((InvalidResult) result).getValidSubset();
@@ -65,58 +67,74 @@ public class SplitFramesExtractor implements Runnable {
             engine.sendUnknown();
         }
 
-        System.out.println(factorSpec.node.properties + ", frame splitting, remainder = " + k);
-        aesolver = new AevalSolver(settings.filename, name + "splitremainder" + factorSpec.node.properties.get(0) + factorSpec.node.properties.get(factorSpec.node.properties.size()-1) + "_"+ factorOutputs.get(0).id + factorOutputs.get(factorOutputs.size()-1).id + "_" + k, aevalscratch);
-        aevalscratch.println(";Frame splitting, remainder = " + k);
-        createSubQueryVariablesAndAssertions(aesolver, k, false);
-        result = aesolver.refinementQuery();
-        if (result instanceof ValidResult) {
-            remainderRegion = new RefinedRegion("true");
-        } else if (result instanceof InvalidResult) {
-            System.out.println(factorSpec.node.properties + "splitting=" + k + ", invalid result,");
-            String subset = ((InvalidResult) result).getValidSubset();
-            if (subset.equals("Empty")) {
-                remainderRegion = new RefinedRegion("Empty");
-            } else {
-                remainderRegion = new RefinedRegion("(assert (not" + (subset + ")"));
-            }
-        } else {
-            engine.sendUnknown();
-        }
+//        System.out.println(factorSpec.node.properties + ", frame splitting, remainder = " + k);
+//        aesolver = new AevalSolver(settings.filename, name + "splitremainder" + factorSpec.node.properties.get(0) + factorSpec.node.properties.get(factorSpec.node.properties.size()-1) + "_"+ factorOutputs.get(0).id + factorOutputs.get(factorOutputs.size()-1).id + "_" + k, aevalscratch);
+//        aevalscratch.println(";Frame splitting, remainder = " + k);
+//        createSubQueryVariablesAndAssertions(aesolver, k, false);
+//        result = aesolver.refinementQuery();
+//        if (result instanceof ValidResult) {
+//            remainderRegion = new RefinedRegion("true");
+//        } else if (result instanceof InvalidResult) {
+//            System.out.println(factorSpec.node.properties + "splitting=" + k + ", invalid result,");
+//            String subset = ((InvalidResult) result).getValidSubset();
+//            if (subset.equals("Empty")) {
+//                remainderRegion = new RefinedRegion("Empty");
+//            } else {
+//                remainderRegion = new RefinedRegion("(assert (not" + (subset + ")"));
+//            }
+//        } else {
+//            engine.sendUnknown();
+//        }
     }
 
 
 
     protected void createSubQueryVariablesAndAssertions(AevalSolver aesolver, int k, boolean prestates) {
 
-//        aesolver.defineTVar(factorSpec.getFixpointTransitionRelation(), true);
+        aesolver.defineTVar(factorSpec.getFixpointTransitionRelation(), true);
 
         if (settings.scratch) {
             aesolver.scratch.println("; Universally quantified variables");
         }
 
-        List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls(spec));
-
+//        List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls(spec));
+        List<VarDecl> preoutvars = getOffsetVarDecls(-1, uncomputedOutputs);
+        preoutvars.addAll(getOffsetVarDecls(0,uncomputedOutputs));
         for (VarDecl out : preoutvars) {
             if (prestates) {
                 aesolver.defineSVar(out);
             }
-            aesolver.defineTVar(out, false);
+//            aesolver.defineTVar(out, false);
+        }
+        List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls(factorSpec));
+        for (VarDecl in : preinvars) {
+            if (prestates) {
+                aesolver.defineSVar(in);
+            }
+            aesolver.defineTVar(in, false);
+        }
+
+        List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls(factorSpec));
+        for (VarDecl in : currinvars) {
+            aesolver.defineTVar(in, false);
         }
 
         if (settings.scratch) {
             aesolver.scratch.println("; Existentially quantified variables");
         }
 
-        List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(spec);
+        List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(factorSpec);
+
 
         List<String> factorIds = new ArrayList<>();
         for (VarDecl factorOutput : factorOutputs) {
             factorIds.add(factorOutput.id);
         }
-        realOutputs.removeIf(vd -> factorIds.contains(vd.id));
-        realOutputs.removeIf(vd -> factorSpec.node.properties.contains(vd.id));
+//        realOutputs.removeIf(vd -> factorIds.contains(vd.id));
+//        realOutputs.removeIf(vd -> factorSpec.node.properties.contains(vd.id));
         List<VarDecl> curroutvars = getOffsetVarDecls(0, realOutputs);
+        curroutvars.addAll(getOffsetVarDecls(-1, getRealizabilityOutputVarDecls(factorSpec)));
+//        List<VarDecl> curroutvars = getOffsetVarDecls(0, uncomputedOutputs);
 
         for (VarDecl out : curroutvars) {
             if (!prestates) {
@@ -137,6 +155,10 @@ public class SplitFramesExtractor implements Runnable {
         if (settings.scratch) {
             aesolver.scratch.println("; Assertions for existential part of the formula");
         }
+
+        aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), true);
+
+        aesolver.assertTPart(getTransition(0, INIT), true);
 
         if (region != null && !region.getRefinedRegion().equals("true") && !region.getRefinedRegion().equals("Empty")) {
 //            aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(region.getRefinedRegion(), preoutvars, true));
@@ -232,22 +254,28 @@ public class SplitFramesExtractor implements Runnable {
     protected Sexp getUniversalOutputVariablesAssertion(boolean prestates){
         List<Sexp> conjuncts = new ArrayList<>();
         List<Sexp> equatities = new ArrayList<>();
-        List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(spec);
-
+//        List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(spec);
         if (prestates) {
+            List<VarDecl> realOutputs = uncomputedOutputs;
             conjuncts.addAll(getSymbols(getOffsetVarDecls(-1, realOutputs)));
+            conjuncts.addAll(getSymbols(getOffsetVarDecls(0, realOutputs)));
             for (Sexp c : conjuncts) {
                 equatities.add(new Cons("=", c, c));
             }
         } else {
+            List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(factorSpec);
+
             List<String> factorIds = new ArrayList<>();
-            for (VarDecl factorOutput : factorOutputs) {
-                factorIds.add(factorOutput.id);
-            }
-            realOutputs.removeIf(vd -> factorIds.contains(vd.id));
+//            for (VarDecl factorOutput : factorOutputs) {
+//                factorIds.add(factorOutput.id);
+//            }
+
+//            realOutputs.removeIf(vd -> factorIds.contains(vd.id));
             realOutputs.removeIf(vd -> factorSpec.node.properties.contains(vd.id));
             List<VarDecl> curroutvars = getOffsetVarDecls(0, realOutputs);
             conjuncts.addAll(getSymbols(curroutvars));
+            conjuncts.addAll(getSymbols(getOffsetVarDecls(-1, getRealizabilityInputVarDecls(factorSpec))));
+
             for (Sexp c : conjuncts) {
                 equatities.add(new Cons("=", c, c));
             }

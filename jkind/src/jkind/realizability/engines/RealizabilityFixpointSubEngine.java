@@ -34,11 +34,12 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
     private ValidSubset vsubset;
     private boolean skolemize, maximalsubset;
     private String precondition;
-    private List<VarDecl> factorOutputs;
+    private List<VarDecl> factorOutputs, uncomputedOutputs, uncomputedfactorOutputs;
     private String skolem;
 
 
-    public RealizabilityFixpointSubEngine(Specification spec, Specification factorSpec, JRealizabilitySettings settings, RealizabilityDirector director, boolean skolemize, boolean maximalsubset, RefinedRegion region, String precondition, List<VarDecl> factorOutputs) {
+    public RealizabilityFixpointSubEngine(Specification spec, Specification factorSpec, JRealizabilitySettings settings,
+                                          RealizabilityDirector director, boolean skolemize, RefinedRegion region, String precondition, List<VarDecl> factorOutputs, List<VarDecl> uncomputedOutputs) {
         super(factorSpec, settings, director);
         this.name = super.name;
         this.aevalscratch = getaevalScratch(factorSpec, name);
@@ -51,6 +52,8 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
         this.precondition = precondition;
         this.skolem = skolem;
         this.factorOutputs = factorOutputs;
+        this.uncomputedOutputs = uncomputedOutputs;
+        this.uncomputedfactorOutputs = uncomputedOutputs;
     }
 
     @Override
@@ -61,6 +64,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
             List<VarDecl> dummyoutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls(spec));
             List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls(spec));
             List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls(spec));
+            List<String> locIds = new ArrayList<>();
 
             for (VarDecl vd : dummyoutvars) {
                 solver.define(vd);
@@ -80,6 +84,24 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
                 solver.define(in);
             }
 
+            List<String> uncomputedVars = new ArrayList<>();
+            for (VarDecl vd : getRealizabilityOutputVarDecls(factorSpec)) {
+//            for (VarDecl vd : factorOutputs) {
+                uncomputedVars.add(vd.id);
+            }
+//            uncomputedOutputs.removeIf(vd -> uncomputedVars.contains(vd.id));
+//            uncomputedOutputs.removeIf(vd -> !uncomputedVars.contains(vd.id));
+
+            uncomputedfactorOutputs.removeIf(vd -> !uncomputedVars.contains(vd.id));
+            System.out.println("Uncomputed outputs in this factor: " + uncomputedfactorOutputs);
+//            for (VarDecl loc : factorSpec.node.locals) {
+//                locIds.add(loc.id);
+//            }
+//            uncomputedOutputs.removeIf(vd -> !locIds.contains(vd.id));
+//            System.out.println("Uncomputed local outputs: " + uncomputedOutputs);
+//            factorOutputs.addAll(uncomputedOutputs);
+
+
             for (int k = 0; k < settings.n; k++) {
                 solver.comment("K = " + (k + 1));
                 //checkConsistency(k);
@@ -93,6 +115,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
     }
 
     private void checkRealizable(int k) {
+
         System.out.println(factorSpec.node.properties + " " + factorOutputs.get(0) + " " +
                 factorOutputs.get(factorOutputs.size()-1) + ",frame =" + k + " " + skolemize);
             aesolver = new AevalSolver(settings.filename, name + factorSpec.node.properties.get(0) + factorSpec.node.properties.get(factorSpec.node.properties.size()-1) + k + factorOutputs.get(0).id + factorOutputs.get(factorOutputs.size()-1).id + skolemize, aevalscratch);
@@ -100,34 +123,27 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
             createQueryVariables(aesolver, region, k, skolemize);
 
             AevalResult aeresult;
-            aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
-//                        StreamIndex.conjoinEncodings(factorSpec.node.properties, 2), false);
-                        StreamIndex.conjoinEncodings(factorSpec.node.properties, 2), skolemize);
+            aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0), StreamIndex.conjoinEncodings(factorSpec.node.properties, 2), skolemize, settings.compact);
+//        aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0), StreamIndex.conjoinEncodings(factorSpec.node.properties, 2), false);
             if (aeresult instanceof ValidResult) {
-                if (skolemize) {
                     System.out.println(factorSpec.node.properties + " : valid");
                     precondition = getFixpointRegion();
                     skolem = ((ValidResult) aeresult).getSkolem();
-                } else {
-                    System.out.println(factorSpec.node.properties + " : valid");
-                    try {
-                        RealizabilityFixpointSubEngine skolemEngine = new RealizabilityFixpointSubEngine(spec, factorSpec, settings, director, true, maximalsubset, region, precondition, factorOutputs);
-                        Thread extractorThread = new Thread(skolemEngine);
-                        extractorThread.start();
-                        extractorThread.join();
-                        precondition = skolemEngine.getFixpointRegion();
-                        skolem = skolemEngine.getSkolem();
-                    } catch (InterruptedException ie) {
-
-                    }
-                }
+//                SplitFramesExtractor splitExtractor = new SplitFramesExtractor(spec, factorSpec, this, k, region, factorOutputs, uncomputedfactorOutputs);
+//                try {
+//                    Thread splittingFrames = new Thread(splitExtractor);
+//                    splittingFrames.start();
+//                    splittingFrames.join();
+//                    region = new RefinedRegion(splitExtractor.getRegion());
+//                    precondition = splitExtractor.getremainderRegion();
+//                } catch (InterruptedException ie) {
+//                }
                 throw new StopException();
             } else if (aeresult instanceof InvalidResult) {
                     System.out.println(factorSpec.node.properties + " : invalid");
                 String result = ((InvalidResult) aeresult).getValidSubset();
                 if (result.equals("Empty")) {
-//                    sendUnrealizable(k);
-                    region = new RefinedRegion("Empty");
+                    region = new RefinedRegion(result);
                     throw new StopException();
                 } else {
                     String negatedsimplified = "(assert (and " + solver.simplify("(assert (not" + result + ")", null, null) + " true))";
@@ -136,7 +152,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
                     try {
                         String simplifiedRegions;
                         RegionExtractor negatedsubsetExtractor = new RegionExtractor(spec, factorSpec, this, k,
-                                region, negatedsubset, true, false, factorOutputs, skolemize, precondition, blockedRegion);
+                                region, negatedsubset, true, false, factorOutputs, uncomputedOutputs, skolemize, precondition, blockedRegion);
 
                         Thread negatedsubsetThread = new Thread(negatedsubsetExtractor);
                         negatedsubsetThread.start();
@@ -158,7 +174,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
                                     simplifiedRegions = solver.simplify(null, null, "(assert " + result);
                                 }
                                 //april 23 uncommented below
-//                                sendUnrealizable(k);
+                                sendUnrealizable(k);
                             } else {
                                 if (region != null && !region.getRefinedRegion().equals("true")) {
 
@@ -176,7 +192,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
                                 }
                                 if (blockedRegion != null && !blockedRegion.getRefinedRegion().equals("true")) {
                                     if (negatedsubsetRegion.getRefinedRegion() != null) {
-                                        blockedRegion = new RefinedRegion(solver.simplify(blockedRegion.getRefinedRegion(), null, negatedsubsetRegion.getRefinedRegion()));
+                                        blockedRegion = new RefinedRegion("(assert (and " + solver.simplify(blockedRegion.getRefinedRegion(), null, negatedsubsetRegion.getRefinedRegion()) + "true))");
                                     } else {
                                         throw new StopException();
                                     }
@@ -199,18 +215,6 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
 
                     } catch (InterruptedException ie) {
                     }
-                    //April 22 : After MWW's paper algorithms
-//                    SplitFramesExtractor splitExtractor = new SplitFramesExtractor(spec, factorSpec, this, k, region, factorOutputs);
-//                    try {
-//                        Thread splittingFrames = new Thread(splitExtractor);
-//                        splittingFrames.start();
-//                        splittingFrames.join();
-//                        region = new RefinedRegion(splitExtractor.getRegion());
-//                        precondition = splitExtractor.getremainderRegion();
-//                    } catch (InterruptedException ie) {
-//                    }
-//                    throw new StopException();
-
                 }
             } else if (aeresult instanceof UnknownResult) {
                     throw new StopException();
@@ -223,7 +227,8 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
         }
 
         aesolver.defineSVar(factorSpec.getFixpointTransitionRelation());
-        aesolver.defineTVar(factorSpec.getFixpointTransitionRelation(), false);
+//        aesolver.defineTVar(factorSpec.getFixpointTransitionRelation(), false);
+        aesolver.defineTVar(factorSpec.getRefinementFixpointTransitionRelation(), false);
 
 
         if (settings.scratch) {
@@ -234,18 +239,26 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
         aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), false);
 
         List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(spec);
+//        List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(factorSpec);
 
         if (skolemize) {
             List<String> factorIds = new ArrayList<>();
             for (VarDecl factorOutput : factorOutputs) {
                 factorIds.add(factorOutput.id);
             }
+
             realOutputs.removeIf(vd -> factorIds.contains(vd.id));
         }
 
+//        realOutputs.addAll(uncomputedOutputs);
         List<VarDecl> dummyoutvars = getOffsetVarDecls(0, realOutputs);
+
         List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls(spec));
         List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls(spec));
+//
+//        List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls(factorSpec));
+//        List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls(factorSpec));
+
         List<VarDecl> offsetoutvars = getOffsetVarDecls(2, realOutputs);
 
 
@@ -262,6 +275,9 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
         }
 
         List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls(spec));
+//        List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls(factorSpec));
+
+//        preoutvars.addAll(getOffsetVarDecls(-1, uncomputedOutputs));
 
         for (VarDecl vd : preoutvars) {
             aesolver.defineSVar(vd);
@@ -295,6 +311,11 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
                 aesolver.defineTVar(new VarDecl(si.getEncoded().str, factorOutput.type), true);
             }
 
+//            for (VarDecl factorLocal : factorSpec.node.locals) {
+//                StreamIndex factorLocalIndex = new StreamIndex(factorLocal.id, 2);
+//                aesolver.defineTVar(new VarDecl(factorLocalIndex.getEncoded().str, factorLocal.type), true);
+//            }
+
             for (String prop : factorSpec.node.properties) {
                 StreamIndex propsi = new StreamIndex(prop, 2);
                 aesolver.defineTVar(new VarDecl(propsi.getEncoded().str, NamedType.BOOL), true);
@@ -313,21 +334,21 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
         }
 
 
-        for (VarDecl vd : Util.getVarDecls(spec.node)) {
-            Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
-            if (constraint != null) {
-                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(-1)));
-                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(0)));
-            }
-        }
-
-//        for (VarDecl vd : getRealizabilityOutputVarDecls(factorSpec)) {
+//        for (VarDecl vd : Util.getVarDecls(spec.node)) {
 //            Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
 //            if (constraint != null) {
 //                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(-1)));
 //                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(0)));
 //            }
 //        }
+//
+        for (VarDecl vd : Util.getVarDecls(factorSpec.node)) {
+            Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
+            if (constraint != null) {
+                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(-1)));
+                aesolver.assertSPart(constraint.accept(new Lustre2Sexp(0)));
+            }
+        }
 //
 //        for (VarDecl vd : getRealizabilityInputVarDecls(factorSpec)) {
 //            Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
@@ -337,7 +358,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
 //        }
 
         if(skolemize) {
-            aesolver.assertSPart(getUniversalOutputVariablesAssertionSkolemize(-1));
+//            aesolver.assertSPart(getUniversalOutputVariablesAssertionSkolemize(-1));
             aesolver.assertSPart(getUniversalOutputVariablesAssertionSkolemize(0));
         }
         if (settings.scratch) {
@@ -348,10 +369,11 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
             aesolver.sendBlockedRegionSPart(region.getRefinedRegion());
         }
 
-//        if (region != null && !region.getRefinedRegion().equals("true") && !maximalsubset) {
+        if (region != null && !region.getRefinedRegion().equals("true")) {
+//            && !maximalsubset) {
 //            aesolver.sendBlockedRegionSPart(convertOutputsToNextStep(region.getRefinedRegion(), -1,
 //                    preoutvars, true));
-//        }
+        }
 
 //        if (currentFixpoint != null && !currentFixpoint.getRefinedRegion().equals("true")) {
 //                aesolver.sendBlockedRegionSPart(convertOutputsToNextStep(currentFixpoint.getRefinedRegion(), -1,
@@ -363,24 +385,27 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
         }
 
         if (skolemize) {
-            for (VarDecl vd : Util.getVarDecls(spec.node)) {
-                Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
-                if (constraint != null) {
-                    aesolver.assertTPart(constraint.accept(new Lustre2Sexp(-1)), true);
-                }
-            }
-            for (VarDecl currin : getRealizabilityInputVarDecls(spec)) {
-                Expr constraint = LustreUtil.typeConstraint(currin.id, currin.type);
-                if (constraint != null) {
-                    aesolver.assertTPart(constraint.accept(new Lustre2Sexp(0)), true);
-                }
-            }
-            for (VarDecl realout : realOutputs) {
-                Expr constraint = LustreUtil.typeConstraint(realout.id, realout.type);
-                if (constraint != null) {
-                    aesolver.assertTPart(constraint.accept(new Lustre2Sexp(0)), true);
-                }
-            }
+//            for (VarDecl vd : Util.getVarDecls(spec.node)) {
+//            for (VarDecl vd : Util.getVarDecls(factorSpec.node)) {
+//                Expr constraint = LustreUtil.typeConstraint(vd.id, vd.type);
+//                if (constraint != null) {
+//                    aesolver.assertTPart(constraint.accept(new Lustre2Sexp(-1)), true);
+//                }
+//            }
+//            for (VarDecl currin : getRealizabilityInputVarDecls(spec)) {
+//            for (VarDecl currin : getRealizabilityInputVarDecls(factorSpec)) {
+//                Expr constraint = LustreUtil.typeConstraint(currin.id, currin.type);
+//                if (constraint != null) {
+//                    aesolver.assertTPart(constraint.accept(new Lustre2Sexp(0)), true);
+//                }
+//            }
+//
+//            for (VarDecl realout : realOutputs) {
+//                Expr constraint = LustreUtil.typeConstraint(realout.id, realout.type);
+//                if (constraint != null) {
+//                    aesolver.assertTPart(constraint.accept(new Lustre2Sexp(0)), true);
+//                }
+//            }
             for (VarDecl factorOutput : factorOutputs) {
                 Expr constraint = LustreUtil.typeConstraint(factorOutput.id, factorOutput.type);
                 if (constraint != null) {
@@ -430,6 +455,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
 //                aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(precondition, 0, getOffsetVarDecls(0, getRealizabilityOutputVarDecls(spec)), false));
 //            }
 //        }
+//        aesolver.assertSPart(StreamIndex.conjoinEncodings(factorSpec.node.properties, 0));
     }
 
     protected List<VarDecl> getOffsetVarDecls(int k) {
@@ -458,6 +484,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
 
         for (VarDecl vd : varDecls) {
             if (factorIds.contains(vd.id) || factorSpec.node.properties.contains(vd.id)) {
+//                    || locIds.contains(vd.id)) {
                 StreamIndex si = new StreamIndex(vd.id, k);
                 result.add(new VarDecl(si.getEncoded().str, vd.type));
             } else {
@@ -488,6 +515,8 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
         List<Sexp> equatities = new ArrayList<>();
 
         List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(spec);
+//        List<VarDecl> realOutputs = getRealizabilityOutputVarDecls(factorSpec);
+        realOutputs.addAll(uncomputedOutputs);
 
         List<String> factorIds = new ArrayList<>();
         for (VarDecl factorOutput : factorOutputs) {
@@ -613,12 +642,20 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
 //                    converted = converted.replaceAll(factor.id + "\\$~1", factor.id + "\\$0");
 //                }
 //            } else {
-            for (VarDecl var : offsetVarDecls) {
-                if (converted.contains(var.id)) {
-                    newvarid = var.id.replaceAll("\\$~1", "\\$0");
-                    converted = converted.replace(var.id, newvarid);
-                }
-            }
+
+
+
+//            for (VarDecl var : offsetVarDecls) {
+//                if (converted.contains(var.id)) {
+//                    newvarid = var.id.replaceAll("\\$~1", "\\$0");
+//                    converted = converted.replace(var.id, newvarid);
+//                }
+//            }
+
+            converted = converted.replaceAll("\\$~1", "\\$0");
+
+
+
 //            }
         } else {
             if (skolemize) {
@@ -641,8 +678,11 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
 ////                    }
 //                } else {
                     for (VarDecl factor : factorOutputs) {
+//                        converted = converted.replaceAll(factor.id + "\\$~1", factor.id + "\\$2");
+//
                         converted = converted.replaceAll(factor.id + "\\$0", factor.id + "\\$2");
                     }
+//                converted = converted.replaceAll("\\$~1", "\\$0");
                     for (String prop : factorSpec.node.properties) {
                         converted = converted.replaceAll(prop + "\\$0", prop + "\\$2");
                     }

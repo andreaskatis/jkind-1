@@ -1,3 +1,2 @@
 #!/bin/sh
-java -jar $(dirname $0)/jkind.jar -jrealizability "$@"
-
+java -Xss10M -jar $(dirname $0)/jkind.jar -jrealizability "$@"

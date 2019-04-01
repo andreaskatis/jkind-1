@@ -203,7 +203,7 @@ public class AevalSolver extends AevalProcess{
         return new Cons(args);
     }
 
-    public AevalResult realizabilityQuery(Sexp transition, Sexp properties, boolean generateSkolem) {
+    public AevalResult realizabilityQuery(Sexp transition, Sexp properties, boolean generateSkolem, boolean compactImpls) {
         AevalResult result;
 
         Sexp query = new Cons("assert", new Cons("and", transition, properties));
@@ -213,7 +213,7 @@ public class AevalSolver extends AevalProcess{
             scratch.println("; Assertion for Transition Relation - existential part of the formula");
         }
         sendTPart(query, true);
-        callAeval(check, generateSkolem);
+        callAeval(check, generateSkolem, compactImpls);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             if (status.contains("WARNING: Skolem can be arbitrary\n")) {
@@ -242,7 +242,7 @@ public class AevalSolver extends AevalProcess{
 
     public AevalResult refinementQuery() {
         AevalResult result;
-        callAeval(check, false);
+        callAeval(check, false, false);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             String[] extracted = status.split("extracted skolem:");
@@ -281,8 +281,8 @@ public class AevalSolver extends AevalProcess{
 
                 if (line == null) {
                     break;
-                } else if ((line.contains("error \"") || line.contains("Error:") ||
-                        line.contains("WARNING: ")) && !result) {
+                } else if ((line.contains("error \"") || line.contains("Error:")) && !result) {
+//                        line.contains("WARNING: ")) && !result) {
                     if(scratch != null) {
                         scratch.println(";" + getName() + ": " + line);
                     }
@@ -299,7 +299,7 @@ public class AevalSolver extends AevalProcess{
                 } else if (line.contains("(check-sat)") || line.startsWith(".subst:") || line.startsWith("subst:") || line.startsWith(".model:")
                 || line.startsWith("model:") || line.startsWith("compiling skolem")) {
                     continue;
-                } else if (line.startsWith("E.v.:")) {
+                } else if (line.startsWith("Iter:")) {
                     result = true;
                     content.append(line);
                     content.append("\n");

@@ -105,7 +105,7 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			createAevalVariables(aesolver, k, name);
 			aesolver.assertSPart(getInductiveTransition(k));
 			AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(k),
-					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), true);
+					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), true, settings.compact);
 			if (aeresult instanceof ValidResult) {
 				director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
 				sendRealizable(k);

@@ -81,6 +81,8 @@ public abstract class RealizabilityEngine implements Runnable {
 		solver = new Z3Solver(getScratchBase(), LinearChecker.isLinear(spec.node));
 		solver.initialize();
 		solver.define(spec.getTransitionRelation());
+//        solver.define(spec.getRefinementFixpointTransitionRelation());
+
         if(settings.fixpoint || settings.fixpoint_T) {
             solver.define(new VarDecl(INIT.str, NamedType.BOOL));
             List<VarDecl> dummyoutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
@@ -153,7 +155,9 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 
 		aesolver.defineSVar(spec.getTransitionRelation());
+        //The following does not allow to solve realizable but non well-separated contracts.
 		aesolver.defineTVar(spec.getTransitionRelation(), false);
+//        aesolver.defineTVar(spec.getRefinementFixpointTransitionRelation(), false);
 		if (settings.scratch) {
 			aesolver.scratch.println("; Universally quantified variables");
 		}

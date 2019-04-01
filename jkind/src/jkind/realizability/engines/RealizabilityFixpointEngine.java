@@ -51,12 +51,13 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     }
 
     private void factorizeandcheckRealizable() {
-        boolean maximalsubset = false;
         String factorPrecondition = "true";
-        RefinedRegion region = new RefinedRegion("true");
+        RefinedRegion region = new RefinedRegion("(assert true)");
         Map<VarDecl, Integer> factorMap = new LinkedHashMap<>();
+        Map<VarDecl, Integer> trueOutputsMap = new LinkedHashMap<>();
         Map<String, String> skolemMap = new LinkedHashMap<>();
         List<Node> fnodes = new ArrayList<>();
+        List<String> locIds = new ArrayList<>();
 
         //create sliced nodes per property
         System.out.println(spec.node.properties);
@@ -70,19 +71,22 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         List<VarDecl> realizabilityOutputs = Util.getVarDecls(spec.node);
 
         realizabilityOutputs.removeIf(vd -> realizabilityInputs.contains(vd.id));
-        // April 10th : Attempting to add locals to factor identification procedure
-        //realizabilityOutputs.removeIf(vd -> spec.node.locals.contains(vd));
         realizabilityOutputs.removeIf(vd -> spec.node.properties.contains(vd.id));
 
-        //iterate through each sliced node. Identify the greatest index for which a specific output appears.
+        for (VarDecl loc : spec.node.locals) {
+            locIds.add(loc.id);
+        }
+        List <VarDecl> trueOutputs = new ArrayList<>();
+        trueOutputs.addAll(realizabilityOutputs);
+        trueOutputs.removeIf(vd -> locIds.contains(vd.id));
+
+        //iterate through sliced nodes. Identify the greatest index (latest node) at which a specific output appears.
         for (VarDecl out : realizabilityOutputs) {
             String outname = out.id;
             for (Node fnode : fnodes) {
                 List<String> noderealizabilityInputs = fnode.realizabilityInputs;
                 List<VarDecl> noderealizabilityOutputs = Util.getVarDecls(fnode);
                 noderealizabilityOutputs.removeIf(vd -> noderealizabilityInputs.contains(vd.id));
-                // April 10th : Attempting to add locals to factor identification procedure
-                //noderealizabilityOutputs.removeIf(vd -> fnode.locals.contains(vd));
                 for (VarDecl nout : noderealizabilityOutputs) {
                     if (nout.id.equals(outname)) {
                         factorMap.put(out, fnodes.indexOf(fnode) + 1);
@@ -92,53 +96,101 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             }
         }
 
+        for (VarDecl out : trueOutputs) {
+            String outname = out.id;
+            for (Node fnode : fnodes) {
+                List<String> noderealizabilityInputs = fnode.realizabilityInputs;
+                List<VarDecl> noderealizabilityOutputs = Util.getVarDecls(fnode);
+                noderealizabilityOutputs.removeIf(vd -> noderealizabilityInputs.contains(vd.id));
+                for (VarDecl nout : noderealizabilityOutputs) {
+                    if (nout.id.equals(outname)) {
+                        trueOutputsMap.put(out, fnodes.indexOf(fnode) + 1);
+                        break;
+                    }
+                }
+            }
+        }
+
+//        for (VarDecl loc : spec.node.locals) {
+//            locIds.add(loc.id);
+//        }
+//        realizabilityOutputs.removeIf(vd -> locIds.contains(vd.id));
+
         //Sort map in value (fnode index) ascending order - The first output's last appearance occurs at the <value>-th property
         Map<VarDecl, Integer> orderedMap = factorMap.entrySet().stream().sorted(Map.Entry.comparingByValue())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        Map<VarDecl, Integer> orderedTrueMap = trueOutputsMap.entrySet().stream().sorted(Map.Entry.comparingByValue())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 
         System.out.println(orderedMap);
         int factorCounter =0;
         if (!orderedMap.isEmpty() && Collections.min(orderedMap.values()) < fnodes.size()) {
             int lastProperty = 0;
+//            for (Map.Entry<VarDecl, Integer> trueOutput : orderedTrueMap.entrySet()) {
             for (int i = 1; i <= fnodes.size(); i++) {
 //                List<VarDecl> factorIds = realizabilityOutputs;
                 List<VarDecl> factorIds = new ArrayList<>();
-                List<VarDecl> univIds = new ArrayList<>();
+                List<VarDecl> uncomputedIds = new ArrayList<>();
+
+//                for (Map.Entry<VarDecl, Integer> entry : orderedMap.entrySet()) {
+//                    if (entry.getValue() < i) {
+//                        continue;
+//                    } else if (entry.getValue() == i) {
+//                        factorIds.add(entry.getKey());
+//                    } else {
+//                        uncomputedIds.add(entry.getKey());
+//                    }
+//                }
 
                 for (Map.Entry<VarDecl, Integer> entry : orderedMap.entrySet()) {
-                    if (entry.getValue() < i) {
-                        continue;
-                    } else if (entry.getValue() == i) {
+                    if (entry.getValue() <= i && entry.getValue() > lastProperty) {
+//                    if (entry.getValue() <= trueOutput.getValue() && entry.getValue() > lastProperty) {
+//                            && !locIds.contains(entry.getKey().id)) {
                         factorIds.add(entry.getKey());
+                    } else if (entry.getValue() <= lastProperty) {
+                        continue;
                     } else {
-                        break;
+//                        if (!locIds.contains(entry.getKey().id)) {
+                            uncomputedIds.add(entry.getKey());
+//                        }
                     }
                 }
 
                 if (!factorIds.isEmpty()) {
                     factorCounter++;
-                    System.out.println("Outputs for property #" + (i) + " : " + factorIds);
+                    System.out.println("Outputs for property #" + i + " : " + factorIds);
+//                    System.out.println("Outputs for property #" + (trueOutput.getValue()) + " : " + factorIds);
+                    System.out.println("Uncomputed outputs : " + uncomputedIds);
 //                    for (Map.Entry<VarDecl, Integer> entry : orderedMap.entrySet()) {
 //                        if (entry.getValue() < i) {
 //                            factorIds.add(entry.getKey());
 //                        }
 //                    }
                     List<String> propsublist = spec.node.properties.subList(lastProperty, i);
+//                    List<String> propsublist = spec.node.properties.subList(lastProperty, trueOutput.getValue());
                     Node factoredNode = new NodeBuilder(spec.node).clearProperties().addProperties(propsublist).build();
                     factoredNode = LustreSlicer.slice(factoredNode, spec.dependencyMap);
                     Specification factoredNodeSpec = new Specification(factoredNode);
 
+                    List<String> visitedpropsublist = spec.node.properties.subList(0, i);
+//                    List<String> visitedpropsublist = spec.node.properties.subList(0, trueOutput.getValue());
+                    Node visitedFactorsNode = new NodeBuilder(spec.node).clearProperties().addProperties(visitedpropsublist).build();
+                    visitedFactorsNode = LustreSlicer.slice(visitedFactorsNode, spec.dependencyMap);
+                    Specification visitedFactorsNodeSpec = new Specification(visitedFactorsNode);
+
                     try {
-                        RealizabilityFixpointSubEngine factoredEngine = new RealizabilityFixpointSubEngine(spec, factoredNodeSpec,
-//                                settings, director, false, region, factorPrecondition, factorIds);
-                                settings, director, true, maximalsubset, region, factorPrecondition, factorIds);
+                        RealizabilityFixpointSubEngine factoredEngine = new RealizabilityFixpointSubEngine(visitedFactorsNodeSpec, factoredNodeSpec,
+//                        RealizabilityFixpointSubEngine factoredEngine = new RealizabilityFixpointSubEngine(spec, factoredNodeSpec,
+                                settings, director, true, region, factorPrecondition, factorIds, uncomputedIds);
+//                                settings, director, true, maximalsubset, region, factorPrecondition, factorIds);
                         Thread factorThread = new Thread(factoredEngine);
                         factorThread.start();
                         factorThread.join();
-                        maximalsubset = factoredEngine.getMaximalSubsetFlag();
-                        System.out.println(maximalsubset);
+//                        maximalsubset = factoredEngine.getMaximalSubsetFlag();
+
                         if (region != null) {
                             region = new RefinedRegion(factoredEngine.getFixpointRegion());
+//                            region = new RefinedRegion("(assert (and " + solver.simplify(factoredEngine.getFixpointRegion(),region.getRefinedRegion(), null) + " true))");
 //                            System.out.println(region.getRefinedRegion());
                             if (region.getRefinedRegion().equals("Empty")) {
                                 sendUnrealizable(0);
@@ -165,11 +217,19 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                     } catch (InterruptedException ie) {
 
                     }
-                    lastProperty =i;
+                    lastProperty = i;
+//                    lastProperty = trueOutput.getValue();
                 } else {
                     continue;
                 }
             }
+//            if (!region.getRefinedRegion().equals("true")) {
+//                this.region = region;
+//            }
+//            for (int k = 0; k < settings.n; k++) {
+//                comment("K = " + (k + 1));
+//                checkRealizable(k);
+//            }
             String implementation = "";
             for (String skolem : skolems) {
                 implementation = implementation + skolem;
@@ -311,7 +371,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         createQueryVariables(aesolver, region, k);
         System.out.println(spec.node.properties + "main frame" + k);
         AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
-            StreamIndex.conjoinEncodings(spec.node.properties, 2), true);
+            StreamIndex.conjoinEncodings(spec.node.properties, 2), true, settings.compact);
         if (aeresult instanceof ValidResult) {
             System.out.println(spec.node.properties + " : valid, frame" + k);
 
@@ -328,7 +388,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             } else {
                 String negatedsimplified = "(assert (and " + solver.simplify("(assert (not" + result + ")", null, null) + " true))";
                 ValidSubset negatedsubset = new ValidSubset(negatedsimplified);
-
+                // Jan 16, 2019 trying ptaas_r without simplifications
+//                String negate = "(assert (not" + result +")";
+//                ValidSubset negatedsubset = new ValidSubset(negate);
                 if (settings.fixpoint_T) {
                     refineRegion(k, negatedsubset, true);
                 } else {
@@ -358,6 +420,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             } else {
                 if (region != null) {
                     if (negate) {
+                        //Without simplification
+//                        simplified = "(assert (and\n" + "(not" + result +
+//                                region.getRefinedRegion().replace("(assert ", "") + ")";
                         simplified = "(assert (and\n" + solver.simplify(region.getRefinedRegion(),
                                 "(assert (not" + result + ")", null) + " true))";
                     } else {
@@ -366,6 +431,8 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                     }
                 } else {
                     if (negate) {
+                        //Without simplification
+//                        simplified = "(assert (not" + result + ")";
                         simplified = "(assert (and\n" + solver.simplify(null,
                                 "(assert (not" + result + ")", null) + " true))";
                     } else {
@@ -383,8 +450,8 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
     protected void createSubQueryVariablesAndAssertions(AevalSolver aesolver, ValidSubset subset, int k) {
 
+//        aesolver.defineTVar(spec.getRefinementFixpointTransitionRelation(), true);
         aesolver.defineTVar(spec.getFixpointTransitionRelation(), true);
-
 
         if (settings.scratch) {
             aesolver.scratch.println("; Universally quantified variables");
@@ -499,6 +566,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
         aesolver.defineSVar(spec.getFixpointTransitionRelation());
         aesolver.defineTVar(spec.getFixpointTransitionRelation(), false);
+//        aesolver.defineTVar(spec.getRefinementFixpointTransitionRelation(), false);
 
 
         if (settings.scratch) {

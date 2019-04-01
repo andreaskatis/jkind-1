@@ -44,4 +44,9 @@ public class Specification {
 		transitionRelation = Lustre2Sexp.constructFixpointTransitionRelation(node);
 		return transitionRelation;
 	}
+
+    public Relation getRefinementFixpointTransitionRelation() {
+        transitionRelation = Lustre2Sexp.constructRefinementFixpointTransitionRelation(node);
+        return transitionRelation;
+    }
 }
