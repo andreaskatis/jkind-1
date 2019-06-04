@@ -6,8 +6,10 @@ import java.util.List;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
+import jkind.SolverOption;
 import jkind.aeval.*;
 import jkind.engines.StopException;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.InconsistentMessage;
 import jkind.realizability.engines.messages.Message;
@@ -87,18 +89,20 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 	}
 
 	private void checkRealizable(int k) {
-		if (settings.synthesis) {
+		if (settings.solver == JRealizabilitySolverOption.AEVAL) {
 			aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
-//			aecomment("; K = " +  k);
 			aecomment("; K = " + (k + 1));
 			createAevalVariables(aesolver, k, name);
 			aesolver.assertSPart(getTransition(k, k == 0));
 			// assert input and state to ensure
 			AevalResult aeresult = aesolver.realizabilityQuery(getAevalTransition(k, k == 0),
-					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), true, settings.compact);
+					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), settings.synthesis, settings.nondet,
+                    settings.compact, settings.allinclusive);
 			if (aeresult instanceof ValidResult) {
 				sendBaseStep(k);
-				director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));
+                if (settings.synthesis) {
+                    director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));
+                }
 			} else if (aeresult instanceof InvalidResult){
 				sendUnrealizable(k);
 			} else {

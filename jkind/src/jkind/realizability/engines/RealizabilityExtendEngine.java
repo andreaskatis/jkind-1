@@ -2,10 +2,12 @@ package jkind.realizability.engines;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
+import jkind.SolverOption;
 import jkind.aeval.*;
 import jkind.engines.StopException;
 import jkind.lustre.NamedType;
 import jkind.lustre.VarDecl;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.solvers.Model;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
@@ -92,7 +94,7 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 	}
 
 	private void checkRealizabilities(int k) {
-		if (settings.synthesis) {
+		if (settings.solver == JRealizabilitySolverOption.AEVAL) {
 
 			//Existential variables need different
 			//naming due to AE-VAL's different variable
@@ -105,9 +107,12 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			createAevalVariables(aesolver, k, name);
 			aesolver.assertSPart(getInductiveTransition(k));
 			AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(k),
-					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), true, settings.compact);
+					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), settings.synthesis, settings.nondet,
+                    settings.compact, settings.allinclusive);
 			if (aeresult instanceof ValidResult) {
-				director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
+                if (settings.synthesis) {
+                    director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
+                }
 				sendRealizable(k);
 				throw new StopException();
 			} else if (aeresult instanceof InvalidResult) {

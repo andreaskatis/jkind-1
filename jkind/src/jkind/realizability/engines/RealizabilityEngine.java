@@ -10,11 +10,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
+import jkind.SolverOption;
 import jkind.analysis.LinearChecker;
 import jkind.lustre.Expr;
 import jkind.lustre.LustreUtil;
 import jkind.lustre.NamedType;
 import jkind.lustre.VarDecl;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.realizability.engines.messages.Message;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
@@ -83,7 +85,7 @@ public abstract class RealizabilityEngine implements Runnable {
 		solver.define(spec.getTransitionRelation());
 //        solver.define(spec.getRefinementFixpointTransitionRelation());
 
-        if(settings.fixpoint || settings.fixpoint_T) {
+        if(settings.fixpoint) {
             solver.define(new VarDecl(INIT.str, NamedType.BOOL));
             List<VarDecl> dummyoutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
             List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls());
@@ -373,7 +375,7 @@ public abstract class RealizabilityEngine implements Runnable {
 	}
 
 	private PrintWriter getaevalScratch( ) {
-		if (settings.scratch && (settings.synthesis || settings.fixpoint || settings.fixpoint_T)) {
+		if (settings.scratch && (settings.solver == JRealizabilitySolverOption.AEVAL)) {
 
 			String filename = settings.filename + ".aeval" + "." + name + ".smt2";
 			try {

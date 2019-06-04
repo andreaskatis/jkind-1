@@ -13,6 +13,7 @@ import jkind.JRealizabilitySettings;
 import jkind.Main;
 import jkind.Output;
 import jkind.aeval.SkolemFunction;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
 import jkind.realizability.engines.messages.InconsistentMessage;
@@ -65,13 +66,13 @@ public class RealizabilityDirector {
 			if (settings.excel) {
 				return new ExcelWriter(settings.filename + ".xls", spec.node);
 			} else if (settings.xml) {
-				if (settings.synthesis) {
-					return new XmlWriter(settings.filename + "_jsyn.xml", spec.typeMap);
-				} else if (settings.fixpoint || settings.fixpoint_T) {
-					return new XmlWriter(settings.filename + "_jfixpoint.xml", spec.typeMap);
-				} else {
+//				if (settings.synthesis && !settings.fixpoint) {
+//					return new XmlWriter(settings.filename + "_jsyn.xml", spec.typeMap);
+//				} else if (settings.fixpoint || settings.fixpoint_T) {
+//					return new XmlWriter(settings.filename + "_jsynvg.xml", spec.typeMap);
+//				} else {
 					return new XmlWriter(settings.filename + ".xml", spec.typeMap);
-				}
+//				}
 			} else {
 				return new ConsoleWriter(new RealizabilityNodeLayout(spec.node));
 			}
@@ -81,7 +82,7 @@ public class RealizabilityDirector {
 	}
 
 	private PrintWriter getImplementationWriter() {
-		if (settings.synthesis || settings.fixpoint || settings.fixpoint_T) {
+		if (settings.synthesis) {
 			String filename = settings.filename.split("\\.")[0] + "_skolem.smt2";
 			try {
 				return new PrintWriter(new FileOutputStream(filename), true);
@@ -180,11 +181,11 @@ public class RealizabilityDirector {
 		}
         processMessages(startTime);
 		if (settings.synthesis) {
-			writeImplementation(k,baseImplementation,extendImplementation);
-		}
-
-		if (settings.fixpoint || settings.fixpoint_T) {
-			writeFixpointImplementation(fixpointImplementation);
+            if (settings.fixpoint) {
+                writeFixpointImplementation(fixpointImplementation);
+            } else {
+                writeImplementation(k, baseImplementation, extendImplementation);
+            }
 		}
 
 		if (!done) {
@@ -237,7 +238,7 @@ public class RealizabilityDirector {
 
 	private void startThreads() {
 
-		if (settings.fixpoint || settings.fixpoint_T) {
+		if (settings.fixpoint) {
 			RealizabilityFixpointEngine fixpointEngine = new RealizabilityFixpointEngine(spec, settings, this);
 			registerProcess(fixpointEngine);
 		} else {
@@ -269,7 +270,7 @@ public class RealizabilityDirector {
 				RealizableMessage rm = (RealizableMessage) message;
 				done = true;
 				k = rm.k;
-                if(settings.fixpoint || settings.fixpoint_T) {
+                if(settings.fixpoint) {
                     writer.writeFixpointRealizable(rm.k, runtime);
                 } else {
                     writer.writeRealizable(rm.k, runtime);
@@ -277,11 +278,9 @@ public class RealizabilityDirector {
 			} else if (message instanceof UnrealizableMessage) {
 				UnrealizableMessage um = (UnrealizableMessage) message;
 				done = true;
-				if (settings.fixpoint || settings.fixpoint_T) {
+				if (settings.solver == JRealizabilitySolverOption.AEVAL) {
 					writer.writeFixpointUnrealizable(um.k, um.properties, runtime);
-				} else if (settings.synthesis) {
-                    writer.writeUnrealizable(um.k, um.properties, runtime);
-                } else {
+				} else {
 					Model sliced = slice(um.model, um.properties);
 					Counterexample cex = extractCounterexample(um.k, sliced);
 					writer.writeUnrealizable(cex, um.properties, runtime);

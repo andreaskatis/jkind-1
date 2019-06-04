@@ -123,7 +123,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
             createQueryVariables(aesolver, region, k, skolemize);
 
             AevalResult aeresult;
-            aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0), StreamIndex.conjoinEncodings(factorSpec.node.properties, 2), skolemize, settings.compact);
+            aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0), StreamIndex.conjoinEncodings(factorSpec.node.properties, 2), settings.synthesis, settings.nondet, settings.compact, settings.allinclusive);
 //        aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0), StreamIndex.conjoinEncodings(factorSpec.node.properties, 2), false);
             if (aeresult instanceof ValidResult) {
                     System.out.println(factorSpec.node.properties + " : valid");

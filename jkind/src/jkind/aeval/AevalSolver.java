@@ -36,10 +36,10 @@ public class AevalSolver extends AevalProcess{
         super(scratchBase, check);
         this.check = check;
         this.scratch = scratch;
-        SFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_s_part.smt2");
-        TFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_t_part.smt2");
-        try {
 
+        try {
+            SFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_s_part.smt2");
+            TFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_t_part.smt2");
             SFileStream = new FileOutputStream(SFile);
             TFileStream = new FileOutputStream(TFile);
 
@@ -49,6 +49,7 @@ public class AevalSolver extends AevalProcess{
                     new OutputStreamWriter(TFileStream, "utf-8"));
         } catch (IOException ex) {
             throw new JKindException("Unable to open file", ex);
+        } catch (NullPointerException ne) {
         }
     }
 
@@ -203,7 +204,8 @@ public class AevalSolver extends AevalProcess{
         return new Cons(args);
     }
 
-    public AevalResult realizabilityQuery(Sexp transition, Sexp properties, boolean generateSkolem, boolean compactImpls) {
+    public AevalResult realizabilityQuery(Sexp transition, Sexp properties, boolean generateSkolem,
+                                          boolean nondet, boolean compaction, boolean allinclusive) {
         AevalResult result;
 
         Sexp query = new Cons("assert", new Cons("and", transition, properties));
@@ -213,14 +215,14 @@ public class AevalSolver extends AevalProcess{
             scratch.println("; Assertion for Transition Relation - existential part of the formula");
         }
         sendTPart(query, true);
-        callAeval(check, generateSkolem, compactImpls);
+        callAeval(check, generateSkolem, nondet, compaction, allinclusive);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             if (status.contains("WARNING: Skolem can be arbitrary\n")) {
                 result = new UnknownResult();
             } else {
-                String[] extracted = status.split("Sanity check: .\\n");
-//                String[] extracted = status.split("extracted skolem:");
+//                String[] extracted = status.split("Sanity check: .\\n");
+                String[] extracted = status.split("extracted skolem:");
                 SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
                 result = new ValidResult(skolem);
             }
@@ -242,7 +244,7 @@ public class AevalSolver extends AevalProcess{
 
     public AevalResult refinementQuery() {
         AevalResult result;
-        callAeval(check, false, false);
+        callAeval(check, false, false, false, false);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             String[] extracted = status.split("extracted skolem:");

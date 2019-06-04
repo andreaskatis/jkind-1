@@ -26,8 +26,9 @@ public abstract class AevalProcess {
         this.scratchBase = scratchBase;
     }
 
-    protected void callAeval(String check, boolean generateSkolem, boolean compactImpls) {
-        ProcessBuilder processBuilder = new ProcessBuilder(getCommand(check, generateSkolem, compactImpls, this.scratchBase));
+    protected void callAeval(String check, boolean generateSkolem, boolean nondet, boolean compaction, boolean allinclusive) {
+        ProcessBuilder processBuilder = new ProcessBuilder(getCommand(check, generateSkolem, nondet,
+                compaction, allinclusive, this.scratchBase));
         processBuilder.redirectErrorStream(true);
         try {
             process = processBuilder.start();
@@ -42,16 +43,25 @@ public abstract class AevalProcess {
 
 
 
-    private List<String> getCommand(String check, boolean generateSkolem, boolean compactImpls, String scratchBase) {
+    private List<String> getCommand(String check, boolean generateSkolem, boolean nondet,
+                                    boolean compaction, boolean allinclusive, String scratchBase) {
         List<String> command = new ArrayList<>();
         command.add(getPath());
         if (generateSkolem) {
-            command.add("--debug");
+//            command.add("--debug");
             command.add("--skol");
         }
-        if (compactImpls) {
-            command.add("--compact");
+        if (nondet) {
+            command.add("--nondet");
         }
+        if (compaction) {
+            command.add("--compaction");
+        }
+
+        if (allinclusive) {
+            command.add("--all-inclusive");
+        }
+
         command.addAll(getArgs(check, scratchBase));
         return command;
     }

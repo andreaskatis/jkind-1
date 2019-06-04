@@ -1,5 +1,7 @@
 package jkind;
 
+import jkind.realizability.JRealizabilitySolverOption;
+
 public class JRealizabilitySettings extends Settings {
 	public int n = 200;
 	public int timeout = 100;
@@ -10,6 +12,8 @@ public class JRealizabilitySettings extends Settings {
 	public boolean scratch = false;
 	public boolean synthesis = false;
 	public boolean fixpoint = false;
-	public boolean fixpoint_T = false;
     public boolean compact = false;
+    public boolean allinclusive = false;
+    public JRealizabilitySolverOption solver = JRealizabilitySolverOption.Z3;
+    public boolean nondet = false;
 }
