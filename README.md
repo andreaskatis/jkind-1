@@ -1,10 +1,11 @@
 JRealizability
 =====
 
-Forked repository of the <a href="https://github.com/agacek/jkind">JKind</a> model checker, with added support for realizability checking and synthesis of reactive implementations.
+Forked repository of the <a href="https://github.com/agacek/jkind">JKind</a> model checker, with added support for realizability checking and synthesis of reactive implementations. May or may not be up-to-date with the latest version of JKind.
 
 Use the <a href="https://github.com/andrewkatis/jkind-1/releases">releases</a> page to download a pre-built binary.
 
+If you would like to translate synthesized implementations into C/Lustre, you can use the <a href="https://github.com/andrewkatis/SMTLib2C">SMTLIB2C</a> translation tool.
 
 Usage
 =====
