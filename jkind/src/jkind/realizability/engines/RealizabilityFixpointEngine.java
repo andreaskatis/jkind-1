@@ -1,16 +1,20 @@
 package jkind.realizability.engines;
 
-import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.aeval.*;
 import jkind.engines.StopException;
 import jkind.lustre.*;
 import jkind.lustre.builders.NodeBuilder;
 import jkind.realizability.engines.fixpoint.RefinedRegion;
+import jkind.realizability.engines.messages.InconsistentMessage;
 import jkind.realizability.engines.messages.RealizableMessage;
 import jkind.realizability.engines.messages.UnknownMessage;
 import jkind.realizability.engines.messages.UnrealizableMessage;
+import jkind.sexp.Sexp;
+import jkind.sexp.Symbol;
 import jkind.slicing.LustreSlicer;
+import jkind.solvers.Result;
+import jkind.solvers.UnsatResult;
 import jkind.translation.Lustre2Sexp;
 import jkind.translation.Specification;
 import jkind.util.StreamIndex;
@@ -39,12 +43,25 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 //            } else {
                 for (int k = 0; k < settings.n; k++) {
                     comment("K = " + (k + 1));
-                    //checkConsistency(k);
+                    if (k == 0) {
+                        checkConsistency(k);
+                    }
                     checkRealizable(k);
                 }
 //            }
         } catch (StopException se) {
         }
+    }
+
+    private void checkConsistency(int k) {
+        solver.push();
+        solver.assertSexp(getAevalTransition(0, Sexp.fromBoolean(k == 0)));
+        Result result = solver.query(new Symbol("false"));
+        if (result instanceof UnsatResult) {
+            sendInconsistent(k);
+            throw new StopException();
+        }
+        solver.pop();
     }
 
     private void factorizeandcheckRealizable() {
@@ -490,6 +507,11 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
         }
         return converted;
+    }
+
+    private void sendInconsistent(int k) {
+        InconsistentMessage im = new InconsistentMessage(k + 1);
+        director.incoming.add(im);
     }
 
     private void sendRealizable(int k) {

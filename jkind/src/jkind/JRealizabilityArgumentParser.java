@@ -24,7 +24,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 	private static final String SYNTHESIS = "synthesis";
 	private static final String FIXPOINT = "fixpoint";
     private static final String COMPACT = "compact";
-    private static final String ALLINCLUSIVE = "all-inclusive";
+    private static final String ALLINCLUSIVE = "allinclusive";
     private static final String SOLVER = "solver";
     private static final String NONDET = "nondet";
 
@@ -74,7 +74,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		super.parseCommandLine(line);
 
 		ensureExclusive(line, EXCEL, XML);
-
+        ensureExclusive(line, FIXPOINT, SOLVER);
 		if (line.hasOption(EXCEL)) {
 			settings.excel = true;
 		}
