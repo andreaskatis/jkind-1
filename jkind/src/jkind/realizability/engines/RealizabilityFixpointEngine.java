@@ -55,7 +55,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
     private void checkConsistency(int k) {
         solver.push();
-        solver.assertSexp(getAevalTransition(0, Sexp.fromBoolean(k == 0)));
+        solver.assertSexp(getTransition(0, Sexp.fromBoolean(k == 0)));
         Result result = solver.query(new Symbol("false"));
         if (result instanceof UnsatResult) {
             sendInconsistent(k);

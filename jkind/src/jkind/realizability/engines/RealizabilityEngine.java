@@ -269,11 +269,25 @@ public abstract class RealizabilityEngine implements Runnable {
 		return result;
 	}
 
-    protected List<VarDecl> getAbstractOffsetVarDecls(int k, List<VarDecl> varDecls) {
+    protected List<VarDecl> getAevalOffsetVarDecls(int k, List<VarDecl> varDecls, List<VarDecl> inputDecls, List<VarDecl> outputDecls) {
         List<VarDecl> result = new ArrayList<>();
+        List<String> inputNames = new ArrayList<>();
+        List<String> outputNames = new ArrayList<>();
+        for (VarDecl vd : inputDecls) {
+            inputNames.add(vd.id);
+        }
+        for (VarDecl vd : outputDecls) {
+            outputNames.add(vd.id);
+        }
         for (VarDecl vd : varDecls) {
-            StreamIndex si = new StreamIndex(vd.id+"-", k);
-            result.add(new VarDecl(si.getEncoded().str, vd.type));
+            StreamIndex si;
+            if (inputNames.contains(vd.id)) {
+                si = new StreamIndex(vd.id, k);
+                result.add(new VarDecl(si.getEncoded().str, vd.type));
+            } else {
+                si = new StreamIndex(vd.id, k + 2);
+                result.add(new VarDecl(si.getEncoded().str, vd.type));
+            }
         }
         return result;
     }
@@ -294,10 +308,15 @@ public abstract class RealizabilityEngine implements Runnable {
 		List<Sexp> args = new ArrayList<>();
 		args.add(init);
 		args.addAll(getSymbols(getOffsetVarDecls(k - 1)));
-		args.addAll(getSymbols(getOffsetVarDecls(k,
-				getRealizabilityInputVarDecls())));
-		args.addAll(getSymbols(getOffsetVarDecls(k+2,
-				getRealizabilityOutputVarDecls())));
+        if (settings.fixpoint) {
+            args.addAll(getSymbols(getAevalOffsetVarDecls(0, Util.getVarDecls(spec.node), getRealizabilityInputVarDecls(), getRealizabilityOutputVarDecls())));
+        } else {
+            args.addAll(getSymbols(getAevalOffsetVarDecls(k, Util.getVarDecls(spec.node), getRealizabilityInputVarDecls(), getRealizabilityOutputVarDecls())));
+        }
+//		args.addAll(getSymbols(getOffsetVarDecls(k,
+//				getRealizabilityInputVarDecls())));
+//		args.addAll(getSymbols(getOffsetVarDecls(k+2,
+//				getRealizabilityOutputVarDecls())));
 		return new Cons(spec.getTransitionRelation().getName(), args);
 	}
 
