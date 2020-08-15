@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="jkind:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/jkind_jar</output-path>
+    <root id="archive" name="jkind.jar">
+      <element id="module-output" name="jkind" />
+      <element id="module-output" name="jkind-common" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind-common/dependencies/antlr-4.4-complete.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind-common/dependencies/jxl.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind-common/dependencies/antlr-runtime-4.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind/dependencies/commons-cli-1.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind/dependencies/smtinterpol.jar" path-in-jar="/" />
+      <element id="library" level="project" name="dependencies" />
+      <element id="library" level="project" name="dependencies1" />
+    </root>
+  </artifact>
+</component>

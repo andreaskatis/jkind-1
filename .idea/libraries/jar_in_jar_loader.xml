@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="jar-in-jar-loader">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/build/jar-in-jar-loader.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

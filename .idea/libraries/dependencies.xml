@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="dependencies">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/jkind-common/dependencies/antlr-4.4-complete.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jkind-common/dependencies/jxl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/jkind-common/dependencies/antlr-runtime-4.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
