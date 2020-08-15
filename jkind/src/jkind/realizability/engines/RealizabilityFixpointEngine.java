@@ -214,7 +214,11 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             if (settings.synthesis) {
                 director.fixpointImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
             }
-            sendRealizable(k);
+            if (checkInitialStates()) {
+                sendRealizable(k);
+            } else {
+                sendUnrealizable(k);
+            }
             throw new StopException();
         } else if (aeresult instanceof InvalidResult) {
 //            System.out.println(spec.node.properties + " : invalid, frame" + k);
@@ -236,6 +240,15 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             throw new StopException();
         }
 
+    }
+
+    private boolean checkInitialStates() {
+        if (region != null) {
+            return solver.initialStatesQuery(getAevalTransition(0, true),
+                    StreamIndex.conjoinEncodings(spec.node.properties, 2), region.getRefinedRegion(),
+                    convertOutputsToNextStep(region.getRefinedRegion(), -1, getOffsetVarDecls(-1, getRealizabilityOutputVarDecls()), false));
+        }
+        return true;
     }
 
     private void refineRegion(int k, ValidSubset subset, boolean negate) {
@@ -364,11 +377,11 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
         aesolver.sendSubsetTPart(subset.getValidSubset());
 
-
-        if (region != null) {
-            aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(region.getRefinedRegion(), -1,
-                    preoutvars, true));
-        }
+        //Aug. 9 : Disabling this assertion because of wrong result on Infusion_manager for FRET
+//        if (region != null) {
+//            aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(region.getRefinedRegion(), -1,
+//                    preoutvars, true));
+//        }
     }
 
     protected void createQueryVariables(AevalSolver aesolver, RefinedRegion region, int k) {
@@ -456,10 +469,11 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             aesolver.sendBlockedRegionSPart(region.getRefinedRegion());
         }
 
-        if (region != null) {
-            aesolver.sendBlockedRegionSPart(convertOutputsToNextStep(region.getRefinedRegion(), -1,
-                    preoutvars, true));
-        }
+        //Aug. 9 : Disabling this assertion because of wrong result on Infusion_manager for FRET
+//        if (region != null) {
+//            aesolver.sendBlockedRegionSPart(convertOutputsToNextStep(region.getRefinedRegion(), -1,
+//                    preoutvars, true));
+//        }
 
         if (settings.scratch) {
             aesolver.scratch.println("; Constraints for existential part of the formula");

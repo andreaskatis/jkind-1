@@ -301,7 +301,7 @@ public class AevalSolver extends AevalProcess{
                 } else if (line.contains("(check-sat)") || line.startsWith(".subst:") || line.startsWith("subst:") || line.startsWith(".model:")
                 || line.startsWith("model:") || line.startsWith("compiling skolem")) {
                     continue;
-                } else if (line.startsWith("Iter:")) {
+                } else if (line.contains("Result:")) {
                     result = true;
                     content.append(line);
                     content.append("\n");

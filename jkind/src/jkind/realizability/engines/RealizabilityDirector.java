@@ -179,6 +179,7 @@ public class RealizabilityDirector {
 			} catch (InterruptedException e) {
 			}
 		}
+
         processMessages(startTime);
 		if (settings.synthesis) {
             if (settings.fixpoint) {
@@ -253,8 +254,8 @@ public class RealizabilityDirector {
 		}
 
 		for (Thread thread : threads) {
-			thread.start();
-		}
+            thread.start();
+        }
 	}
 
 	private void registerProcess(RealizabilityEngine process) {

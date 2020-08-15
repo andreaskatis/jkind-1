@@ -175,6 +175,21 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
         }
     }
 
+    public boolean initialStatesQuery(Sexp transition, Sexp properties, String preRegion, String postRegion) {
+        boolean sat = false;
+        Sexp transitionAssert = new Cons("and", transition, properties);
+        assertSexp(transitionAssert);
+        send(preRegion);
+        send(postRegion);
+        send("(check-sat)");
+        String status = readFromSolver();
+        if (isSat(status)) {
+            sat = true;
+        }
+        pop();
+        return sat;
+    }
+
     public String simplify(List<String> regions) {
         push();
         for (String region : regions) {
