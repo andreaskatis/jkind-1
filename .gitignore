@@ -1,5 +1,4 @@
 bin
-*.xml
 *.yc
 *.smt2
 *.xls
