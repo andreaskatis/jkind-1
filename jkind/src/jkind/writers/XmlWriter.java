@@ -22,7 +22,9 @@ public class XmlWriter extends Writer {
 	private final PrintWriter out;
 	private final Map<String, Type> types;
 
+
 	public XmlWriter(String filename, Map<String, Type> types, boolean useStdout) throws FileNotFoundException {
+
 		if (useStdout) {
 			this.out = new PrintWriter(System.out, true);
 		} else {
@@ -54,6 +56,7 @@ public class XmlWriter extends Writer {
 
 	public void writeValid(String prop, String source, int k, double runtime, List<Expr> invariants, Set<String> ivc,
 			List<AllIVCs> allIvcs) {
+
 		out.println("  <Property name=\"" + prop + "\">");
 		out.println("    <Runtime unit=\"sec\">" + runtime + "</Runtime>");
 		out.println("    <Answer source=\"" + source + "\">valid</Answer>");
@@ -103,12 +106,14 @@ public class XmlWriter extends Writer {
 		return invariant.toString().replace("<", "&lt;").replace(">", "&gt;");
 	}
 
+
 	private String escape(String invariant) {
 		return invariant.replace("<", "&lt;").replace(">", "&gt;");
 	}
 
 	@Override
 	public void writeInvalid(String prop, String source, Counterexample cex, List<String> conflicts, double runtime) {
+
 		out.println("  <Property name=\"" + prop + "\">");
 		out.println("    <Runtime unit=\"sec\">" + runtime + "</Runtime>");
 		out.println("    <Answer source=\"" + source + "\">falsifiable</Answer>");
@@ -149,6 +154,7 @@ public class XmlWriter extends Writer {
 		for (Signal<Value> signal : cex.getSignals()) {
 			writeSignal(cex.getLength(), signal);
 		}
+
 		for (FunctionTable fn : cex.getFunctionTables()) {
 			writeFunction(fn);
 		}
@@ -176,12 +182,14 @@ public class XmlWriter extends Writer {
 		out.println("      </Function>");
 	}
 
+
 	private void writeSignal(int k, Signal<Value> signal) {
 		String name = signal.getName();
 		Type type = types.get(name);
 		out.println("      <Signal name=\"" + name + "\" type=\"" + type + "\">");
 		for (int i = 0; i < k; i++) {
 			Value value = signal.getValue(i);
+
 			if (value != null) {
 				out.println("        <Value time=\"" + i + "\">" + formatValue(value) + "</Value>");
 			}

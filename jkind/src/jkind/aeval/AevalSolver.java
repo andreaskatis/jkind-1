@@ -23,62 +23,44 @@ import org.antlr.v4.runtime.RecognitionException;
 public class AevalSolver extends AevalProcess{
     protected BufferedWriter toSPart;
     protected BufferedWriter toTPart;
-    protected BufferedWriter toGuards;
-    protected BufferedWriter toSkolvars;
 
     protected FileOutputStream SFileStream;
     protected FileOutputStream TFileStream;
-    protected FileOutputStream GuardsFileStream;
-    protected FileOutputStream SkolvarsFileStream;
 
     protected File SFile;
     protected File TFile;
-    protected File GuardsFile;
-    protected File SkolvarsFile;
     protected String check;
-    protected PrintWriter scratch;
+    public PrintWriter scratch;
 
     public AevalSolver(String scratchBase, String check, PrintWriter scratch) {
         super(scratchBase, check);
         this.check = check;
         this.scratch = scratch;
-        SFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_s_part.smt2");
-        TFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_t_part.smt2");
-        GuardsFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_guards_vars.smt2");
-        SkolvarsFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_skol_vars.smt2");
-        try {
 
+        try {
+            SFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_s_part.smt2");
+            TFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_t_part.smt2");
             SFileStream = new FileOutputStream(SFile);
             TFileStream = new FileOutputStream(TFile);
-            GuardsFileStream = new FileOutputStream(GuardsFile);
-            SkolvarsFileStream = new FileOutputStream(SkolvarsFile);
 
             toSPart = new BufferedWriter(
                     new OutputStreamWriter(SFileStream, "utf-8"));
             toTPart = new BufferedWriter(
                     new OutputStreamWriter(TFileStream, "utf-8"));
-            toGuards = new BufferedWriter(
-                    new OutputStreamWriter(GuardsFileStream, "utf-8"));
-            toSkolvars = new BufferedWriter(
-                    new OutputStreamWriter(SkolvarsFileStream, "utf-8"));
         } catch (IOException ex) {
             throw new JKindException("Unable to open file", ex);
+        } catch (NullPointerException ne) {
         }
     }
 
     public void deleteFiles() {
+        //Does not delete all files in a consistent manner.
         try {
             SFileStream.close();
             SFile.delete();
 
             TFileStream.close();
             TFile.delete();
-
-            GuardsFileStream.close();
-            GuardsFile.delete();
-
-            SkolvarsFileStream.close();
-            SkolvarsFile.delete();
         } catch (IOException e) {
             throw new JKindException("Could not delete AE-VAL files");
         }
@@ -103,9 +85,13 @@ public class AevalSolver extends AevalProcess{
         }
     }
 
-    protected void sendTPart(Sexp sexp) {
+    public void assertTPart(Sexp sexp, boolean scr) {
+        sendTPart(new Cons("assert", sexp), scr);
+    }
+
+    protected void sendTPart(Sexp sexp, boolean scr) {
         String str = Quoting.quoteSexp(sexp).toString();
-        if(scratch != null) {
+        if(scratch != null && scr) {
             scratch.println(str);
         }
         try {
@@ -118,51 +104,64 @@ public class AevalSolver extends AevalProcess{
         }
     }
 
-    public void assertGuards(Sexp sexp) {
-        String str = Quoting.quoteSexp(sexp).toString();
-        if(scratch != null) {
+    public void sendTPartasString(String str, boolean scr) {
+        if(scratch != null && scr) {
             scratch.println(str);
         }
-        sendGuards(new Cons("assert", sexp));
-    }
 
-    protected void sendGuards(Sexp sexp) {
-        String str = Quoting.quoteSexp(sexp).toString();
-        if(scratch != null) {
-            scratch.println(str);
-        }
         try {
-            toGuards.append(str);
-            toGuards.newLine();
-            toGuards.flush();
+            toTPart.append(str);
+            toTPart.newLine();
+            toTPart.flush();
         } catch (IOException e) {
             throw new JKindException("Unable to write to " + getName() + ", "
                     + "probably due to internal JKind error", e);
         }
     }
 
-    public void assertSkolvars(Sexp sexp) {
-        String str = Quoting.quoteSexp(sexp).toString();
-        if(scratch != null) {
-            scratch.println(str);
-        }
-        sendSkolvars(new Cons("assert", sexp));
-    }
-
-    protected void sendSkolvars(Sexp sexp) {
-        String str = Quoting.quoteSexp(sexp).toString();
-        if(scratch != null) {
+    public void sendBlockedRegionSPart(String str) {
+        if(scratch !=null) {
             scratch.println(str);
         }
         try {
-            toSkolvars.append(str);
-            toSkolvars.newLine();
-            toSkolvars.flush();
+            toSPart.append(str);
+            toSPart.newLine();
+            toSPart.flush();
         } catch (IOException e) {
             throw new JKindException("Unable to write to " + getName() + ", "
                     + "probably due to internal JKind error", e);
         }
     }
+
+    public void sendBlockedRegionTPart(String str) {
+        if(scratch !=null) {
+            scratch.println(str);
+        }
+        try {
+            toTPart.append(str);
+            toTPart.newLine();
+            toTPart.flush();
+        } catch (IOException e) {
+            throw new JKindException("Unable to write to " + getName() + ", "
+                    + "probably due to internal JKind error", e);
+        }
+    }
+
+    public void sendSubsetTPart(String str) {
+        if(scratch !=null) {
+            scratch.println(str);
+        }
+
+        try {
+            toTPart.append(str);
+            toTPart.newLine();
+            toTPart.flush();
+        } catch (IOException e) {
+            throw new JKindException("Unable to write to " + getName() + ", "
+                    + "probably due to internal JKind error", e);
+        }
+    }
+
 
     public Symbol type(Type type) {
         return new Symbol(capitalize(Util.getName(type)));
@@ -177,29 +176,20 @@ public class AevalSolver extends AevalProcess{
         sendSPart(new Cons("declare-fun", new Symbol(decl.id), new Symbol("()"), type(decl.type)));
 
     }
-    public void defineTVar(VarDecl decl) {
+    public void defineTVar(VarDecl decl, boolean scr) {
         varTypes.put(decl.id, decl.type);
-        sendTPart(new Cons("declare-fun", new Symbol(decl.id), new Symbol("()"), type(decl.type)));
+        sendTPart(new Cons("declare-fun", new Symbol(decl.id), new Symbol("()"), type(decl.type)), scr);
     }
 
-    public void defineGuardVar(VarDecl decl) {
-        varTypes.put(decl.id, decl.type);
-        sendGuards(new Cons("declare-fun", new Symbol(decl.id), new Symbol("()"), type(decl.type)));
-    }
-
-    public void defineSkolVar(VarDecl decl) {
-        varTypes.put(decl.id, decl.type);
-        sendSkolvars(new Cons("declare-fun", new Symbol(decl.id), new Symbol("()"), type(decl.type)));
-    }
 
     public void defineSVar(Relation relation) {
         sendSPart(new Cons("define-fun", new Symbol(relation.getName()), inputs(relation.getInputs()),
                 type(NamedType.BOOL), relation.getBody()));
     }
 
-    public void defineTVar(Relation relation) {
+    public void defineTVar(Relation relation, boolean scr) {
         sendTPart(new Cons("define-fun", new Symbol(relation.getName()), inputs(relation.getInputs()),
-                type(NamedType.BOOL), relation.getBody()));
+                type(NamedType.BOOL), relation.getBody()), scr);
     }
 
     private Sexp inputs(List<VarDecl> inputs) {
@@ -210,23 +200,61 @@ public class AevalSolver extends AevalProcess{
         return new Cons(args);
     }
 
-    public AevalResult synthesize(Sexp transition, Sexp properties) {
+    public AevalResult realizabilityQuery(Sexp transition, Sexp properties, boolean generateSkolem,
+                                          boolean nondet, boolean compaction, boolean allinclusive) {
         AevalResult result;
 
         Sexp query = new Cons("assert", new Cons("and", transition, properties));
 
-        sendGuards(new Cons("check-sat"));
-        sendSkolvars(new Cons("check-sat"));
-        sendTPart(query);
-        callAeval(check);
+        if (scratch!=null) {
+            scratch.println("; Assertion for Transition Relation - existential part of the formula");
+        }
+        sendTPart(query, true);
+        callAeval(check, generateSkolem, nondet, compaction, allinclusive);
+        String status = readFromAeval();
+        if (status.contains("Result: valid")) {
+            if (status.contains("WARNING: Skolem can be arbitrary\n")) {
+                result = new UnknownResult();
+            } else {
+                String[] extracted = status.split("extracted skolem:");
+                SkolemFunction skolem = new SkolemFunction(extracted[extracted.length - 1]);
+                result = new ValidResult(skolem);
+            }
+        } else if (status.contains("Result: invalid")){
+            if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations") ||
+                status.contains("(assert false)")) {
+                result = new InvalidResult(new ValidSubset("Empty"));
+            } else {
+                String[] extracted = status.split("assert");
+                ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+                result = new InvalidResult(subset);
+            }
+        } else {
+            result = new UnknownResult();
+        }
+        return result;
+    }
+
+    public AevalResult refinementQuery() {
+        AevalResult result;
+        callAeval(check, false, false, false, false);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             String[] extracted = status.split("extracted skolem:");
-            SkolemRelation skolem = new SkolemRelation(extracted[extracted.length - 1]);
+            SkolemFunction skolem = new SkolemFunction("(declare-fun"+extracted[extracted.length - 1]);
             result = new ValidResult(skolem);
+        } else if (status.contains("Result: invalid")){
+                if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations") ||
+                        status.contains("(assert false)")) {
+                    result = new InvalidResult(new ValidSubset("Empty"));
+                } else {
+                    String[] extracted = status.split("assert");
+                    ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+                    result = new InvalidResult(subset);
+                }
+            //}
         } else {
-            //probably parse valid subset model for pdr refinement here.
-            result = new InvalidResult();
+            result = new UnknownResult();
         }
         return result;
     }
@@ -235,31 +263,63 @@ public class AevalSolver extends AevalProcess{
         try {
             String line;
             StringBuilder content = new StringBuilder();
+            boolean result = false;
             while (true) {
                 line = fromAeval.readLine();
+
+
                 if (line == null) {
                     break;
-                } else if (line.contains("error \"") || line.contains("Error:")) {
+                } else if ((line.contains("error \"") || line.contains("Error:")) && !result) {
+                    if(scratch != null) {
+                        scratch.println(";" + getName() + ": " + line);
+                    }
+                    while ((line = fromAeval.readLine()) != null) {
+                        if(scratch != null) {
+                            scratch.println(";" + getName() + ": " + line);
+                        }
+                        if (isCheckSat(line)) {
+                            break;
+                        }
+                    }
                     throw new JKindException(getName()
-                            + " error (see scratch file for details)");
-                }
-                else {
+                            + " error (see " + SFile + " file for details)");
+                } else if (line.contains("(check-sat)") || line.startsWith(".subst:") || line.startsWith("subst:") || line.startsWith(".model:")
+                || line.startsWith("model:") || line.startsWith("compiling skolem")) {
+                    continue;
+                } else if (line.startsWith("Iter:") || line.startsWith("Result:")) {
+                    result = true;
                     content.append(line);
                     content.append("\n");
+                    if(scratch != null) {
+                        scratch.println(";" + getName() + ": " + line);
+                    }
+                } else if (result) {
+                    content.append(line);
+                    content.append("\n");
+                    if(scratch != null) {
+                        scratch.println(";" + getName() + ": " + line);
+                    }
+                } else if (scratch != null) {
+                    scratch.println(";" + getName() + ": " + line);
                 }
             }
-            deleteFiles();
+            //deleteFiles();
             return content.toString();
         } catch (RecognitionException e) {
             deleteFiles();
             throw new JKindException("Error parsing " + getName() + " output", e);
         } catch (IOException e) {
             deleteFiles();
-            throw new JKindException("Unable to read from " + getName(), e);
+            throw new JKindException("Unable to read from " + getName() + " file :" + check, e);
         }
     }
 
     protected final Map<String, Type> varTypes = new HashMap<>();
+
+    protected boolean isCheckSat(String line) {
+        return line.contains(CHECKSAT);
+    }
 
 }
 

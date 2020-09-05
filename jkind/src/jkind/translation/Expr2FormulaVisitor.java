@@ -34,6 +34,7 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 	private final Map<String, String> enumToInt;
 
 	private final Set<String> refs;
+
 	private final StringBuilder buf;
 
 	final private static int INITIAL_COLUMN = 1;
@@ -45,7 +46,6 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 		this.rowAssignments = rowAssignments;
 		this.intToEnum = intToEnum;
 		this.enumToInt = enumToInt;
-
 		this.refs = new LinkedHashSet<>();
 		this.buf = new StringBuilder();
 	}
@@ -192,8 +192,8 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 	@Override
 	public Void visit(IdExpr e) {
 		int row = rowAssignments.get(e.id);
-
 		String cell = CellReferenceHelper.getCellReference(column, row);
+
 		if (enumToInt.containsKey(e.id)) {
 			buf.append("HLOOKUP(" + cell + "," + enumToInt.get(e.id) + ",2,FALSE)");
 		} else {

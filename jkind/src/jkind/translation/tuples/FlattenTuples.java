@@ -2,6 +2,7 @@ package jkind.translation.tuples;
 
 import jkind.lustre.Program;
 
+
 /**
  * Flatten all tuple expressions via expansion.
  * 

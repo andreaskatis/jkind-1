@@ -8,6 +8,7 @@ import java.util.List;
 
 import jkind.JKindException;
 import jkind.lustre.VarDecl;
+
 import jkind.lustre.values.BooleanValue;
 import jkind.lustre.values.EnumValue;
 import jkind.lustre.values.IntegerValue;
@@ -19,6 +20,7 @@ import jkind.results.FunctionTableRow;
 import jkind.results.Signal;
 import jkind.results.layout.Layout;
 import jkind.util.BigFraction;
+
 import jxl.Workbook;
 import jxl.format.CellFormat;
 import jxl.write.Boolean;
@@ -78,9 +80,11 @@ public class ExcelCounterexampleFormatter implements Closeable {
 		}
 	}
 
+
 	public WritableSheet writeCounterexample(String property, Counterexample cex, List<String> conflicts) {
 		try {
 			sheet = workbook.createSheet(ExcelUtil.trimName(property), workbook.getNumberOfSheets());
+
 			row = 0;
 			ExcelUtil.autosize(sheet, 1);
 
@@ -100,6 +104,7 @@ public class ExcelCounterexampleFormatter implements Closeable {
 				}
 			}
 
+
 			return sheet;
 		} catch (WriteException e) {
 			throw new JKindException("Error writing counterexample to Excel file", e);
@@ -114,8 +119,10 @@ public class ExcelCounterexampleFormatter implements Closeable {
 		row++;
 	}
 
+
 	private void writeSection(String category, List<Signal<Value>> signals, int k, List<String> conflicts)
 			throws WriteException {
+
 		if (!signals.isEmpty()) {
 			row++;
 			sheet.addCell(new Label(0, row, category, boldFormat));
@@ -133,6 +140,7 @@ public class ExcelCounterexampleFormatter implements Closeable {
 		Value prev = null;
 		for (int i = 0; i < k; i++) {
 			Value curr = signal.getValue(i);
+
 			if (curr != null) {
 				CellFormat format = curr.equals(prev) ? fadedFormat : defaultFormat;
 				writeValue(curr, i + 1, format);
@@ -154,8 +162,10 @@ public class ExcelCounterexampleFormatter implements Closeable {
 		} else if (value instanceof EnumValue) {
 			EnumValue ev = (EnumValue) value;
 			sheet.addCell(new Label(col, row, ev.value));
+
 		} else {
 			throw new JKindException("Unknown value type in Excel writer: " + value.getClass().getSimpleName());
+
 		}
 	}
 
@@ -208,4 +218,5 @@ public class ExcelCounterexampleFormatter implements Closeable {
 		}
 		row++;
 	}
+
 }

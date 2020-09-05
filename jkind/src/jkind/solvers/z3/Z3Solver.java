@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import jkind.JKindException;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.sexp.Symbol;
@@ -14,6 +18,7 @@ import jkind.solvers.UnknownResult;
 import jkind.solvers.UnsatResult;
 import jkind.solvers.smtlib2.SmtLib2Solver;
 import jkind.solvers.smtlib2.SolverOutOfMemoryException;
+
 
 public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 	private final boolean linear;
@@ -242,6 +247,46 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 
 	public Result realizabilityQuery(Sexp outputs, Sexp transition, Sexp properties) {
 		return realizabilityQuery(outputs, transition, properties, 0);
+	}
+
+    public String simplify(String region, String left, String right) {
+        push();
+        if (region != null) {
+            send(region);
+        }
+        if (left != null) {
+            send(left);
+        }
+        if (right != null) {
+            send(right);
+        }
+        send("(apply ctx-solver-simplify)");
+        String result = readFromSolver();
+        pop();
+        String regexString = Pattern.quote("(goal\n") + "(?s)(.*?)" + Pattern.quote(":");
+        Pattern pattern = Pattern.compile(regexString);
+        Matcher matcher = pattern.matcher(result);
+        if (matcher.find()) {
+            String simplified = matcher.group(1);
+            return simplified;
+        } else {
+            throw new JKindException("Error extracting simplified formula from Z3.\n");
+        }
+    }
+
+    public boolean initialStatesQuery(Sexp transition, Sexp properties, String preRegion, String postRegion) {
+		boolean sat = false;
+		Sexp transitionAssert = new Cons("and", transition, properties);
+		assertSexp(transitionAssert);
+		send(preRegion);
+		send(postRegion);
+		send("(check-sat)");
+		String status = readFromSolver();
+		if (isSat(status)) {
+			sat = true;
+		}
+		pop();
+		return sat;
 	}
 
 	@Override

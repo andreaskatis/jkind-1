@@ -1,6 +1,5 @@
 // Generated from Yices2.g4 by ANTLR 4.4
 package jkind.solvers.yices2;
-
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 

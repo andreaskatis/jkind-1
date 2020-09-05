@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" inherit-compiler-output="true">
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/bin" />
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="dependencies1" level="project" />
-    <orderEntry type="library" name="dependencies" level="project" />
     <orderEntry type="module" module-name="jkind-common" />
+    <orderEntry type="library" name="antlr-4.4-complete" level="project" />
+    <orderEntry type="library" name="SMTinterpol_CommonsCLI" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/dependencies/guava-29.0-jre.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="guava-29.0-jre" level="project" />
   </component>
 </module>

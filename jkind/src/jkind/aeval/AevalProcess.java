@@ -16,6 +16,7 @@ import java.util.List;
 import jkind.JKindException;
 
 public abstract class AevalProcess {
+    protected static final String CHECKSAT = "(check-sat)";
 
     protected Process process;
     protected String scratchBase;
@@ -25,8 +26,9 @@ public abstract class AevalProcess {
         this.scratchBase = scratchBase;
     }
 
-    protected void callAeval(String check) {
-        ProcessBuilder processBuilder = new ProcessBuilder(getCommand(check, this.scratchBase));
+    protected void callAeval(String check, boolean generateSkolem, boolean nondet, boolean compaction, boolean allinclusive) {
+        ProcessBuilder processBuilder = new ProcessBuilder(getCommand(check, generateSkolem, nondet,
+                compaction, allinclusive, this.scratchBase));
         processBuilder.redirectErrorStream(true);
         try {
             process = processBuilder.start();
@@ -41,9 +43,25 @@ public abstract class AevalProcess {
 
 
 
-    private List<String> getCommand(String check, String scratchBase) {
+    private List<String> getCommand(String check, boolean generateSkolem, boolean nondet,
+                                    boolean compaction, boolean allinclusive, String scratchBase) {
         List<String> command = new ArrayList<>();
         command.add(getPath());
+        if (generateSkolem) {
+//            command.add("--debug");
+            command.add("--skol");
+        }
+        if (nondet) {
+            command.add("--nondet");
+        }
+        if (compaction) {
+            command.add("--compaction");
+        }
+
+        if (allinclusive) {
+            command.add("--all-inclusive");
+        }
+
         command.addAll(getArgs(check, scratchBase));
         return command;
     }
@@ -71,8 +89,6 @@ public abstract class AevalProcess {
         List<String> args = new ArrayList<>();
         args.add(getSPart(scratchBase.split("\\.")[0] + "_" + check));
         args.add(getTPart(scratchBase.split("\\.")[0] + "_" + check));
-        args.add(getGuards(scratchBase.split("\\.")[0] + "_" + check));
-        args.add(getSkolvars(scratchBase.split("\\.")[0] + "_" + check));
         return args;
     }
 
@@ -82,14 +98,6 @@ public abstract class AevalProcess {
 
     private String getTPart(String scratchBase) {
         return scratchBase + "_t_part.smt2";
-    }
-
-    private String getGuards(String scratchBase) {
-        return scratchBase + "_guards_vars.smt2";
-    }
-
-    private String getSkolvars(String scratchBase) {
-        return scratchBase + "_skol_vars.smt2";
     }
 
 

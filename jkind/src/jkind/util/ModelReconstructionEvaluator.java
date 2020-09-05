@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jkind.JKindException;
+
 import jkind.lustre.BinaryExpr;
 import jkind.lustre.BinaryOp;
 import jkind.lustre.Equation;
@@ -24,6 +25,7 @@ import jkind.slicing.DependencySet;
 import jkind.slicing.DependencyType;
 import jkind.slicing.DependencyVisitor;
 import jkind.solvers.Model;
+
 import jkind.solvers.SimpleModel;
 import jkind.translation.Specification;
 

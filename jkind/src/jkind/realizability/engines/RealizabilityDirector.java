@@ -1,8 +1,7 @@
 package jkind.realizability.engines;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -11,7 +10,8 @@ import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.Main;
 import jkind.Output;
-import jkind.aeval.SkolemRelation;
+import jkind.aeval.SkolemFunction;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
 import jkind.realizability.engines.messages.InconsistentMessage;
@@ -19,10 +19,8 @@ import jkind.realizability.engines.messages.Message;
 import jkind.realizability.engines.messages.RealizableMessage;
 import jkind.realizability.engines.messages.UnknownMessage;
 import jkind.realizability.engines.messages.UnrealizableMessage;
-import jkind.realizability.writers.ConsoleWriter;
-import jkind.realizability.writers.ExcelWriter;
+import jkind.realizability.writers.*;
 import jkind.realizability.writers.Writer;
-import jkind.realizability.writers.XmlWriter;
 import jkind.results.Counterexample;
 import jkind.results.layout.RealizabilityNodeLayout;
 import jkind.slicing.ModelSlicer;
@@ -36,8 +34,10 @@ public class RealizabilityDirector {
 	private Writer writer;
 
 	private PrintWriter writerImplementation;
-	protected ArrayList<SkolemRelation> baseImplementation;
-	protected SkolemRelation extendImplementation;
+	protected ArrayList<SkolemFunction> baseImplementation;
+	protected SkolemFunction extendImplementation;
+	public SkolemFunction fixpointImplementation;
+	protected int k;
 
 	private int baseStep = 0;
 	private ExtendCounterexampleMessage extendCounterexample;
@@ -54,6 +54,7 @@ public class RealizabilityDirector {
 		this.writer = getWriter(spec);
 		this.writerImplementation = getImplementationWriter();
 		this.baseImplementation = new ArrayList<>();
+		this.k = 0;
 	}
 
 	private Writer getWriter(Specification spec) {
@@ -61,11 +62,9 @@ public class RealizabilityDirector {
 			if (settings.excel) {
 				return new ExcelWriter(settings.filename + ".xls", spec.node);
 			} else if (settings.xml) {
-				if (settings.synthesis) {
-					return new XmlWriter(settings.filename + "_synth.xml", spec.typeMap);
-				} else {
-					return new XmlWriter(settings.filename + ".xml", spec.typeMap);
-				}
+				return new XmlWriter(settings.filename + ".xml", spec.typeMap);
+			} else if (settings.json) {
+				return new JsonWriter(settings.filename + ".json", spec.typeMap);
 			} else {
 				return new ConsoleWriter(new RealizabilityNodeLayout(spec.node));
 			}
@@ -76,7 +75,7 @@ public class RealizabilityDirector {
 
 	private PrintWriter getImplementationWriter() {
 		if (settings.synthesis) {
-			String filename = settings.filename + ".impl";
+			String filename = settings.filename.split("\\.")[0] + "_skolem.smt2";
 			try {
 				return new PrintWriter(new FileOutputStream(filename), true);
 			} catch (FileNotFoundException e) {
@@ -87,22 +86,73 @@ public class RealizabilityDirector {
 		}
 	}
 
-	public void writeImplementation(ArrayList<SkolemRelation> base, SkolemRelation extend) {
+	public void writeImplementation(int k, ArrayList<SkolemFunction> base, SkolemFunction extend) {
 		if (writerImplementation != null) {
-			int k = 0;
-			for (SkolemRelation b : base) {
-				writerImplementation.println("//Base "+k);
-				writerImplementation.println("//read_inputs;");
-				writerImplementation.println(b.getSkolemRelation());
-				writerImplementation.println("//update array history \n");
-				k++;
+
+			Iterator<String> inputs = spec.node.realizabilityInputs.iterator();
+			Iterator<String> props = spec.node.properties.iterator();
+
+			if (inputs.hasNext()) {
+				writerImplementation.print(";-- INPUTS: ");
+				writerImplementation.print(inputs.next());
 			}
+			while (inputs.hasNext()) {
+				writerImplementation.print(", "+inputs.next());
+			}
+
+			writerImplementation.print("\n");
+
+			if (props.hasNext()) {
+				writerImplementation.print(";-- PROPERTIES: ");
+				writerImplementation.print(props.next());
+			}
+			while (props.hasNext()) {
+				writerImplementation.print(", "+props.next());
+			}
+
+			writerImplementation.print("\n");
+
+			if (k !=0) {
+				for (int step = 0; step < k; step++) {
+					writerImplementation.println(";Skolem function for base " + step);
+					writerImplementation.println(base.get(step).getSkolemRelation());
+				}
+			}
+
 			if (extend != null) {
-				writerImplementation.println("//Extend");
-				writerImplementation.println("//read_inputs;");
+				writerImplementation.println(";Skolem function for extend");
 				writerImplementation.println(extend.getSkolemRelation());
-				writerImplementation.println("//update array history \n");
 			}
+		}
+	}
+
+	public void writeFixpointImplementation(SkolemFunction impl) {
+		if (writerImplementation != null && impl != null) {
+
+			Iterator<String> inputs = spec.node.realizabilityInputs.iterator();
+			Iterator<String> props = spec.node.properties.iterator();
+
+			if (inputs.hasNext()) {
+				writerImplementation.print(";-- INPUTS: ");
+				writerImplementation.print(inputs.next());
+			}
+			while (inputs.hasNext()) {
+				writerImplementation.print(", "+inputs.next());
+			}
+
+			writerImplementation.print("\n");
+
+			if (props.hasNext()) {
+				writerImplementation.print(";-- PROPERTIES: ");
+				writerImplementation.print(props.next());
+			}
+			while (props.hasNext()) {
+				writerImplementation.print(", "+props.next());
+			}
+
+			writerImplementation.print("\n");
+			writerImplementation.println(";Skolem function for fixpoint");
+			writerImplementation.println(impl.getSkolemRelation());
 		}
 	}
 
@@ -121,10 +171,15 @@ public class RealizabilityDirector {
 			} catch (InterruptedException e) {
 			}
 		}
-		processMessages(startTime);
+        processMessages(startTime);
 		if (settings.synthesis) {
-			writeImplementation(baseImplementation,extendImplementation);
+            if (settings.fixpoint) {
+                writeFixpointImplementation(fixpointImplementation);
+            } else {
+                writeImplementation(k, baseImplementation, extendImplementation);
+            }
 		}
+
 		if (!done) {
 			writer.writeUnknown(baseStep, convertExtendCounterexample(), getRuntime(startTime));
 		}
@@ -174,13 +229,22 @@ public class RealizabilityDirector {
 	}
 
 	private void startThreads() {
-		RealizabilityBaseEngine baseEngine = new RealizabilityBaseEngine(spec, settings, this);
-		registerProcess(baseEngine);
+		if (settings.diagnose) {
+			RealizabilityDiagnosisEngine diagnosisEngine = new RealizabilityDiagnosisEngine(spec, settings, this);
+			registerProcess(diagnosisEngine);
+		} else if (settings.fixpoint) {
+			RealizabilityFixpointEngine fixpointEngine = new RealizabilityFixpointEngine(spec, settings, this);
+			registerProcess(fixpointEngine);
+		} else {
 
-		RealizabilityExtendEngine extendEngine = new RealizabilityExtendEngine(spec, settings, this);
-		baseEngine.setExtendEngine(extendEngine);
-		extendEngine.setBaseEngine(baseEngine);
-		registerProcess(extendEngine);
+			RealizabilityBaseEngine baseEngine = new RealizabilityBaseEngine(spec, settings, this);
+			registerProcess(baseEngine);
+
+			RealizabilityExtendEngine extendEngine = new RealizabilityExtendEngine(spec, settings, this);
+			baseEngine.setExtendEngine(extendEngine);
+			extendEngine.setBaseEngine(baseEngine);
+			registerProcess(extendEngine);
+		}
 
 		for (Thread thread : threads) {
 			thread.start();
@@ -199,13 +263,43 @@ public class RealizabilityDirector {
 			if (message instanceof RealizableMessage) {
 				RealizableMessage rm = (RealizableMessage) message;
 				done = true;
-				writer.writeRealizable(rm.k, runtime);
+				k = rm.k;
+                if(settings.fixpoint) {
+                    writer.writeFixpointRealizable(rm.k, runtime);
+                } else {
+                    writer.writeRealizable(rm.k, runtime);
+                }
 			} else if (message instanceof UnrealizableMessage) {
 				UnrealizableMessage um = (UnrealizableMessage) message;
 				done = true;
-				Model sliced = slice(um.model, um.properties);
-				Counterexample cex = extractCounterexample(um.k, sliced);
-				writer.writeUnrealizable(cex, um.properties, runtime);
+				if (settings.diagnose) {
+				        List<Counterexample> cexs = new ArrayList<>();
+                        if (um.models != null) {
+                            for (String props : um.properties) {
+//                            for (Map.Entry<List<String>, Model> e : um.models.entrySet()) {
+//                                Model sliced = slice(e.getValue(), e.getKey());
+                                List<String> splitProps = Arrays.asList(props.substring(1, props.length() - 1).split(", "));
+                                Model sliced = slice(um.models.get(splitProps), splitProps);
+//                                Counterexample cex = extractCounterexample(um.cexLengths.get(e.getKey()), sliced);
+                                Counterexample cex = extractCounterexample(um.cexLengths.get(splitProps), sliced);
+                                cexs.add(cex);
+                            }
+                            if (settings.json) {
+                                JsonWriter jsonWriter = (JsonWriter) writer;
+                                jsonWriter.writeUnrealizable(um.k, cexs, um.properties, um.diagnoses, runtime, um.dependencies);
+                            } else {
+                                writer.writeUnrealizable(um.k, cexs, um.properties, um.diagnoses, runtime);
+                            }
+                        }
+				} else {
+					if (settings.solver == JRealizabilitySolverOption.AEVAL) {
+						writer.writeFixpointUnrealizable(um.k, um.properties, runtime);
+					} else {
+						Model sliced = slice(um.model, um.properties);
+						Counterexample cex = extractCounterexample(um.k, sliced);
+						writer.writeUnrealizable(cex, um.properties, runtime);
+					}
+				}
 			} else if (message instanceof ExtendCounterexampleMessage) {
 				extendCounterexample = (ExtendCounterexampleMessage) message;
 			} else if (message instanceof UnknownMessage) {

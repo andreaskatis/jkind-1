@@ -10,20 +10,23 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
+import jkind.SolverOption;
 import jkind.analysis.LinearChecker;
-import jkind.engines.StopException;
 import jkind.lustre.Expr;
 import jkind.lustre.LustreUtil;
 import jkind.lustre.NamedType;
 import jkind.lustre.VarDecl;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.realizability.engines.messages.Message;
 import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.sexp.Symbol;
 import jkind.aeval.AevalSolver;
+import jkind.solvers.Model;
 import jkind.solvers.z3.Z3Solver;
 import jkind.translation.Lustre2Sexp;
 import jkind.translation.Specification;
+import jkind.util.SexpUtil;
 import jkind.util.StreamIndex;
 import jkind.util.Util;
 
@@ -35,6 +38,10 @@ public abstract class RealizabilityEngine implements Runnable {
 
 	protected PrintWriter aevalscratch;
 
+	//for diagnosis
+	protected String result = "NONE";
+	protected int cexLength = 0;
+	protected Model model;
 
 
 	protected Z3Solver solver;
@@ -59,11 +66,10 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected abstract void main();
 
 	@Override
-	public final void run() {
+	public void run() {
 		try {
 			initializeSolver();
 			main();
-		} catch (StopException se) {
 		} catch (Throwable t) {
 			throwable = t;
 		} finally {
@@ -83,6 +89,37 @@ public abstract class RealizabilityEngine implements Runnable {
 		solver.initialize();
 		solver.declare(spec.functions);
 		solver.define(spec.getTransitionRelation());
+//        solver.define(spec.getRefinementFixpointTransitionRelation());
+
+        if(settings.fixpoint) {
+            solver.define(new VarDecl(INIT.str, NamedType.BOOL));
+            List<VarDecl> dummyoutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
+            List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls());
+            List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
+            List<VarDecl> skolemvars = getOffsetVarDecls(2, getRealizabilityOutputVarDecls());
+
+            for (VarDecl vd : dummyoutvars) {
+                solver.define(vd);
+            }
+
+            for (VarDecl in : preinvars) {
+                solver.define(in);
+            }
+
+            List<VarDecl> preoutvars = getOffsetVarDecls(-1, getRealizabilityOutputVarDecls());
+
+            for (VarDecl vd : preoutvars) {
+                solver.define(vd);
+            }
+
+            for (VarDecl in : currinvars) {
+                solver.define(in);
+            }
+
+            for (VarDecl in : skolemvars) {
+                solver.define(in);
+            }
+        }
 	}
 
 	protected String getScratchBase() {
@@ -121,27 +158,32 @@ public abstract class RealizabilityEngine implements Runnable {
 	}
 
 	protected void createAevalVariables(AevalSolver aesolver, int k, String check) {
-		aesolver.defineSVar(spec.getTransitionRelation());
-		aesolver.defineTVar(spec.getTransitionRelation());
+		if (settings.scratch) {
+			aesolver.scratch.println("; Transition relation");
+		}
 
+		aesolver.defineSVar(spec.getTransitionRelation());
+        //The following does not allow to solve realizable but non well-separated contracts.
+		aesolver.defineTVar(spec.getTransitionRelation(), false);
+//        aesolver.defineTVar(spec.getRefinementFixpointTransitionRelation(), false);
+		if (settings.scratch) {
+			aesolver.scratch.println("; Universally quantified variables");
+		}
 		if (check == "extend") {
 			aesolver.defineSVar(new VarDecl(INIT.str, NamedType.BOOL));
-			aesolver.defineGuardVar(new VarDecl(INIT.str, NamedType.BOOL));
-			aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL));
+			aesolver.defineTVar(new VarDecl(INIT.str, NamedType.BOOL), false);
 		}
 		for (int i = -1; i <= k-1; i = i +1) {
 			for (VarDecl vd : getOffsetVarDecls(i)) {
 				aesolver.defineSVar(vd);
-				aesolver.defineGuardVar(vd);
 				if (i == k-1) {
-					aesolver.defineTVar(vd);
+					aesolver.defineTVar(vd, false);
 				}
 			}
 		}
 
 		for (VarDecl vd : getOffsetVarDecls(k)) {
 			aesolver.defineSVar(vd);
-			aesolver.defineGuardVar(vd);
 		}
 
 		List<VarDecl> offsetinvars = getOffsetVarDecls(
@@ -149,12 +191,14 @@ public abstract class RealizabilityEngine implements Runnable {
 		List<VarDecl> offsetoutvars = getOffsetVarDecls(
 									k+2, getRealizabilityOutputVarDecls());
 		for (VarDecl in : offsetinvars) {
-			aesolver.defineTVar(in);
+			aesolver.defineTVar(in, false);
 		}
 
+		if (settings.scratch) {
+			aesolver.scratch.println("; Existentially quantified variables");
+		}
 		for (VarDecl out : offsetoutvars) {
-			aesolver.defineSkolVar(out);
-			aesolver.defineTVar(out);
+			aesolver.defineTVar(out, true);
 		}
 
 		for (VarDecl vd : Util.getVarDecls(spec.node)) {
@@ -164,37 +208,60 @@ public abstract class RealizabilityEngine implements Runnable {
 			}
 		}
 
+		if (settings.scratch) {
+			aesolver.scratch.println("; Assertions for universal part of the formula");
+		}
 		if (k > 0) {
-			aesolver.assertSPart(getTransition(k-1,k-1==0));
-			aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, k-1));
+			if (check == "extend") {
+				for (int i = 0; i < k; i++) {
+					if (i == 0) {
+						aesolver.assertSPart(getTransition(i, INIT));
+					} else {
+						aesolver.assertSPart(getTransition(i, false));
+					}
+					aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, i));
+				}
+			} else {
+				for (int i = 0; i < k; i++) {
+					aesolver.assertSPart(getTransition(i, i == 0));
+					aesolver.assertSPart(StreamIndex.conjoinEncodings(spec.node.properties, i));
+				}
+			}
 		}
 	}
 
-	protected void assertGuardandSkolVars(AevalSolver aesolver, int k, String check) {
+	protected Sexp getUniversalOutputVariablesAssertion(int k){
+		List<Sexp> conjuncts = new ArrayList<>();
+		List<Sexp> equatities = new ArrayList<>();
+		conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityOutputVarDecls())));
+		for (Sexp c : conjuncts) {
+			equatities.add(new Cons("=", c, c));
+		}
+		return SexpUtil.conjoin(equatities);
+	}
 
-		Symbol zero = new Symbol("0");
-		List<Sexp> guardargs = new ArrayList<>();
-		List<Sexp> skolargs = new ArrayList<>();
-		if (check == "extend") {
-			guardargs.add(new Cons("=", INIT, INIT));
+
+	protected Sexp getUniversalInputVariablesAssertion(int k){
+		List<Sexp> conjuncts = new ArrayList<>();
+		List<Sexp> equalities = new ArrayList<>();
+        conjuncts.addAll(getSymbols(getOffsetVarDecls(k, getRealizabilityInputVarDecls())));
+        for (Sexp c : conjuncts) {
+			equalities.add(new Cons("=", c, c));
 		}
-		List<VarDecl> realouts = getOffsetVarDecls(k+2,
-				getRealizabilityOutputVarDecls());
-		for (int i = -1; i <= k; i=i+1) {
-			for (VarDecl vd : getOffsetVarDecls(i)) {
-				Symbol name = new Symbol(vd.id);
-				guardargs.add(new Cons("=", name, name));
-			}
-		}
-		for (VarDecl out : realouts) {
-			Symbol name = new Symbol(out.id);
-			skolargs.add(new Cons("=", name, name));
-		}
-		guardargs.add(new Cons("=", zero, zero));
-		skolargs.add(new Cons("=", zero, zero));
-		aesolver.assertGuards(new Cons("&&", guardargs));
-		aesolver.assertSkolvars(new Cons("&&", skolargs));
-		return;
+        //test 11/5/19
+//        equalities.add(new Cons("=", INIT, INIT));
+		return SexpUtil.conjoin(equalities);
+	}
+
+
+	protected Sexp getAssertions() {
+		Sexp assertions = Lustre2Sexp.getConjunctedAssertions(spec.node);
+		return assertions;
+	}
+
+	protected Sexp getNextStepAssertions() {
+		Sexp assertions = Lustre2Sexp.getNextStepConjunctedAssertions(spec.node);
+		return assertions;
 	}
 
 	protected List<VarDecl> getOffsetVarDecls(int k) {
@@ -209,6 +276,29 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 		return result;
 	}
+
+    protected List<VarDecl> getAevalOffsetVarDecls(int k, List<VarDecl> varDecls, List<VarDecl> inputDecls, List<VarDecl> outputDecls) {
+        List<VarDecl> result = new ArrayList<>();
+        List<String> inputNames = new ArrayList<>();
+        List<String> outputNames = new ArrayList<>();
+        for (VarDecl vd : inputDecls) {
+            inputNames.add(vd.id);
+        }
+        for (VarDecl vd : outputDecls) {
+            outputNames.add(vd.id);
+        }
+        for (VarDecl vd : varDecls) {
+            StreamIndex si;
+            if (inputNames.contains(vd.id)) {
+                si = new StreamIndex(vd.id, k);
+                result.add(new VarDecl(si.getEncoded().str, vd.type));
+            } else {
+                si = new StreamIndex(vd.id, k + 2);
+                result.add(new VarDecl(si.getEncoded().str, vd.type));
+            }
+        }
+        return result;
+    }
 
 	protected Sexp getTransition(int k, Sexp init) {
 		List<Sexp> args = new ArrayList<>();
@@ -226,10 +316,16 @@ public abstract class RealizabilityEngine implements Runnable {
 		List<Sexp> args = new ArrayList<>();
 		args.add(init);
 		args.addAll(getSymbols(getOffsetVarDecls(k - 1)));
-		args.addAll(getSymbols(getOffsetVarDecls(k,
-				getRealizabilityInputVarDecls())));
-		args.addAll(getSymbols(getOffsetVarDecls(k+2,
-				getRealizabilityOutputVarDecls())));
+
+        if (settings.fixpoint) {
+            args.addAll(getSymbols(getAevalOffsetVarDecls(0, Util.getVarDecls(spec.node), getRealizabilityInputVarDecls(), getRealizabilityOutputVarDecls())));
+        } else {
+            args.addAll(getSymbols(getAevalOffsetVarDecls(k, Util.getVarDecls(spec.node), getRealizabilityInputVarDecls(), getRealizabilityOutputVarDecls())));
+        }
+//		args.addAll(getSymbols(getOffsetVarDecls(k,
+//				getRealizabilityInputVarDecls())));
+//		args.addAll(getSymbols(getOffsetVarDecls(k+2,
+//				getRealizabilityOutputVarDecls())));
 		return new Cons(spec.getTransitionRelation().getName(), args);
 	}
 
@@ -239,6 +335,15 @@ public abstract class RealizabilityEngine implements Runnable {
 		} else {
 			return getAevalTransition(k, false);
 		}
+	}
+
+	protected Sexp getAevalFixpointTransition() {
+		List<Sexp> args = new ArrayList<>();
+		args.add(INIT);
+		args.addAll(getSymbols(getOffsetVarDecls(-1)));
+		args.addAll(getSymbols(getOffsetVarDecls(0, getRealizabilityInputVarDecls())));
+		args.addAll(getSymbols(getOffsetVarDecls(2, getRealizabilityOutputVarDecls())));
+		return new Cons(spec.getTransitionRelation().getName(), args);
 	}
 
 	protected Sexp getAevalTransition(int k, boolean init) {
@@ -264,14 +369,15 @@ public abstract class RealizabilityEngine implements Runnable {
 
 	protected static final Symbol INIT = Lustre2Sexp.INIT;
 
-	private List<VarDecl> getRealizabilityOutputVarDecls() {
+	public List<VarDecl> getRealizabilityOutputVarDecls() {
 		List<String> realizabilityInputs = spec.node.realizabilityInputs;
 		List<VarDecl> all = Util.getVarDecls(spec.node);
+
 		all.removeIf(vd -> realizabilityInputs.contains(vd.id));
 		return all;
 	}
 
-	private List<VarDecl> getRealizabilityInputVarDecls() {
+	public List<VarDecl> getRealizabilityInputVarDecls() {
 		List<String> realizabilityInputs = spec.node.realizabilityInputs;
 		List<VarDecl> all = Util.getVarDecls(spec.node);
 		all.removeIf(vd -> !realizabilityInputs.contains(vd.id));
@@ -297,7 +403,7 @@ public abstract class RealizabilityEngine implements Runnable {
 	}
 
 	private PrintWriter getaevalScratch( ) {
-		if (settings.scratch && settings.synthesis) {
+		if (settings.scratch && (settings.solver == JRealizabilitySolverOption.AEVAL)) {
 
 			String filename = settings.filename + ".aeval" + "." + name + ".smt2";
 			try {
@@ -314,5 +420,17 @@ public abstract class RealizabilityEngine implements Runnable {
 		if (aevalscratch != null) {
 			aevalscratch.println(str);
 		}
+	}
+
+	protected abstract void setResult(int k, String result, Model model);
+
+	public String getResult() {
+		return result;
+	}
+
+	public int getCexLength() { return cexLength; }
+
+	public Model getModel() {
+		return model;
 	}
 }

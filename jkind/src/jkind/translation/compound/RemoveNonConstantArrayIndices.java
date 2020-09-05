@@ -52,6 +52,7 @@ public class RemoveNonConstantArrayIndices extends TypeAwareAstMapVisitor {
 	private Expr expandArrayAccess(Expr array, Expr index) {
 		ArrayType arrayType = (ArrayType) getType(array);
 		Expr result = new ArrayAccessExpr(array, arrayType.size - 1);
+
 		for (int i = arrayType.size - 1; i >= 0; i--) {
 			Expr cond = new BinaryExpr(index, BinaryOp.EQUAL, new IntExpr(i));
 			Expr thenExpr = new ArrayAccessExpr(array, i);

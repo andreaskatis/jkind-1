@@ -1,9 +1,9 @@
 package jkind.aeval;
 
 public class ValidResult extends AevalResult {
-    final private SkolemRelation skolem;
+    final private SkolemFunction skolem;
 
-    public ValidResult(SkolemRelation skolem) {
+    public ValidResult(SkolemFunction skolem) {
         super();
         this.skolem = skolem;
     }

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component inherit-compiler-output="true" inheritJdk="true">
+	<output-test url="file://$MODULE_DIR$/../out/test/jkind"/>
+	<exclude-output/>
+	<contentEntry url="file://$MODULE_DIR$"/>
+	<levels>
+		<level name="dependencies1" value="project"/>
+		<level name="dependencies" value="project"/>
+	</levels>
+</component>

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import jkind.JRealizabilitySettings;
 import jkind.lustre.ArrayAccessExpr;
 import jkind.lustre.ArrayExpr;
 import jkind.lustre.ArrayUpdateExpr;
@@ -76,12 +77,58 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 			conjuncts.add(assertion.accept(visitor));
 		}
 
+		Sexp conj = SexpUtil.conjoin(conjuncts);
+		List<Sexp> bigconj = new ArrayList<>();
+		bigconj.add(new Cons("=>", INIT, conj));
+		bigconj.add(new Cons("=>", new Cons("not", INIT), conj));
+
+		List<VarDecl> inputs = new ArrayList<>();
+		inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
+		inputs.addAll(visitor.pre(Util.getVarDecls(node)));
+		inputs.addAll(visitor.curr(Util.getVarDecls(node)));
+		return new Relation(Relation.T, inputs, SexpUtil.conjoin(bigconj));
+	}
+
+	public static Relation constructFixpointTransitionRelation(Node node) {
+		Lustre2Sexp visitor = new Lustre2Sexp(1);
+		List<Sexp> conjuncts = new ArrayList<>();
+
+		for (Equation eq : node.equations) {
+			Sexp body = eq.expr.accept(visitor);
+			Sexp head = eq.lhs.get(0).accept(visitor);
+			Sexp sexp = new Cons("=", head, body);
+			conjuncts.add(sexp);
+		}
+
+        for (Expr assertion : node.assertions) {
+            conjuncts.add(assertion.accept(visitor));
+        }
+
 		List<VarDecl> inputs = new ArrayList<>();
 		inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
 		inputs.addAll(visitor.pre(Util.getVarDecls(node)));
 		inputs.addAll(visitor.curr(Util.getVarDecls(node)));
 		return new Relation(Relation.T, inputs, SexpUtil.conjoin(conjuncts));
+
 	}
+
+    public static Relation constructRefinementFixpointTransitionRelation(Node node) {
+        Lustre2Sexp visitor = new Lustre2Sexp(1);
+        List<Sexp> conjuncts = new ArrayList<>();
+
+        for (Equation eq : node.equations) {
+            Sexp body = eq.expr.accept(visitor);
+            Sexp head = eq.lhs.get(0).accept(visitor);
+            Sexp sexp = new Cons("=", head, body);
+            conjuncts.add(sexp);
+        }
+
+        List<VarDecl> inputs = new ArrayList<>();
+        inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
+        inputs.addAll(visitor.pre(Util.getVarDecls(node)));
+        inputs.addAll(visitor.curr(Util.getVarDecls(node)));
+        return new Relation(Relation.T, inputs, SexpUtil.conjoin(conjuncts));
+    }
 
 	public static LinkedBiMap<String, Symbol> createIvcMap(List<String> ivc) {
 		LinkedBiMap<String, Symbol> ivcMap = new LinkedBiMap<>();
@@ -259,5 +306,27 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 		default:
 			return new Cons(e.op.toString(), e.expr.accept(this));
 		}
+	}
+
+	public static Sexp getConjunctedAssertions(Node node) {
+		Lustre2Sexp visitor = new Lustre2Sexp(-1);
+		List<Sexp> conjuncts = new ArrayList<>();
+
+		for (Expr assertion : node.assertions) {
+			conjuncts.add(assertion.accept(visitor));
+		}
+
+		return SexpUtil.conjoin(conjuncts);
+	}
+
+	public static Sexp getNextStepConjunctedAssertions(Node node) {
+		Lustre2Sexp visitor = new Lustre2Sexp(0);
+		List<Sexp> conjuncts = new ArrayList<>();
+
+		for (Expr assertion : node.assertions) {
+			conjuncts.add(assertion.accept(visitor));
+		}
+
+		return SexpUtil.conjoin(conjuncts);
 	}
 }

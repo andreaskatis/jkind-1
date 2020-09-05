@@ -1,14 +1,14 @@
 package jkind.realizability.engines;
 
+import javafx.scene.paint.Stop;
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
-import jkind.aeval.AevalResult;
-import jkind.aeval.AevalSolver;
-import jkind.aeval.SkolemRelation;
-import jkind.aeval.ValidResult;
+import jkind.SolverOption;
+import jkind.aeval.*;
 import jkind.engines.StopException;
 import jkind.lustre.NamedType;
 import jkind.lustre.VarDecl;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.solvers.Model;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.ExtendCounterexampleMessage;
@@ -49,14 +49,17 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 
 	@Override
 	public void main() {
-		createVariables(-1);
-		for (int k = 0; k <= settings.n; k++) {
-			comment("K = " + k);
-			processMessagesAndWait(k);
-			createVariables(k);
-			assertTransition(k);
-			checkRealizabilities(k);
-			assertProperties(k);
+		try {
+			createVariables(-1);
+			for (int k = 0; k <= settings.n; k++) {
+				comment("K = " + k);
+				processMessagesAndWait(k);
+				createVariables(k);
+				assertTransition(k);
+				checkRealizabilities(k);
+				assertProperties(k);
+			}
+		} catch (StopException se) {
 		}
 	}
 
@@ -65,6 +68,8 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			while (!incoming.isEmpty() || k > kLimit) {
 				Message message = incoming.take();
 				if (message instanceof UnrealizableMessage) {
+					UnrealizableMessage um = (UnrealizableMessage) message;
+					this.cexLength = um.k;
 					throw new StopException();
 				} else if (message instanceof InconsistentMessage) {
 					throw new StopException();
@@ -92,10 +97,7 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 	}
 
 	private void checkRealizabilities(int k) {
-		Result result = solver.realizabilityQuery(getRealizabilityOutputs(k), getInductiveTransition(k),
-				StreamIndex.conjoinEncodings(spec.node.properties, k));
-
-		if (result instanceof UnsatResult) {
+		if (settings.solver == JRealizabilitySolverOption.AEVAL) {
 
 			//Existential variables need different
 			//naming due to AE-VAL's different variable
@@ -103,30 +105,62 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 			//outputs so these should be renamed as well.
 			//New names can be derived if we simply use the
 			//next value of k for this AE-VAL call.
-			if (settings.synthesis) {
-				aesolver = new AevalSolver(settings.filename, name, aevalscratch);
-				aecomment("; K = " + (k + 1));
-				createAevalVariables(aesolver, k, name);
-				aesolver.assertSPart(getInductiveTransition(k));
-				assertGuardandSkolVars(aesolver, k, name);
-				AevalResult aeresult = aesolver.synthesize(getAevalInductiveTransition(k),
-						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
-				if (aeresult instanceof ValidResult) {
-					director.extendImplementation = new SkolemRelation(((ValidResult) aeresult).getSkolem());
-				} else {
-					//case where Z3 result conflicts with AE-VAL
-					throw new JKindException("Conflict of results between Z3 and AE-VAL");
 
+			aesolver = new AevalSolver(settings.filename, name, aevalscratch);
+			aecomment("; K = " + k);
+			createAevalVariables(aesolver, k, name);
+			aesolver.assertSPart(getInductiveTransition(k));
+			AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(k),
+					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), settings.synthesis, settings.nondet,
+                    settings.compact, settings.allinclusive);
+			if (aeresult instanceof ValidResult) {
+                if (settings.synthesis) {
+                    director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
+                }
+                if (settings.diagnose) {
+                	setResult(k, "REALIZABLE", null);
+				} else {
+					sendRealizable(k);
+				}
+				throw new StopException();
+			} else if (aeresult instanceof InvalidResult) {
+
+				//Unfortunately, there is a chance Z3 might not be able to solve the formulas.
+				//Best way to go about this will be if AE-VAL can provide models to invalid formulas.
+//				Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
+//						getInductiveTransition(k), StreamIndex.conjoinEncodings(spec.node.properties, k));
+//				if (result instanceof SatResult) {
+//					Model model = ((SatResult) result).getModel();
+//					sendExtendCounterexample(k + 1, model);
+//				} else if (result instanceof UnknownResult) {
+//					throw new StopException();
+//				}
+			}
+
+		} else {
+			Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
+					getInductiveTransition(k), StreamIndex.conjoinEncodings(spec.node.properties, k));
+
+			if (result instanceof UnsatResult) {
+				if (settings.diagnose) {
+					setResult(k,"REALIZABLE", null);
+				} else {
+					sendRealizable(k);
+				}
+				throw new StopException();
+			} else if (result instanceof SatResult) {
+				Model model = ((SatResult) result).getModel();
+				sendExtendCounterexample(k + 1, model);
+				if (settings.diagnose) {
+					setResult(k, "NONE", model);
+				}
+			} else if (result instanceof UnknownResult) {
+				if (settings.diagnose) {
+					setResult(k, "UNKNOWN", null);
+				} else {
+					throw new StopException();
 				}
 			}
-			sendRealizable(k);
-
-			throw new StopException();
-		} else if (result instanceof SatResult) {
-			Model model = ((SatResult) result).getModel();
-			sendExtendCounterexample(k + 1, model);
-		} else if (result instanceof UnknownResult) {
-			throw new StopException();
 		}
 	}
 
@@ -140,5 +174,18 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 		if (settings.extendCounterexample) {
 			director.incoming.add(new ExtendCounterexampleMessage(k, model));
 		}
+	}
+
+	@Override
+	protected void setResult(int k, String result, Model model){
+		this.result = result;
+		this.model = model;
+		if (result.equals("REALIZABLE")) {
+			RealizableMessage im = new RealizableMessage(k);
+			baseEngine.incoming.add(im);
+		} else {
+			return;
+		}
+		throw new StopException();
 	}
 }

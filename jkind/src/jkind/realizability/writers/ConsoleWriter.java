@@ -35,11 +35,34 @@ public class ConsoleWriter extends Writer {
 	}
 
 	@Override
+	public void writeUnrealizable(int k, List<String> conflicts, double runtime) {
+		writeLine();
+		String details = conflicts.isEmpty() ? "" : ": " + conflicts;
+		System.out.println("UNREALIZABLE" + details + " || K = " + k + " || Time = "
+				+ Util.secondsToTime(runtime));
+		writeLine();
+		System.out.println();
+	}
+
+	@Override
+	public  void writeUnrealizable(int k, List<String> conflicts, List<List<String>> diagnoses, double runtime) {
+		writeLine();
+		String details = conflicts.isEmpty() ? "" : ": " + conflicts;
+		String diags = diagnoses.isEmpty() ? "" : ": " + diagnoses;
+		System.out.println("UNREALIZABLE" + details + " || K = " + k + " || Time = "
+				+ Util.secondsToTime(runtime));
+		System.out.println("DIAGNOSES" + diags);
+		writeLine();
+		System.out.println();
+	}
+
+
+	@Override
 	public void writeUnrealizable(Counterexample cex, List<String> conflicts, double runtime) {
 		writeLine();
 		String details = conflicts.isEmpty() ? "" : ": " + conflicts;
-		System.out.println(
-				"UNREALIZABLE" + details + " || K = " + cex.getLength() + " || Time = " + Util.secondsToTime(runtime));
+		System.out.println("UNREALIZABLE" + details + " || K = " + cex.getLength() + " || Time = "
+				+ Util.secondsToTime(runtime));
 		if (layout != null) {
 			System.out.println(cex.toString(layout));
 		}
@@ -48,9 +71,31 @@ public class ConsoleWriter extends Writer {
 	}
 
 	@Override
+	public void writeUnrealizable(int k, List<Counterexample> counterexamples, List<String> conflicts,
+								  List<List<String>> diagnoses, double runtime) {
+		writeLine();
+		String details = conflicts.isEmpty() ? "" : ": " + conflicts;
+		String diags = diagnoses.isEmpty() ? "" : ": " + diagnoses;
+		System.out.println("UNREALIZABLE" + details + " || K = " + k + " || Time = "
+				+ Util.secondsToTime(runtime));
+		System.out.println("DIAGNOSES" + diags);
+		writeLine();
+		for (Counterexample cex : counterexamples) {
+			System.out.println("CEX for conflict : " + conflicts.get(counterexamples.indexOf(cex)));
+			if (layout != null) {
+				System.out.println(cex.toString(layout));
+			}
+			writeLine();
+		}
+		System.out.println();
+
+	}
+
+	@Override
 	public void writeUnknown(int trueFor, Counterexample cex, double runtime) {
 		writeLine();
-		System.out.println("UNKNOWN || True for " + trueFor + " steps" + " || Time = " + Util.secondsToTime(runtime));
+		System.out.println("UNKNOWN || True for " + trueFor + " steps" + " || Time = "
+				+ Util.secondsToTime(runtime));
 		writeLine();
 		System.out.println();
 		if (cex != null && layout != null) {
@@ -73,5 +118,22 @@ public class ConsoleWriter extends Writer {
 
 	private void writeLine() {
 		System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-	}
+
+    @Override
+    public void writeFixpointRealizable(int k, double runtime) {
+        writeLine();
+        System.out.println("REALIZABLE || REFINEMENTS = " + k + " || Time = " + Util.secondsToTime(runtime));
+        writeLine();
+        System.out.println();
+    }
+
+    @Override
+    public void writeFixpointUnrealizable(int k, List<String> conflicts, double runtime) {
+        writeLine();
+        String details = conflicts.isEmpty() ? "" : ": " + conflicts;
+        System.out.println("UNREALIZABLE" + details + " || REFINEMENTS = " + k + " || Time = "
+                + Util.secondsToTime(runtime));
+        writeLine();
+        System.out.println();
+    }
 }

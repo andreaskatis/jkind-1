@@ -1,7 +1,6 @@
 package jkind.translation.compound;
 
 import static jkind.lustre.LustreUtil.not;
-
 import java.util.List;
 
 import jkind.lustre.ArrayType;

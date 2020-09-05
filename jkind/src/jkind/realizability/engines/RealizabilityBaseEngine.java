@@ -1,15 +1,15 @@
 package jkind.realizability.engines;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
-import jkind.aeval.SkolemRelation;
-import jkind.aeval.ValidResult;
+import jkind.SolverOption;
+import jkind.aeval.*;
 import jkind.engines.StopException;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.realizability.engines.messages.BaseStepMessage;
 import jkind.realizability.engines.messages.InconsistentMessage;
 import jkind.realizability.engines.messages.Message;
@@ -25,17 +25,11 @@ import jkind.solvers.UnknownResult;
 import jkind.solvers.UnsatResult;
 import jkind.translation.Specification;
 import jkind.util.StreamIndex;
-import jkind.aeval.AevalSolver;
-import jkind.aeval.AevalResult;
-
 
 public class RealizabilityBaseEngine extends RealizabilityEngine {
 	private RealizabilityExtendEngine extendEngine;
 	private static final int REDUCE_TIMEOUT_MS = 200;
 	private AevalSolver aesolver;
-
-
-
 
 	public RealizabilityBaseEngine(Specification spec, JRealizabilitySettings settings,
 			RealizabilityDirector director) {
@@ -48,15 +42,18 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 
 	@Override
 	public void main() {
-		createVariables(-1);
-		for (int k = 0; k < settings.n; k++) {
-			comment("K = " + (k + 1));
-			processMessages();
-			createVariables(k);
-			assertTransition(k);
-			checkConsistency(k);
-			checkRealizable(k);
-			assertProperties(k);
+		try {
+			createVariables(-1);
+			for (int k = 0; k < settings.n; k++) {
+				comment("K = " + (k + 1));
+				processMessages();
+				createVariables(k);
+				assertTransition(k);
+				checkConsistency(k);
+				checkRealizable(k);
+				assertProperties(k);
+			}
+		} catch (StopException se) {
 		}
 	}
 
@@ -66,7 +63,8 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 			if (message instanceof RealizableMessage) {
 				throw new StopException();
 			}
-			throw new JKindException("Unknown message type in base process: " + message.getClass().getCanonicalName());
+			throw new JKindException("Unknown message type in base process: "
+					+ message.getClass().getCanonicalName());
 		}
 	}
 
@@ -87,46 +85,54 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 	}
 
 	private void checkRealizable(int k) {
-		Result result = solver.realizabilityQuery(getRealizabilityOutputs(k), getTransition(k, k == 0),
-				StreamIndex.conjoinEncodings(spec.node.properties, k));
-
-		if (result instanceof UnsatResult) {
-			sendBaseStep(k);
-			//Existential variables need different
-			//naming due to AE-VAL's variable
-			//scoping. Properties are part of the
-			//outputs so these should be renamed as well.
-			//New names can be derived if we simply use the
-			//next value of k for this AE-VAL call.
-			if (settings.synthesis) {
-				aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
-				aecomment("; K = " + (k + 1));
-				//In order to have a better scratch file,
-				//I need to create each file's variables seperately.
-				createAevalVariables(aesolver, k, name);
-				aesolver.assertSPart(getTransition(k, k == 0));
-				assertGuardandSkolVars(aesolver, k, name);
-				AevalResult aeresult = aesolver.synthesize(getAevalTransition(k, k == 0),
-						StreamIndex.conjoinEncodings(spec.node.properties, k + 2));
-				if (aeresult instanceof ValidResult) {
-					director.baseImplementation.add(new SkolemRelation(((ValidResult) aeresult).getSkolem()));
+		if (settings.solver == JRealizabilitySolverOption.AEVAL) {
+			aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
+			aecomment("; K = " + (k + 1));
+			createAevalVariables(aesolver, k, name);
+			aesolver.assertSPart(getTransition(k, k == 0));
+			// assert input and state to ensure
+			AevalResult aeresult = aesolver.realizabilityQuery(getAevalTransition(k, k == 0),
+					StreamIndex.conjoinEncodings(spec.node.properties, k + 2), settings.synthesis, settings.nondet,
+                    settings.compact, settings.allinclusive);
+			if (aeresult instanceof ValidResult) {
+				sendBaseStep(k);
+                if (settings.synthesis) {
+                    director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));
+                }
+			} else if (aeresult instanceof InvalidResult){
+				if (settings.diagnose) {
+					setResult(k,"UNREALIZABLE", null);
 				} else {
-					//case where Z3 result conflicts with AE-VAL
-					throw new JKindException("Conflicting results between Z3 and AE-VAL");
+					sendUnrealizable(k);
+				}
+			} else {
+				throw new JKindException("Unknown");
+			}
+		} else {
+			Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
+					getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
+			if (result instanceof UnsatResult) {
+				sendBaseStep(k);
+			}
+
+			if (result instanceof SatResult) {
+				Model model = ((SatResult) result).getModel();
+				if (settings.diagnose) {
+					setResult(k,"UNREALIZABLE", model);
+				} else {
+					if (settings.reduce) {
+						reduceAndSendUnrealizable(k, model);
+					} else {
+						sendUnrealizable(k, model);
+					}
+				}
+			} else if (result instanceof UnknownResult) {
+				if (settings.diagnose) {
+					setResult(k,"UNKNOWN", null);
+				} else {
+					sendUnknown();
 				}
 			}
-		}
-
-		//should add refinement methods for PDR-like synthesis in case of SAT
-		if (result instanceof SatResult) {
-			Model model = ((SatResult) result).getModel();
-			if (settings.reduce) {
-				reduceAndSendUnrealizable(k, model);
-			} else {
-				sendUnrealizable(k, model);
-			}
-		} else if (result instanceof UnknownResult) {
-			sendUnknown();
 		}
 	}
 
@@ -162,6 +168,16 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 		extendEngine.incoming.add(im);
 	}
 
+	private void sendUnrealizable(int k) {
+		sendUnrealizable(k, Collections.emptyList());
+	}
+
+	private void sendUnrealizable(int k, List<String> conflicts) {
+		UnrealizableMessage im = new UnrealizableMessage(k + 1, null, conflicts);
+		director.incoming.add(im);
+		extendEngine.incoming.add(im);
+	}
+
 	private void sendUnrealizable(int k, Model model) {
 		sendUnrealizable(k, model, Collections.emptyList());
 	}
@@ -178,4 +194,18 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 		extendEngine.incoming.add(um);
 	}
 
+	@Override
+	protected void setResult(int k, String result, Model model){
+		this.result = result;
+		this.cexLength = k + 1;
+		this.model = model;
+		if (result.equals("UNREALIZABLE")) {
+			UnrealizableMessage im = new UnrealizableMessage(k + 1, model, Collections.emptyList());
+			extendEngine.incoming.add(im);
+		} else {
+			UnknownMessage um = new UnknownMessage();
+			extendEngine.incoming.add(um);
+		}
+		throw new StopException();
+	}
 }
