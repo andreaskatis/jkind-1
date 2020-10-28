@@ -39,8 +39,7 @@ public class JsonWriter extends Writer {
 
     @Override
     public void writeRealizable(int k, double runtime) {
-        internal.writeValid(REALIZABLE_LIST, "extend", k, runtime, Collections.emptyList(),
-                Collections.emptySet());
+        internal.writeValid("extend", k, runtime);
         summaryWriter.writeRealizable(k, runtime);
     }
 
@@ -90,8 +89,7 @@ public class JsonWriter extends Writer {
 
     @Override
     public void writeFixpointRealizable(int k, double runtime) {
-        internal.writeValid(REALIZABLE_LIST, "fixpoint", k, runtime, Collections.emptyList(),
-                Collections.emptySet());
+        internal.writeValid("fixpoint", k, runtime);
         summaryWriter.writeFixpointRealizable(k, runtime);
     }
 

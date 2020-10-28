@@ -1,0 +1,18 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="jkind">
+    <output-path>$PROJECT_DIR$/out/artifacts/jkind</output-path>
+    <root id="archive" name="jkind.jar">
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/jkind/src/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="module-output" name="jkind" />
+      <element id="module-output" name="jkind-common" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind/dependencies/commons-cli-1.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind/dependencies/guava-29.0-jre.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind/dependencies/smtinterpol.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind-common/dependencies/antlr-4.4-complete.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind-common/dependencies/antlr-runtime-4.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/jkind-common/dependencies/jxl.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

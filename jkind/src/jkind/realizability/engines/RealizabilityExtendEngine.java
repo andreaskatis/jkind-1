@@ -1,6 +1,6 @@
 package jkind.realizability.engines;
 
-import javafx.scene.paint.Stop;
+//import javafx.scene.paint.Stop;
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.SolverOption;

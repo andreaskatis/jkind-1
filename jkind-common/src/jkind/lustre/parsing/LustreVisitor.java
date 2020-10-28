@@ -1,4 +1,4 @@
-// Generated from Lustre.g4 by ANTLR 4.4
+// Generated from Lustre.g4 by return this.visitChildren(ctx);ANTLR 4.4
 package jkind.lustre.parsing;
 
 import org.antlr.v4.runtime.misc.NotNull;

@@ -48,23 +48,20 @@ public class JsonWriter extends Writer{
     public void writeValid(List<String> props, String source, int k, double runtime,
                            List<Expr> invariants, Set<String> ivc) {
         for (String prop : props) {
-            writeValid(prop, source, k, runtime, invariants, ivc);
+            writeValid(source, k, runtime);
         }
     }
 
-    public void writeValid(String prop, String source, int k, double runtime,
-                           List<Expr> invariants, Set<String> ivc) {
-        out.println("  <Property name=\"" + prop + "\">");
-        out.println("    <Runtime unit=\"sec\">" + runtime + "</Runtime>");
-        out.println("    <Answer source=\"" + source + "\">valid</Answer>");
-        out.println("    <K>" + k + "</K>");
-        for (Expr invariant : invariants) {
-            out.println("    <Invariant>" + escape(invariant) + "</Invariant>");
-        }
-        for (String supp : ivc) {
-            out.println("    <Ivc>" + supp + "</Ivc>");
-        }
-        out.println("  </Property>");
+    public void writeValid(String source, int k, double runtime) {
+        out.println("    \"Runtime\": {");
+        out.println("        \"unit\": \"sec\",");
+        out.println("        \"value\": \"" + runtime + "\"");
+        out.println("    },");
+        out.println("    \"Answer\": {");
+        out.println("        \"source\": \"" + source + "\",");
+        out.println("        \"text\": \"realizable\"");
+        out.println("    },");
+        out.println("    \"K\": \"" + k + "\"");
         out.flush();
     }
 
@@ -311,11 +308,15 @@ public class JsonWriter extends Writer{
 
     @Override
     public void writeInconsistent(String prop, String source, int k, double runtime) {
-        out.println("  <Property name=\"" + prop + "\">");
-        out.println("    <Runtime unit=\"sec\">" + runtime + "</Runtime>");
-        out.println("    <Answer source=\"" + source + "\">inconsistent</Answer>");
-        out.println("    <K>" + k + "</K>");
-        out.println("  </Property>");
+        out.println("    \"Runtime\": {");
+        out.println("        \"unit\": \"sec\",");
+        out.println("        \"value\": \"" + runtime + "\"");
+        out.println("    },");
+        out.println("    \"Answer\": {");
+        out.println("        \"source\": \"" + source + "\",");
+        out.println("        \"text\": \"inconsistent\"");
+        out.println("    },");
+        out.println("    \"K\": \"" + k + "\"");
         out.flush();
     }
 
