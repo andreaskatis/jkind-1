@@ -1,0 +1,3 @@
+#!/bin/sh
+java -Xss10M -jar $(dirname $0)/jkind.jar -jkind "$@"
+

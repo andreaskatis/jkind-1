@@ -38,8 +38,8 @@ public class AevalSolver extends AevalProcess{
         this.scratch = scratch;
 
         try {
-            SFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_s_part.smt2");
-            TFile = new File(scratchBase.split("\\.")[0] + "_" + check + "_t_part.smt2");
+            SFile = new File(scratchBase.split("\\.lus")[0] + "_" + check + "_s_part.smt2");
+            TFile = new File(scratchBase.split("\\.lus")[0] + "_" + check + "_t_part.smt2");
             SFileStream = new FileOutputStream(SFile);
             TFileStream = new FileOutputStream(TFile);
 

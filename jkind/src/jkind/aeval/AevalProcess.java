@@ -87,8 +87,8 @@ public abstract class AevalProcess {
 
     private List<String> getArgs(String check, String scratchBase) {
         List<String> args = new ArrayList<>();
-        args.add(getSPart(scratchBase.split("\\.")[0] + "_" + check));
-        args.add(getTPart(scratchBase.split("\\.")[0] + "_" + check));
+        args.add(getSPart(scratchBase.split("\\.lus")[0] + "_" + check));
+        args.add(getTPart(scratchBase.split("\\.lus")[0] + "_" + check));
         return args;
     }
 
