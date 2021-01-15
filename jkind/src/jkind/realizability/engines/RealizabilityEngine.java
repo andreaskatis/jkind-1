@@ -230,6 +230,10 @@ public abstract class RealizabilityEngine implements Runnable {
 		}
 	}
 
+	protected Sexp getNonInitialStates(Sexp init){
+		return new Cons("not", init);
+	}
+
 	protected Sexp getUniversalOutputVariablesAssertion(int k){
 		List<Sexp> conjuncts = new ArrayList<>();
 		List<Sexp> equatities = new ArrayList<>();

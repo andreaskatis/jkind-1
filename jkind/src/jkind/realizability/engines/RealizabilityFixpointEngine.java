@@ -386,6 +386,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         }
         aesolver.assertTPart(getTransition(0, INIT), true);
 
+
         if (settings.scratch) {
             aesolver.scratch.println("; Constraints for existential part of the formula");
         }
@@ -543,7 +544,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                     converted = converted.replace(varid, newvarid);
                 }
             }
-
+            converted = converted.replaceAll("\\$~1", "\\$0");
         }
         return converted;
     }
