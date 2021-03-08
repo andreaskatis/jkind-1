@@ -4,6 +4,7 @@ import jkind.lustre.Node;
 import jkind.lustre.Type;
 import jkind.results.Counterexample;
 import jkind.util.Util;
+import jkind.results.layout.Layout;
 
 import java.io.FileNotFoundException;
 import java.util.Collections;
@@ -17,8 +18,8 @@ public class JsonWriter extends Writer {
     private static final List<String> REALIZABLE_LIST = Collections.singletonList(Util.REALIZABLE);
 
 
-    public JsonWriter(String filename, Map<String, Type> types) throws FileNotFoundException {
-        this.internal = new jkind.writers.JsonWriter(filename, types, false);
+    public JsonWriter(String filename, Map<String, Type> types, Layout layout) throws FileNotFoundException {
+        this.internal = new jkind.writers.JsonWriter(filename, types, layout, false);
     }
 
     @Override

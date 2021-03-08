@@ -64,7 +64,7 @@ public class RealizabilityDirector {
 			} else if (settings.xml) {
 				return new XmlWriter(settings.filename + ".xml", spec.typeMap);
 			} else if (settings.json) {
-				return new JsonWriter(settings.filename + ".json", spec.typeMap);
+				return new JsonWriter(settings.filename + ".json", spec.typeMap, new RealizabilityNodeLayout(spec.node));
 			} else {
 				return new ConsoleWriter(new RealizabilityNodeLayout(spec.node));
 			}

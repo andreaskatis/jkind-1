@@ -11,6 +11,7 @@ import jkind.lustre.values.Value;
 import jkind.results.Counterexample;
 import jkind.results.Signal;
 import jkind.util.Util;
+import jkind.results.layout.Layout;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -22,8 +23,9 @@ public class JsonWriter extends Writer{
 
     private final PrintWriter out;
     private final Map<String, Type> types;
+    private final Layout layout;
 
-    public JsonWriter(String filename, Map<String, Type> types, boolean useStdout)
+    public JsonWriter(String filename, Map<String, Type> types, Layout layout, boolean useStdout)
             throws FileNotFoundException {
         if (useStdout) {
             this.out = new PrintWriter(System.out, true);
@@ -31,6 +33,7 @@ public class JsonWriter extends Writer{
             this.out = new PrintWriter(new FileOutputStream(filename));
         }
         this.types = types;
+        this.layout = layout;
     }
 
     @Override
@@ -227,10 +230,24 @@ public class JsonWriter extends Writer{
 
     private void writeCounterexample(Counterexample cex) {
         out.println("        \"Counterexample\": [");
-        for (Signal<Value> signal : cex.getSignals()) {
+//        for (Signal<Value> signal : cex.getSignals()) {
+//            out.print("            {");
+//            writeSignal(cex.getLength(), signal);
+//            if (cex.getSignals().indexOf(signal) == cex.getSignals().size() - 1) {
+//                out.println("}");
+//            } else {
+//                out.println("},");
+//            }
+//        }
+        List<Signal<Value>> orderedSignals = cex.getCategorySignals(layout, "Realizability Inputs");
+        orderedSignals.addAll(cex.getCategorySignals(layout, "Realizability Outputs"));
+        orderedSignals.addAll(cex.getCategorySignals(layout, "Node Outputs"));
+        orderedSignals.addAll(cex.getCategorySignals(layout, "Node Locals"));
+
+        for (Signal<Value> signal : orderedSignals) {
             out.print("            {");
             writeSignal(cex.getLength(), signal);
-            if (cex.getSignals().indexOf(signal) == cex.getSignals().size() - 1) {
+            if (orderedSignals.indexOf(signal) == orderedSignals.size() - 1) {
                 out.println("}");
             } else {
                 out.println("},");
