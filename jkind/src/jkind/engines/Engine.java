@@ -5,6 +5,7 @@ import java.util.List;
 
 import jkind.JKindSettings;
 import jkind.engines.messages.MessageHandler;
+import jkind.engines.messages.StopMessage;
 import jkind.translation.Specification;
 
 public abstract class Engine extends MessageHandler implements Runnable {
@@ -33,6 +34,7 @@ public abstract class Engine extends MessageHandler implements Runnable {
 	public void run() {
 		try {
 			main();
+		} catch (StopException se) {
 		} catch (Throwable t) {
 			throwable = t;
 		} finally {
@@ -46,6 +48,10 @@ public abstract class Engine extends MessageHandler implements Runnable {
 
 	public Throwable getThrowable() {
 		return throwable;
+	}
+
+	public void stopEngine() {
+		receiveMessage(new StopMessage());
 	}
 
 	protected String getScratchBase() {

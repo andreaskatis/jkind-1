@@ -1,3 +1,5 @@
+build
+.gradle
 bin
 *.xml
 *.yc
@@ -5,6 +7,3 @@ bin
 *.xls
 *.log
 *.csv
-jkind-api/jkind-api.jar
-
-!build.xml

@@ -11,28 +11,34 @@ import java.util.Stack;
 
 import jkind.lustre.Equation;
 import jkind.lustre.Expr;
+import jkind.lustre.Function;
 import jkind.lustre.IdExpr;
 import jkind.lustre.Node;
 import jkind.lustre.VarDecl;
+import jkind.util.Util;
 
 public class DependencyMap {
 	private Map<Dependency, DependencySet> map = new HashMap<>();
 
-	public DependencyMap(Node node, List<String> roots) {
-		computeOneStepDependencies(node);
+	public DependencyMap(Node node, List<String> roots, List<Function> functions) {
+		computeOneStepDependencies(node, functions);
 		analyzeAssertions(node.assertions);
 		closeDependencies(roots);
 	}
 
-	private void computeOneStepDependencies(Node node) {
+	private void computeOneStepDependencies(Node node, List<Function> functions) {
 		for (VarDecl input : node.inputs) {
-			map.put(new Dependency(input.id), new DependencySet());
+			map.put(Dependency.variable(input.id), new DependencySet());
 		}
-		
+
+		for (Function fn : functions) {
+			map.put(Dependency.function(fn.id), new DependencySet());
+		}
+
 		for (Equation eq : node.equations) {
 			DependencySet deps = DependencyVisitor.get(eq.expr);
 			for (IdExpr idExpr : eq.lhs) {
-				map.put(new Dependency(idExpr.id), deps);
+				map.put(Dependency.variable(idExpr.id), deps);
 			}
 		}
 	}
@@ -64,7 +70,7 @@ public class DependencyMap {
 				todo.addAll(deps.getSet());
 			}
 
-			// All variables in an assertion depend on all other variables in it
+			// All elements in an assertion depend on all other elements in it
 			for (Dependency dep : assertionDependencies) {
 				map.get(dep).addAll(assertionDependencies);
 			}
@@ -74,7 +80,7 @@ public class DependencyMap {
 	private void closeDependencies(List<String> roots) {
 		Map<Dependency, DependencySet> transMap = new HashMap<>();
 		for (String variableRoot : roots) {
-			Dependency dep = new Dependency(variableRoot);
+			Dependency dep = Dependency.variable(variableRoot);
 			transMap.put(dep, computeClosure(dep));
 		}
 		map = transMap;
@@ -100,14 +106,36 @@ public class DependencyMap {
 		return closure;
 	}
 
+	private DependencyMap() {
+	}
+
+	public static DependencyMap full(Node node, List<Function> functions) {
+		DependencyMap result = new DependencyMap();
+
+		DependencySet set = new DependencySet();
+		for (VarDecl vd : Util.getVarDecls(node)) {
+			set.add(Dependency.variable(vd.id));
+		}
+
+		for (Function fn : functions) {
+			set.add(Dependency.function(fn.id));
+		}
+
+		for (VarDecl vd : Util.getVarDecls(node)) {
+			result.map.put(Dependency.variable(vd.id), set);
+		}
+
+		return result;
+	}
+
 	public DependencySet get(Dependency dependency) {
 		return map.get(dependency);
 	}
 
 	public DependencySet get(String var) {
-		return get(new Dependency(var));
+		return get(Dependency.variable(var));
 	}
-	
+
 	public DependencySet get(List<String> vars) {
 		DependencySet result = new DependencySet();
 		for (String var : vars) {

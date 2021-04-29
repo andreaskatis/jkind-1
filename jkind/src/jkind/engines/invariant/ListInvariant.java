@@ -3,13 +3,13 @@ package jkind.engines.invariant;
 import java.util.ArrayList;
 import java.util.List;
 
-import jkind.analysis.evaluation.Evaluator;
 import jkind.lustre.Expr;
 import jkind.lustre.values.BooleanValue;
+import jkind.lustre.visitors.Evaluator;
 
 public class ListInvariant implements StructuredInvariant {
 	private final List<Expr> exprs = new ArrayList<>();
-	
+
 	public ListInvariant(List<Expr> exprs) {
 		this.exprs.addAll(exprs);
 	}

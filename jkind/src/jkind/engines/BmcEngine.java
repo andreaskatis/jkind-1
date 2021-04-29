@@ -2,7 +2,6 @@ package jkind.engines;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import jkind.JKindSettings;
 import jkind.engines.messages.BaseStepMessage;
 import jkind.engines.messages.InductiveCounterexampleMessage;
@@ -55,10 +54,10 @@ public class BmcEngine extends SolverBasedEngine {
 					properties.clear();
 					break;
 				}
-				
+
 				List<String> bad = getFalseProperties(properties, k, model);
 				properties.removeAll(bad);
-				
+
 				if (result instanceof SatResult) {
 					sendInvalid(bad, k, model);
 				} else {

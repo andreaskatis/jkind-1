@@ -19,18 +19,18 @@ public class Benchmark {
 	public static void main(String args[]) {
 		try {
 			LOG.delete();
-	
+
 			if (args.length >= 2 && "-N".equals(args[0])) {
 				N = Integer.parseInt(args[1]);
 				args = Arrays.copyOfRange(args, 2, args.length);
 			}
-			
-			Output.println("Arguments: " + join(args));
-			Output.println();
-			Output.println("File, Runtime");
+
+			System.out.println("Arguments: " + join(args));
+			System.out.println();
+			System.out.println("File, Runtime");
 			for (String file : getFiles()) {
-				Output.printf("%s, %.1f", file, getMedianRuntime(args, file));
-				Output.println();
+				System.out.printf("%s, %.1f", file, getMedianRuntime(args, file));
+				System.out.println();
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -78,7 +78,7 @@ public class Benchmark {
 		ProcessBuilder pb = new ProcessBuilder(args);
 		pb.redirectErrorStream(true);
 		pb.redirectOutput(Redirect.appendTo(LOG));
-		
+
 		try (FileWriter out = new FileWriter(LOG, true)) {
 			out.write(args.toString());
 			out.write(System.lineSeparator());

@@ -48,18 +48,15 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 
 	@Override
 	public void main() {
-		try {
-			createVariables(-1);
-			for (int k = 0; k < settings.n; k++) {
-				comment("K = " + (k + 1));
-				processMessages();
-				createVariables(k);
-				assertTransition(k);
-				checkConsistency(k);
-				checkRealizable(k);
-				assertProperties(k);
-			}
-		} catch (StopException se) {
+		createVariables(-1);
+		for (int k = 0; k < settings.n; k++) {
+			comment("K = " + (k + 1));
+			processMessages();
+			createVariables(k);
+			assertTransition(k);
+			checkConsistency(k);
+			checkRealizable(k);
+			assertProperties(k);
 		}
 	}
 
@@ -69,8 +66,7 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 			if (message instanceof RealizableMessage) {
 				throw new StopException();
 			}
-			throw new JKindException("Unknown message type in base process: "
-					+ message.getClass().getCanonicalName());
+			throw new JKindException("Unknown message type in base process: " + message.getClass().getCanonicalName());
 		}
 	}
 
@@ -91,8 +87,8 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 	}
 
 	private void checkRealizable(int k) {
-		Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
-				getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
+		Result result = solver.realizabilityQuery(getRealizabilityOutputs(k), getTransition(k, k == 0),
+				StreamIndex.conjoinEncodings(spec.node.properties, k));
 
 		if (result instanceof UnsatResult) {
 			sendBaseStep(k);

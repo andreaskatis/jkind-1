@@ -2,7 +2,7 @@ grammar SmtLib2;
 
 model: '(' 'model' define* ')' EOF;
 
-define: '(' 'define-fun' id '(' arg? ')' type body ')';
+define: '(' 'define-fun' id '(' arg* ')' type body ')';
 
 arg: '(' id type ')';
 
@@ -10,9 +10,19 @@ type: 'Bool' | 'Int' | 'Real';
 
 body: symbol                               # symbolBody
     | '(' fn body* ')'                     # consBody
+    | '(' 'let' '(' binding* ')' body ')'  # letBody
     ;
 
-fn: '=' | '-' | '/' | 'and' | 'ite' | 'not' | '>=' | '<=' | '<' | '>';
+binding: '(' id body ')';
+
+fn: 
+	'=' 
+  | '+' | '*' | '-' | '/' | 'div' | 'mod' 
+  | 'and' | 'or' | 'not' | '=>' 
+  | 'ite' | 
+  | '>=' | '<=' | '<' | '>' 
+  | 'to_real' | 'to_int'
+;
 
 symbol: id | BOOL | INT | REAL;
 
@@ -23,7 +33,7 @@ qid: '|' ID '|';
 BOOL: 'true' | 'false';
 
 fragment DIGIT: [0-9];
-fragment SYMBOL: [a-zA-Z_@$#%!.^~\[\]];
+fragment SYMBOL: [a-zA-Z_@$#%!.^~\[\]'-];
 
 INT: DIGIT+;
 REAL: DIGIT+ '.' DIGIT+;

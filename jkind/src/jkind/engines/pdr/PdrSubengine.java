@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
+import de.uni_freiburg.informatik.ultimate.logic.Term;
+import jkind.analysis.LinearChecker;
 import jkind.engines.Director;
 import jkind.engines.StopException;
 import jkind.engines.messages.InvalidMessage;
@@ -13,43 +15,44 @@ import jkind.engines.messages.Itinerary;
 import jkind.engines.messages.ValidMessage;
 import jkind.engines.pdr.PdrSmt.Option;
 import jkind.lustre.Expr;
+import jkind.lustre.Function;
 import jkind.lustre.Node;
 import jkind.lustre.builders.NodeBuilder;
 import jkind.slicing.LustreSlicer;
 import jkind.solvers.Model;
 import jkind.translation.Specification;
-import de.uni_freiburg.informatik.ultimate.logic.Term;
 
 /**
- * PDR algorithm based on
- * "Efficient implementation of property directed reachability" by Niklas Een,
- * Alan Mishchenko, and Robert Brayton
- * 
- * SMT extension based on
- * "IC3 Modulo Theories via Implicit Predicate Abstraction" by Alessandro
- * Cimatti, Alberto Griggio, Sergio Mover, and Stefano Tonetta
+ * PDR algorithm based on "Efficient implementation of property directed
+ * reachability" by Niklas Een, Alan Mishchenko, and Robert Brayton
+ *
+ * SMT extension based on "IC3 Modulo Theories via Implicit Predicate
+ * Abstraction" by Alessandro Cimatti, Alberto Griggio, Sergio Mover, and
+ * Stefano Tonetta
  */
 public class PdrSubengine extends Thread {
 	private final Node node;
+	private final List<Function> functions;
 	private final String prop;
+
 	private final PdrEngine parent;
 	private final Director director;
 
 	private final List<Frame> F = new ArrayList<>();
-	private final PdrSmt Z;
+	private final String scratchBase;
+	private PdrSmt Z;
 
 	private volatile boolean cancel = false;
 
-	public PdrSubengine(String prop, Specification spec, String scratchBase, PdrEngine parent,
-			Director director) {
+	public PdrSubengine(String prop, Specification spec, String scratchBase, PdrEngine parent, Director director) {
 		super("pdr-" + prop);
 		this.prop = prop;
 		Node single = new NodeBuilder(spec.node).clearProperties().addProperty(prop).build();
 		this.node = LustreSlicer.slice(single, spec.dependencyMap);
+		this.functions = spec.functions;
+		this.scratchBase = scratchBase;
 		this.parent = parent;
 		this.director = director;
-
-		this.Z = new PdrSmt(node, F, prop, scratchBase);
 	}
 
 	public void cancel() {
@@ -58,6 +61,12 @@ public class PdrSubengine extends Thread {
 
 	@Override
 	public void run() {
+		if (!LinearChecker.isLinear(this.node)) {
+			parent.reportUnknown(prop);
+			return;
+		}
+
+		Z = new PdrSmt(node, functions, F, prop, scratchBase);
 		Z.comment("Checking property: " + prop);
 
 		// Create F_INF and F[0]
@@ -241,7 +250,8 @@ public class PdrSubengine extends Thread {
 
 	private void sendValidAndInvariants(List<Expr> invariants) {
 		Itinerary itinerary = director.getValidMessageItinerary();
-		director.broadcast(new ValidMessage(parent.getName(), prop, 1, invariants, null, itinerary));
+		director.broadcast(
+				new ValidMessage(parent.getName(), prop, 1, getRuntime(), invariants, null, itinerary, null, false));
 		director.broadcast(new InvariantMessage(invariants));
 	}
 
@@ -252,5 +262,9 @@ public class PdrSubengine extends Thread {
 
 	private void sendInvariant(Expr invariant) {
 		director.broadcast(new InvariantMessage(invariant));
+	}
+
+	private double getRuntime() {
+		return (System.currentTimeMillis() - director.startTime) / 1000.0;
 	}
 }

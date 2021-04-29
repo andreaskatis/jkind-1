@@ -2,11 +2,12 @@ package jkind.lustre.values;
 
 import jkind.lustre.BinaryOp;
 import jkind.lustre.UnaryOp;
+import jkind.util.StringNaturalOrdering;
 
 /**
  * An enumerated value (only used during counter-example output)
  */
-public class EnumValue extends Value {
+public class EnumValue extends Value implements Comparable<EnumValue> {
 	public final String value;
 
 	public EnumValue(String value) {
@@ -15,7 +16,27 @@ public class EnumValue extends Value {
 
 	@Override
 	public Value applyBinaryOp(BinaryOp op, Value right) {
-		return null;
+
+		if (right instanceof UnknownValue) {
+			return UnknownValue.UNKNOWN;
+		}
+
+		if (!(right instanceof EnumValue)) {
+			return null;
+		}
+
+		EnumValue other = (EnumValue) right;
+
+		switch (op) {
+		case EQUAL:
+			return BooleanValue.fromBoolean(equals(other));
+
+		case NOTEQUAL:
+			return BooleanValue.fromBoolean(!equals(other));
+
+		default:
+			return null;
+		}
 	}
 
 	@Override
@@ -40,5 +61,10 @@ public class EnumValue extends Value {
 			return value.equals(other.value);
 		}
 		return false;
+	}
+
+	@Override
+	public int compareTo(EnumValue other) {
+		return new StringNaturalOrdering().compare(value, other.value);
 	}
 }

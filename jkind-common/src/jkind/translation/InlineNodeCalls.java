@@ -16,6 +16,7 @@ import jkind.lustre.Program;
 import jkind.lustre.TupleExpr;
 import jkind.lustre.VarDecl;
 import jkind.lustre.builders.NodeBuilder;
+import jkind.lustre.builders.ProgramBuilder;
 import jkind.lustre.visitors.ExprMapVisitor;
 import jkind.util.Util;
 
@@ -25,7 +26,7 @@ import jkind.util.Util;
  * properties in the main node.
  */
 public class InlineNodeCalls extends ExprMapVisitor {
-	public static Node program(Program program) {
+	public static Program program(Program program) {
 		InlineNodeCalls inliner = new InlineNodeCalls(Util.getNodeTable(program.nodes));
 		Node main = program.getMainNode();
 
@@ -36,7 +37,8 @@ public class InlineNodeCalls extends ExprMapVisitor {
 		builder.addProperties(inliner.newProperties);
 		builder.addIvcs(inliner.newIvc);
 
-		return builder.build();
+		Node inlinedMain = builder.build();
+		return new ProgramBuilder(program).clearNodes().addNode(inlinedMain).build();
 	}
 
 	private final Map<String, Node> nodeTable;
@@ -106,8 +108,7 @@ public class InlineNodeCalls extends ExprMapVisitor {
 		return translation;
 	}
 
-	private void createInputEquations(List<VarDecl> inputs, List<Expr> args,
-			Map<String, IdExpr> translation) {
+	private void createInputEquations(List<VarDecl> inputs, List<Expr> args, Map<String, IdExpr> translation) {
 		for (int i = 0; i < inputs.size(); i++) {
 			IdExpr idExpr = translation.get(inputs.get(i).id);
 			Expr arg = args.get(i);

@@ -26,8 +26,7 @@ public abstract class ArgumentParser {
 		try {
 			parseCommandLine(parser.parse(getOptions(), args));
 		} catch (Throwable t) {
-			Output.fatal(ExitCodes.INVALID_OPTIONS,
-					"reading command line arguments: " + t.getMessage());
+			StdErr.fatal(ExitCodes.INVALID_OPTIONS, "reading command line arguments: " + t.getMessage());
 		}
 	}
 
@@ -40,7 +39,7 @@ public abstract class ArgumentParser {
 
 	protected void parseCommandLine(CommandLine line) {
 		if (line.hasOption(VERSION)) {
-			Output.println(name + " " + Main.VERSION);
+			StdErr.println(name + " " + Main.VERSION);
 			System.exit(0);
 		}
 
@@ -72,11 +71,10 @@ public abstract class ArgumentParser {
 			return bi.intValue();
 		}
 	}
-	
+
 	protected static void ensureExclusive(CommandLine line, String opt1, String opt2) {
 		if (line.hasOption(opt1) && line.hasOption(opt2)) {
-			Output.fatal(ExitCodes.INVALID_OPTIONS, "cannot use option -" + opt1 + " with option -"
-					+ opt2);
+			StdErr.fatal(ExitCodes.INVALID_OPTIONS, "cannot use option -" + opt1 + " with option -" + opt2);
 		}
 	}
 }

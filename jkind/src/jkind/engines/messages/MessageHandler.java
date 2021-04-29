@@ -4,8 +4,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-
 import jkind.JKindException;
+import jkind.engines.StopException;
 
 public abstract class MessageHandler {
 	private BlockingQueue<Message> incoming = new LinkedBlockingQueue<>();
@@ -54,4 +54,9 @@ public abstract class MessageHandler {
 	protected abstract void handleMessage(UnknownMessage um);
 
 	protected abstract void handleMessage(ValidMessage vm);
+
+	@SuppressWarnings("unused")
+	protected void handleMessage(StopMessage sm) {
+		throw new StopException();
+	}
 }

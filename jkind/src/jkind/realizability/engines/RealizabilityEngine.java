@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.analysis.LinearChecker;
+import jkind.engines.StopException;
 import jkind.lustre.Expr;
 import jkind.lustre.LustreUtil;
 import jkind.lustre.NamedType;
@@ -44,8 +45,8 @@ public abstract class RealizabilityEngine implements Runnable {
 	// make it volatile
 	protected volatile Throwable throwable;
 
-	public RealizabilityEngine(String name, Specification spec,
-			JRealizabilitySettings settings, RealizabilityDirector director) {
+	public RealizabilityEngine(String name, Specification spec, JRealizabilitySettings settings,
+			RealizabilityDirector director) {
 		this.name = name;
 		this.spec = spec;
 		this.settings = settings;
@@ -62,6 +63,7 @@ public abstract class RealizabilityEngine implements Runnable {
 		try {
 			initializeSolver();
 			main();
+		} catch (StopException se) {
 		} catch (Throwable t) {
 			throwable = t;
 		} finally {
@@ -79,6 +81,7 @@ public abstract class RealizabilityEngine implements Runnable {
 	protected void initializeSolver() {
 		solver = new Z3Solver(getScratchBase(), LinearChecker.isLinear(spec.node));
 		solver.initialize();
+		solver.declare(spec.functions);
 		solver.define(spec.getTransitionRelation());
 	}
 

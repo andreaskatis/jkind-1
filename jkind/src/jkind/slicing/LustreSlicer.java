@@ -33,7 +33,7 @@ public class LustreSlicer extends AstMapVisitor {
 	protected List<VarDecl> visitVarDecls(List<VarDecl> decls) {
 		List<VarDecl> sliced = new ArrayList<>();
 		for (VarDecl decl : decls) {
-			if (keep.contains(decl.id)) {
+			if (keep.contains(Dependency.variable(decl.id))) {
 				sliced.add(decl);
 			}
 		}
@@ -43,6 +43,7 @@ public class LustreSlicer extends AstMapVisitor {
 	@Override
 	protected List<Equation> visitEquations(List<Equation> equations) {
 		List<Equation> sliced = new ArrayList<>();
+
 		for (Equation eq : equations) {
 			if (containsAny(keep, eq.lhs)) {
 				sliced.add(eq);
@@ -67,7 +68,7 @@ public class LustreSlicer extends AstMapVisitor {
 	protected List<String> visitIvc(List<String> ivc) {
 		List<String> sliced = new ArrayList<>();
 		for (String e : ivc) {
-			if (keep.contains(e)) {
+			if (keep.contains(Dependency.variable(e))) {
 				sliced.add(e);
 			}
 		}
@@ -76,7 +77,7 @@ public class LustreSlicer extends AstMapVisitor {
 
 	private static boolean containsAny(DependencySet set, List<IdExpr> lhs) {
 		for (IdExpr idExpr : lhs) {
-			if (set.contains(idExpr.id)) {
+			if (set.contains(Dependency.variable(idExpr.id))) {
 				return true;
 			}
 		}

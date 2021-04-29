@@ -1,12 +1,15 @@
 package jkind.analysis;
 
-import jkind.Output;
+import java.util.Set;
+
+import jkind.StdErr;
 import jkind.lustre.BinaryExpr;
 import jkind.lustre.Equation;
 import jkind.lustre.Expr;
 import jkind.lustre.Node;
 import jkind.lustre.Program;
 import jkind.lustre.visitors.ExprIterVisitor;
+import jkind.util.Util;
 
 public class LinearChecker extends ExprIterVisitor {
 	private final Level level;
@@ -33,8 +36,13 @@ public class LinearChecker extends ExprIterVisitor {
 	public boolean visitProgram(Program program) {
 		constantAnalyzer = new ConstantAnalyzer(program);
 
+		// Do not iterate over allDependencies directly, so that errors are in
+		// program order
+		Set<Node> allDependencies = Util.getAllNodeDependencies(program);
 		for (Node node : program.nodes) {
-			visitNode(node);
+			if (allDependencies.contains(node)) {
+				visitNode(node);
+			}
 		}
 
 		return passed;
@@ -57,7 +65,7 @@ public class LinearChecker extends ExprIterVisitor {
 		switch (e.op) {
 		case MULTIPLY:
 			if (!isConstant(e.left) && !isConstant(e.right)) {
-				Output.output(level, e.location, "non-constant multiplication");
+				StdErr.output(level, e.location, "non-constant multiplication");
 				passed = false;
 			}
 			break;
@@ -65,14 +73,14 @@ public class LinearChecker extends ExprIterVisitor {
 		case DIVIDE:
 		case INT_DIVIDE:
 			if (!isConstant(e.right)) {
-				Output.output(level, e.location, "non-constant division");
+				StdErr.output(level, e.location, "non-constant division");
 				passed = false;
 			}
 			break;
 
 		case MODULUS:
 			if (!isConstant(e.right)) {
-				Output.output(level, e.location, "non-constant modulus");
+				StdErr.output(level, e.location, "non-constant modulus");
 				passed = false;
 			}
 			break;

@@ -1,8 +1,8 @@
 package jkind.translation;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
 
 import jkind.lustre.ArrayAccessExpr;
 import jkind.lustre.ArrayExpr;
@@ -11,6 +11,7 @@ import jkind.lustre.BinaryExpr;
 import jkind.lustre.BoolExpr;
 import jkind.lustre.CastExpr;
 import jkind.lustre.CondactExpr;
+import jkind.lustre.FunctionCallExpr;
 import jkind.lustre.IdExpr;
 import jkind.lustre.IfThenElseExpr;
 import jkind.lustre.IntExpr;
@@ -23,6 +24,7 @@ import jkind.lustre.RecordUpdateExpr;
 import jkind.lustre.TupleExpr;
 import jkind.lustre.UnaryExpr;
 import jkind.lustre.visitors.ExprVisitor;
+import jxl.CellReferenceHelper;
 
 public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 	private int column;
@@ -31,7 +33,7 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 	private final Map<String, String> intToEnum;
 	private final Map<String, String> enumToInt;
 
-	private final SortedSet<String> refs;
+	private final Set<String> refs;
 	private final StringBuilder buf;
 
 	final private static int INITIAL_COLUMN = 1;
@@ -44,7 +46,7 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 		this.intToEnum = intToEnum;
 		this.enumToInt = enumToInt;
 
-		this.refs = new TreeSet<>();
+		this.refs = new LinkedHashSet<>();
 		this.buf = new StringBuilder();
 	}
 
@@ -92,6 +94,11 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 	@Override
 	public Void visit(ArrayUpdateExpr e) {
 		throw new IllegalArgumentException("Arrays must be flattened before translation to formula");
+	}
+
+	@Override
+	public Void visit(FunctionCallExpr e) {
+		throw new IllegalArgumentException("Functions are not supported");
 	}
 
 	@Override
@@ -186,8 +193,7 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 	public Void visit(IdExpr e) {
 		int row = rowAssignments.get(e.id);
 
-		// Excel uses 1-indexed rows and columns
-		String cell = toExcelColumn(column + 1) + Integer.toString(row + 1);
+		String cell = CellReferenceHelper.getCellReference(column, row);
 		if (enumToInt.containsKey(e.id)) {
 			buf.append("HLOOKUP(" + cell + "," + enumToInt.get(e.id) + ",2,FALSE)");
 		} else {
@@ -195,27 +201,6 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 		}
 		refs.add(cell);
 		return null;
-	}
-
-	/**
-	 * <pre>
-	 *   1 -> A
-	 *   2 -> B 
-	 *   ... 
-	 *   26 -> Z 
-	 *   27 -> AA
-	 *   28 -> AB
-	 *   ...
-	 * </pre>
-	 */
-	private static String toExcelColumn(int col) {
-		StringBuilder result = new StringBuilder();
-		while (col > 0) {
-			char c = (char) ('A' + (col - 1) % 26);
-			result.append(c);
-			col = (col - 1) / 26;
-		}
-		return result.reverse().toString();
 	}
 
 	@Override
@@ -238,8 +223,7 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 
 	@Override
 	public Void visit(NodeCallExpr e) {
-		throw new IllegalArgumentException(
-				"Node calls must be inlined before translation to formula");
+		throw new IllegalArgumentException("Node calls must be inlined before translation to formula");
 	}
 
 	@Override
@@ -250,20 +234,17 @@ public class Expr2FormulaVisitor implements ExprVisitor<Void> {
 
 	@Override
 	public Void visit(RecordAccessExpr e) {
-		throw new IllegalArgumentException(
-				"Records must be flattened before translation to formula");
+		throw new IllegalArgumentException("Records must be flattened before translation to formula");
 	}
 
 	@Override
 	public Void visit(RecordExpr e) {
-		throw new IllegalArgumentException(
-				"Records must be flattened before translation to formula");
+		throw new IllegalArgumentException("Records must be flattened before translation to formula");
 	}
 
 	@Override
 	public Void visit(RecordUpdateExpr e) {
-		throw new IllegalArgumentException(
-				"Records must be flattened before translation to formula");
+		throw new IllegalArgumentException("Records must be flattened before translation to formula");
 	}
 
 	@Override

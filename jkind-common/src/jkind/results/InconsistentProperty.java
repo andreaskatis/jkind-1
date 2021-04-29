@@ -1,6 +1,5 @@
 package jkind.results;
 
-
 /**
  * An inconsistent property
  */
@@ -26,5 +25,9 @@ public final class InconsistentProperty extends Property {
 	 */
 	public int getK() {
 		return k;
+	}
+
+	@Override
+	public void discardDetails() {
 	}
 }

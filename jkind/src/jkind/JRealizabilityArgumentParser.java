@@ -53,7 +53,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		if (line.hasOption(EXCEL)) {
 			settings.excel = true;
 		}
-		
+
 		if (line.hasOption(EXTEND_CEX)) {
 			settings.extendCounterexample = true;
 		}
@@ -61,7 +61,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		if (line.hasOption(N)) {
 			settings.n = parseNonnegativeInt(line.getOptionValue(N));
 		}
-		
+
 		if (line.hasOption(REDUCE)) {
 			settings.reduce = true;
 		}

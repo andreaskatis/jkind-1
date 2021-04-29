@@ -19,11 +19,11 @@ public class JRealizability {
 			String filename = settings.filename;
 			Program program = Main.parseLustre(filename);
 
-			StaticAnalyzer.check(program, SolverOption.Z3);
-			checkRealizablitityQuery(program);
+			StaticAnalyzer.check(program, SolverOption.Z3, settings);
+			realizabilitySpecificChecks(program);
 
-			Node main = Translate.translate(program);
-			Specification spec = new Specification(main);
+			program = Translate.translate(program);
+			Specification spec = new Specification(program);
 			int exitCode = new RealizabilityDirector(settings, spec).run();
 			System.exit(exitCode); // Kills all threads
 		} catch (Throwable t) {
@@ -32,10 +32,11 @@ public class JRealizability {
 		}
 	}
 
-	private static void checkRealizablitityQuery(Program program) {
+	private static void realizabilitySpecificChecks(Program program) {
 		Node main = program.getMainNode();
 
 		boolean valid = true;
+		valid = valid && checkNoFunctions(program);
 		valid = valid && realizablitityQueryExists(main);
 		valid = valid && realizablitityInputsNodeInputs(main);
 		valid = valid && realizablitityInputsUnique(main);
@@ -45,9 +46,18 @@ public class JRealizability {
 		}
 	}
 
+	private static boolean checkNoFunctions(Program program) {
+		if (!program.functions.isEmpty()) {
+			StdErr.error("functions are not supported in JRealizability");
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 	private static boolean realizablitityQueryExists(Node main) {
 		if (main.realizabilityInputs == null) {
-			Output.error("main node '" + main.id + "' must have realizability query");
+			StdErr.error("main node '" + main.id + "' must have realizability query");
 			return false;
 		} else {
 			return true;
@@ -59,8 +69,7 @@ public class JRealizability {
 		List<String> inputs = Util.getIds(main.inputs);
 		for (String ri : main.realizabilityInputs) {
 			if (!inputs.contains(ri)) {
-				Output.error("in node '" + main.id + "' realizability input '" + ri
-						+ "' must be a node input");
+				StdErr.error("in node '" + main.id + "' realizability input '" + ri + "' must be a node input");
 				pass = false;
 			}
 		}
@@ -72,8 +81,7 @@ public class JRealizability {
 		Set<String> seen = new HashSet<>();
 		for (String ri : main.realizabilityInputs) {
 			if (!seen.add(ri)) {
-				Output.error("in node '" + main.id + "' realizability input '" + ri
-						+ "' listed multiple times");
+				StdErr.error("in node '" + main.id + "' realizability input '" + ri + "' listed multiple times");
 				unique = false;
 			}
 		}

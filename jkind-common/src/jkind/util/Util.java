@@ -1,12 +1,17 @@
 package jkind.util;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,29 +19,67 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.w3c.dom.Element;
+
 import jkind.JKindException;
-import jkind.interval.Interval;
 import jkind.lustre.EnumType;
 import jkind.lustre.Equation;
+import jkind.lustre.Function;
 import jkind.lustre.IdExpr;
 import jkind.lustre.NamedType;
 import jkind.lustre.Node;
+import jkind.lustre.NodeCallExpr;
+import jkind.lustre.Program;
 import jkind.lustre.SubrangeIntType;
 import jkind.lustre.Type;
 import jkind.lustre.TypeDef;
 import jkind.lustre.VarDecl;
+import jkind.lustre.values.ArrayValue;
 import jkind.lustre.values.BooleanValue;
 import jkind.lustre.values.EnumValue;
 import jkind.lustre.values.IntegerValue;
 import jkind.lustre.values.RealValue;
 import jkind.lustre.values.Value;
+import jkind.lustre.visitors.AstIterVisitor;
 
 public class Util {
+	public static Set<Node> getAllNodeDependencies(Program program) {
+		Map<String, Node> nodeTable = getNodeTable(program.nodes);
+		Set<Node> result = new HashSet<>();
+
+		Queue<Node> todo = new ArrayDeque<>();
+		todo.add(program.getMainNode());
+
+		while (!todo.isEmpty()) {
+			Node curr = todo.remove();
+			if (result.add(curr)) {
+				for (String depName : getNodeDependenciesByName(curr)) {
+					todo.add(nodeTable.get(depName));
+				}
+			}
+		}
+
+		return result;
+	}
+
+	public static Set<String> getNodeDependenciesByName(Node node) {
+		Set<String> referenced = new HashSet<>();
+		node.accept(new AstIterVisitor() {
+			@Override
+			public Void visit(NodeCallExpr e) {
+				referenced.add(e.node);
+				return super.visit(e);
+			}
+		});
+		return referenced;
+	}
+
 	public static List<VarDecl> getVarDecls(Node node) {
 		List<VarDecl> decls = new ArrayList<>();
 		decls.addAll(node.inputs);
@@ -45,28 +88,27 @@ public class Util {
 		return decls;
 	}
 
+	public static List<VarDecl> getVarDecls(Function function) {
+		List<VarDecl> decls = new ArrayList<>();
+		decls.addAll(function.inputs);
+		decls.addAll(function.outputs);
+		return decls;
+	}
+
 	public static Map<String, Type> getTypeMap(Node node) {
-		Map<String, Type> map = new HashMap<>();
-		for (VarDecl v : getVarDecls(node)) {
-			map.put(v.id, v.type);
-		}
-		return map;
+		return getVarDecls(node).stream().collect(toMap(vd -> vd.id, vd -> vd.type));
 	}
 
 	public static List<String> getIds(List<VarDecl> decls) {
-		List<String> ids = new ArrayList<>();
-		for (VarDecl decl : decls) {
-			ids.add(decl.id);
-		}
-		return ids;
+		return decls.stream().map(decl -> decl.id).collect(toList());
 	}
 
 	public static Map<String, Node> getNodeTable(List<Node> nodes) {
-		Map<String, Node> nodeTable = new HashMap<>();
-		for (Node node : nodes) {
-			nodeTable.put(node.id, node);
-		}
-		return nodeTable;
+		return nodes.stream().collect(toMap(n -> n.id, n -> n));
+	}
+
+	public static Map<String, Function> getFunctionTable(List<Function> functions) {
+		return functions.stream().collect(toMap(f -> f.id, f -> f));
 	}
 
 	/*
@@ -86,9 +128,9 @@ public class Util {
 	public static Value parseValue(String type, String value) {
 		switch (type) {
 		case "bool":
-			if (value.equals("0") || value.equals("false")) {
+			if (value.equals("0") || value.equals("false") || value.equals("False")) {
 				return BooleanValue.FALSE;
-			} else if (value.equals("1") || value.equals("true")) {
+			} else if (value.equals("1") || value.equals("true") || value.equals("True")) {
 				return BooleanValue.TRUE;
 			}
 			break;
@@ -97,6 +139,12 @@ public class Util {
 			return new IntegerValue(new BigInteger(value));
 
 		case "real":
+			
+			// Sally returns real values with decimal points
+			if(value.contains(".")) {
+				return new RealValue(BigFraction.valueOf(new BigDecimal(value.toString())));
+			}
+			
 			String[] strs = value.split("/");
 			if (strs.length <= 2) {
 				BigInteger num = new BigInteger(strs[0]);
@@ -114,6 +162,39 @@ public class Util {
 		}
 
 		throw new JKindException("Unable to parse " + value + " as " + type);
+	}
+
+	public static Value parseArrayValue(String type, Element arrayElement) {
+		int size = Integer.parseInt(arrayElement.getAttribute("size"));
+		List<Value> elements = new ArrayList<>();
+		for (int i = 0; i < size; i++) {
+			Value elValue;
+			Element arrayEl = getElement(arrayElement, "Array", i);
+			if (arrayEl != null) {
+				elValue = parseArrayValue(type, arrayEl);
+			} else {
+				arrayEl = getElement(arrayElement, "Item", i);
+				int index = Integer.parseInt(arrayEl.getAttribute("index"));
+				if (index != i) {
+					throw new IllegalArgumentException("We expect array indicies to be sorted");
+				}
+				elValue = parseValue(type, arrayEl.getTextContent());
+			}
+			elements.add(elValue);
+		}
+		return new ArrayValue(elements);
+	}
+
+	public static Value promoteIfNeeded(Value value, Type type) {
+		if (value instanceof IntegerValue && type == NamedType.REAL) {
+			IntegerValue iv = (IntegerValue) value;
+			return new RealValue(new BigFraction(iv.value));
+		}
+		return value;
+	}
+
+	private static Element getElement(Element element, String name, int index) {
+		return (Element) element.getElementsByTagName(name).item(index);
 	}
 
 	public static Value parseValue(Type type, String value) {
@@ -160,15 +241,6 @@ public class Util {
 
 	public static boolean isWindows() {
 		return System.getProperty("os.name").startsWith("Windows");
-	}
-
-	public static boolean isArbitrary(Value value) {
-		if (value == null) {
-			return true;
-		} else if (value instanceof Interval) {
-			return ((Interval) value).isArbitrary();
-		}
-		return false;
 	}
 
 	public static <T, S> List<S> castList(List<T> list, Class<S> klass) {
@@ -232,6 +304,23 @@ public class Util {
 		return Collections.unmodifiableSet(set);
 	}
 
+	public static Set<List<String>> safeStringSortedSets(Set<List<String>> original) {
+		Set<List<String>> set = new HashSet<>(new TreeSet<>(new StringNaturalOrdering()));
+		for (Collection<String> currentSetOriginal : original) {
+			TreeSet<String> individualSet = new TreeSet<>(new StringNaturalOrdering());
+			individualSet.addAll(currentSetOriginal);
+			set.add(safeList(individualSet));
+		}
+
+		return Collections.unmodifiableSet(set);
+	}
+
+	public static <T> Set<T> setDifference(Collection<T> c1, Collection<T> c2) {
+		Set<T> result = new HashSet<>(c1);
+		result.removeAll(c2);
+		return result;
+	}
+
 	public static List<EnumType> getEnumTypes(List<TypeDef> types) {
 		List<EnumType> enums = new ArrayList<>();
 		for (TypeDef def : types) {
@@ -276,31 +365,40 @@ public class Util {
 
 	public static String secondsToTime(double seconds) {
 		String result;
-		
+
 		int minutes = (int) (seconds / 60);
 		seconds = seconds % 60;
 		result = new DecimalFormat("#.###").format(seconds) + "s";
 		if (minutes == 0) {
 			return result;
 		}
-		
+
 		int hours = minutes / 60;
 		minutes = minutes % 60;
 		result = minutes + "m " + result;
 		if (hours == 0) {
 			return result;
 		}
-		
+
 		int days = hours / 24;
 		hours = hours % 24;
 		result = hours + "h " + result;
 		if (days == 0) {
 			return result;
 		}
-		
+
 		return days + "d " + result;
 	}
 
 	/** Default name for realizability query property in XML file */
 	public static final String REALIZABLE = "%REALIZABLE";
+
+	/**
+	 * ASCII "End of Text" character, used by JKindApi to ask JKind to terminate
+	 */
+	public static final int END_OF_TEXT = 0x03;
+
+	public static String capitalize(String name) {
+		return name.substring(0, 1).toUpperCase() + name.substring(1);
+	}
 }

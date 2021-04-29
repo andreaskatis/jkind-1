@@ -7,29 +7,38 @@ import java.util.Map;
 import java.util.Set;
 
 import jkind.ExitCodes;
-import jkind.Output;
+import jkind.JKindSettings;
+import jkind.Settings;
 import jkind.SolverOption;
+import jkind.StdErr;
 import jkind.analysis.evaluation.DivisionChecker;
 import jkind.lustre.Constant;
 import jkind.lustre.EnumType;
 import jkind.lustre.Equation;
 import jkind.lustre.Expr;
+import jkind.lustre.Function;
 import jkind.lustre.IdExpr;
 import jkind.lustre.NamedType;
 import jkind.lustre.Node;
 import jkind.lustre.Program;
+import jkind.lustre.Type;
 import jkind.lustre.TypeDef;
 import jkind.lustre.VarDecl;
 import jkind.util.Util;
 
 public class StaticAnalyzer {
+
 	public static void check(Program program, SolverOption solver) {
-		checkErrors(program, solver);
+		check(program, solver, new Settings());
+	}
+
+	public static void check(Program program, SolverOption solver, Settings settings) {
+		checkErrors(program, solver, settings);
 		checkSolverLimitations(program, solver);
 		checkWarnings(program, solver);
 	}
 
-	private static void checkErrors(Program program, SolverOption solver) {
+	private static void checkErrors(Program program, SolverOption solver, Settings settings) {
 		boolean valid = true;
 		valid = valid && hasMainNode(program);
 		valid = valid && typesUnique(program);
@@ -37,7 +46,8 @@ public class StaticAnalyzer {
 		valid = valid && TypeDependencyChecker.check(program);
 		valid = valid && enumsAndConstantsUnique(program);
 		valid = valid && ConstantDependencyChecker.check(program);
-		valid = valid && nodesUnique(program);
+		valid = valid && nodesAndFunctionsUnique(program);
+		valid = valid && functionsHaveUnconstrainedOutputTypes(program);
 		valid = valid && variablesUnique(program);
 		valid = valid && TypeChecker.check(program);
 		valid = valid && SubrangesNonempty.check(program);
@@ -52,8 +62,24 @@ public class StaticAnalyzer {
 		valid = valid && propertiesBoolean(program);
 		valid = valid && ivcUnique(program);
 		valid = valid && ivcLocalOrOutput(program);
-		if (solver != SolverOption.Z3) {
+
+		switch (solver) {
+		case Z3:
+			break;
+
+		case YICES2:
+			if (settings instanceof JKindSettings) {
+				JKindSettings jKindSettings = (JKindSettings) settings;
+				if (jKindSettings.reduceIvc && !LinearChecker.check(program, Level.IGNORE)) {
+					StdErr.warning(jKindSettings.solver
+							+ " does not support unsat-cores for nonlinear logic so IVC reduction will be slow");
+				}
+			}
+			break;
+
+		default:
 			valid = valid && LinearChecker.check(program, Level.ERROR);
+			break;
 		}
 
 		if (!valid) {
@@ -80,7 +106,7 @@ public class StaticAnalyzer {
 
 	private static boolean hasMainNode(Program program) {
 		if (program.getMainNode() == null) {
-			Output.error("no main node");
+			StdErr.error("no main node");
 			return false;
 		}
 		return true;
@@ -91,7 +117,7 @@ public class StaticAnalyzer {
 		Set<String> seen = new HashSet<>();
 		for (TypeDef def : program.types) {
 			if (!seen.add(def.id)) {
-				Output.error(def.location, "type " + def.id + " already defined");
+				StdErr.error(def.location, "type " + def.id + " already defined");
 				unique = false;
 			}
 		}
@@ -105,7 +131,7 @@ public class StaticAnalyzer {
 		for (EnumType et : Util.getEnumTypes(program.types)) {
 			for (String value : et.values) {
 				if (!seen.add(value)) {
-					Output.error(et.location, value + " defined multiple times");
+					StdErr.error(et.location, value + " defined multiple times");
 					unique = false;
 				}
 			}
@@ -113,7 +139,7 @@ public class StaticAnalyzer {
 
 		for (Constant c : program.constants) {
 			if (!seen.add(c.id)) {
-				Output.error(c.location, c.id + " defined multiple times");
+				StdErr.error(c.location, c.id + " defined multiple times");
 				unique = false;
 			}
 		}
@@ -121,7 +147,7 @@ public class StaticAnalyzer {
 		for (Node node : program.nodes) {
 			for (VarDecl vd : Util.getVarDecls(node)) {
 				if (seen.contains(vd.id)) {
-					Output.error(vd.location, vd.id + " already defined globally");
+					StdErr.error(vd.location, vd.id + " already defined globally");
 					unique = false;
 				}
 			}
@@ -130,32 +156,59 @@ public class StaticAnalyzer {
 		return unique;
 	}
 
-	private static boolean nodesUnique(Program program) {
+	private static boolean nodesAndFunctionsUnique(Program program) {
 		boolean unique = true;
 		Set<String> seen = new HashSet<>();
-		for (Node node : program.nodes) {
-			if (!seen.add(node.id)) {
-				Output.error(node.location, "node " + node.id + " already defined");
+
+		for (Function function : program.functions) {
+			if (!seen.add(function.id)) {
+				StdErr.error(function.location, "function or node " + function.id + " already defined");
 				unique = false;
 			}
 		}
+
+		for (Node node : program.nodes) {
+			if (!seen.add(node.id)) {
+				StdErr.error(node.location, "function or node " + node.id + " already defined");
+				unique = false;
+			}
+		}
+
 		return unique;
+	}
+
+	private static boolean functionsHaveUnconstrainedOutputTypes(Program program) {
+		boolean valid = true;
+		Map<String, Type> typeTable = Util.createResolvedTypeTable(program.types);
+		for (Function function : program.functions) {
+			for (VarDecl output : function.outputs) {
+				if (ContainsConstrainedType.check(output.type, typeTable)) {
+					StdErr.error(output.type.location, "function " + function.id
+							+ " may not use constrained output type (subrange or enumeration)");
+					valid = false;
+				}
+			}
+		}
+		return valid;
 	}
 
 	private static boolean variablesUnique(Program program) {
 		boolean unique = true;
+		for (Function function : program.functions) {
+			unique = variablesUnique(Util.getVarDecls(function)) && unique;
+		}
 		for (Node node : program.nodes) {
-			unique = variablesUnique(node) && unique;
+			unique = variablesUnique(Util.getVarDecls(node)) && unique;
 		}
 		return unique;
 	}
 
-	private static boolean variablesUnique(Node node) {
+	private static boolean variablesUnique(List<VarDecl> varDecls) {
 		boolean unique = true;
 		Set<String> seen = new HashSet<>();
-		for (VarDecl decl : Util.getVarDecls(node)) {
+		for (VarDecl decl : varDecls) {
 			if (!seen.add(decl.id)) {
-				Output.error(decl.location, "variable " + decl.id + " already declared");
+				StdErr.error(decl.location, "variable " + decl.id + " already declared");
 				unique = false;
 			}
 		}
@@ -167,7 +220,7 @@ public class StaticAnalyzer {
 		ConstantAnalyzer constantAnalyzer = new ConstantAnalyzer(program);
 		for (Constant c : program.constants) {
 			if (!c.expr.accept(constantAnalyzer)) {
-				Output.error(c.location, "constant " + c.id + " does not have a constant value");
+				StdErr.error(c.location, "constant " + c.id + " does not have a constant value");
 				constant = false;
 			}
 		}
@@ -195,18 +248,17 @@ public class StaticAnalyzer {
 					toAssign.remove(idExpr.id);
 					assigned.add(idExpr.id);
 				} else if (assigned.contains(idExpr.id)) {
-					Output.error(idExpr.location, "variable '" + idExpr.id
-							+ "' cannot be reassigned");
+					StdErr.error(idExpr.location, "variable '" + idExpr.id + "' cannot be reassigned");
 					sound = false;
 				} else {
-					Output.error(idExpr.location, "variable '" + idExpr.id + "' cannot be assigned");
+					StdErr.error(idExpr.location, "variable '" + idExpr.id + "' cannot be assigned");
 					sound = false;
 				}
 			}
 		}
 
 		if (!toAssign.isEmpty()) {
-			Output.error("in node '" + node.id + "' variables must be assigned: " + toAssign);
+			StdErr.error("in node '" + node.id + "' variables must be assigned: " + toAssign);
 			sound = false;
 		}
 
@@ -220,8 +272,7 @@ public class StaticAnalyzer {
 			Set<String> seen = new HashSet<>();
 			for (String prop : node.properties) {
 				if (!seen.add(prop)) {
-					Output.error("in node '" + node.id + "' property '" + prop
-							+ "' declared multiple times");
+					StdErr.error("in node '" + node.id + "' property '" + prop + "' declared multiple times");
 					unique = false;
 				}
 			}
@@ -237,7 +288,7 @@ public class StaticAnalyzer {
 			Set<String> variables = new HashSet<>(Util.getIds(Util.getVarDecls(node)));
 			for (String prop : node.properties) {
 				if (!variables.contains(prop)) {
-					Output.error("in node '" + node.id + "' property '" + prop + "' does not exist");
+					StdErr.error("in node '" + node.id + "' property '" + prop + "' does not exist");
 					exist = false;
 				}
 			}
@@ -253,8 +304,7 @@ public class StaticAnalyzer {
 			Set<String> booleans = getBooleans(node);
 			for (String prop : node.properties) {
 				if (!booleans.contains(prop)) {
-					Output.error("in node '" + node.id + "' property '" + prop
-							+ "' does not have type bool");
+					StdErr.error("in node '" + node.id + "' property '" + prop + "' does not have type bool");
 					allBoolean = false;
 				}
 			}
@@ -280,7 +330,7 @@ public class StaticAnalyzer {
 			}
 
 			for (Expr expr : node.assertions) {
-				Output.warning(expr.location, "assertion in subnode ignored");
+				StdErr.warning(expr.location, "assertion in subnode ignored");
 			}
 		}
 	}
@@ -299,8 +349,8 @@ public class StaticAnalyzer {
 		}
 	}
 
-	private static boolean checkAlgebraicLoops(String node, String id, List<String> stack,
-			Set<String> covered, Map<String, Set<String>> directDepends) {
+	private static boolean checkAlgebraicLoops(String node, String id, List<String> stack, Set<String> covered,
+			Map<String, Set<String>> directDepends) {
 		if (stack.contains(id)) {
 			StringBuilder text = new StringBuilder();
 			text.append("in node '" + node + "' possible algebraic loop: ");
@@ -308,7 +358,7 @@ public class StaticAnalyzer {
 				text.append(s + " -> ");
 			}
 			text.append(id);
-			Output.warning(text.toString());
+			StdErr.warning(text.toString());
 			return true;
 		}
 
@@ -336,8 +386,7 @@ public class StaticAnalyzer {
 			Set<String> seen = new HashSet<>();
 			for (String e : node.ivc) {
 				if (!seen.add(e)) {
-					Output.error("in node '" + node.id + "' IVC element '" + e
-							+ "' declared multiple times");
+					StdErr.error("in node '" + node.id + "' IVC element '" + e + "' declared multiple times");
 					unique = false;
 				}
 			}
@@ -356,8 +405,7 @@ public class StaticAnalyzer {
 
 			for (String e : node.ivc) {
 				if (!assigned.contains(e)) {
-					Output.error("in node '" + node.id + "' IVC element '" + e
-							+ "' must be a local or output");
+					StdErr.error("in node '" + node.id + "' IVC element '" + e + "' must be a local or output");
 					passed = false;
 				}
 			}

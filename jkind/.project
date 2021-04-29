@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>jkind</name>
+	<name>jkind-jkind</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -10,8 +10,21 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.buildship.core.gradleprojectbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
+		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>jkind-common-src</name>
+			<type>2</type>
+			<location>/home/kfhoech/git/jkind/jkind-common/src</location>
+		</link>
+	</linkedResources>
 </projectDescription>
