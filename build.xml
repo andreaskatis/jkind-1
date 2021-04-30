@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="jdiagnosis" default="all">
+  
+  
+<!--  <property file="build.properties"/>-->
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*.yarb/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.egg"/>
+    <include name="*.zip"/>
+    <include name="*.war"/>
+    <include name="*.swc"/>
+    <include name="*.ear"/>
+    <include name="*.jar"/>
+    <include name="*.klib"/>
+    <include name="*.ane"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+    <exclude name="**/?*.aj"/>
+  </patternset>
+  
+  <!-- Modules -->
+  
+  <import file="${basedir}/jkind-common/module_jkind-common.xml"/>
+  
+  <import file="${basedir}/jkind/module_jkind.xml"/>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.jkind-common, clean.module.jkind" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.jkind-common, compile.module.jkind" description="build all modules"/>
+  
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.jkind" value="${basedir}/out/artifacts/jkind"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="temp.jar.path.jkind.jar" value="${artifacts.temp.dir}/jkind.jar"/>
+  </target>
+  
+  <target name="artifact.jkind" depends="init.artifacts, compile.module.jkind-common, compile.module.jkind" description="Build &#39;jkind&#39; artifact">
+    <property name="artifact.temp.output.jkind" value="${artifacts.temp.dir}/jkind"/>
+    <mkdir dir="${artifact.temp.output.jkind}"/>
+    <jar destfile="${temp.jar.path.jkind.jar}" duplicate="preserve" manifest="${basedir}/jkind/src/META-INF/MANIFEST.MF" filesetmanifest="mergewithoutmain">
+      <zipfileset dir="${jkind-common.output.dir}"/>
+      <zipfileset dir="${jkind.output.dir}"/>
+      <zipfileset src="${basedir}/jkind-common/dependencies/jxl.jar"/>
+      <zipfileset src="${basedir}/jkind-common/dependencies/antlr-runtime-4.4.jar"/>
+      <zipfileset src="${basedir}/jkind-common/dependencies/antlr-4.4-complete.jar"/>
+      <zipfileset src="${basedir}/jkind-common/dependencies/antlr-runtime-4.4(1).jar"/>
+      <zipfileset src="${basedir}/jkind-common/dependencies/antlr-4.4-complete(1).jar"/>
+      <zipfileset src="${basedir}/jkind/dependencies/smtinterpol.jar"/>
+      <zipfileset src="${basedir}/jkind/dependencies/guava-29.0-jre.jar"/>
+      <zipfileset src="${basedir}/jkind/dependencies/commons-cli-1.2.jar"/>
+      <zipfileset src="${basedir}/jkind/dependencies/guava-29.0-jre(1).jar"/>
+      <zipfileset src="${basedir}/jkind/dependencies/commons-cli-1.2(1).jar"/>
+    </jar>
+    <copy file="${temp.jar.path.jkind.jar}" tofile="${artifact.temp.output.jkind}/jkind.jar"/>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.jkind" description="Build all artifacts">
+    <mkdir dir="${artifact.output.jkind}"/>
+    <copy todir="${artifact.output.jkind}">
+      <fileset dir="${artifact.temp.output.jkind}"/>
+    </copy>
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+</project>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_jkind-api" default="compile.module.jkind-api">
+  <dirname property="module.jkind-api.basedir" file="${ant.file.module_jkind-api}"/>
+  
+  <property name="module.jdk.home.jkind-api" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.jkind-api" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.jkind-api" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.jkind-api" value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
+  
+  <property name="jkind-api.output.dir" value="${module.jkind-api.basedir}/../out/production/jkind-api"/>
+  <property name="jkind-api.testoutput.dir" value="${module.jkind-api.basedir}/../out/test/jkind-api"/>
+  
+  <path id="jkind-api.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="jkind-api.module.production.classpath">
+    <path refid="${module.jdk.classpath.jkind-api}"/>
+  </path>
+  
+  <path id="jkind-api.runtime.production.module.classpath">
+    <pathelement location="${jkind-api.output.dir}"/>
+  </path>
+  
+  <path id="jkind-api.module.classpath">
+    <path refid="${module.jdk.classpath.jkind-api}"/>
+    <pathelement location="${jkind-api.output.dir}"/>
+  </path>
+  
+  <path id="jkind-api.runtime.module.classpath">
+    <pathelement location="${jkind-api.testoutput.dir}"/>
+    <pathelement location="${jkind-api.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.jkind-api">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.jkind-api">
+    <patternset refid="excluded.from.module.jkind-api"/>
+  </patternset>
+  
+  <path id="jkind-api.module.sourcepath">
+    <dirset dir="${module.jkind-api.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.jkind-api" depends="compile.module.jkind-api.production,compile.module.jkind-api.tests" description="Compile module jkind-api"/>
+  
+  <target name="compile.module.jkind-api.production" depends="register.custom.compilers" description="Compile module jkind-api; production classes">
+    <mkdir dir="${jkind-api.output.dir}"/>
+    <javac2 destdir="${jkind-api.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.jkind-api}/javac">
+      <compilerarg line="${compiler.args.jkind-api}"/>
+      <bootclasspath refid="jkind-api.module.bootclasspath"/>
+      <classpath refid="jkind-api.module.production.classpath"/>
+      <src refid="jkind-api.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.jkind-api"/>
+    </javac2>
+    
+    <copy todir="${jkind-api.output.dir}">
+      <fileset dir="${module.jkind-api.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.jkind-api.tests" depends="register.custom.compilers,compile.module.jkind-api.production" description="compile module jkind-api; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.jkind-api" description="cleanup module">
+    <delete dir="${jkind-api.output.dir}"/>
+    <delete dir="${jkind-api.testoutput.dir}"/>
+  </target>
+</project>

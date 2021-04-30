@@ -7,3 +7,8 @@ bin
 *.xls
 *.log
 *.csv
+.idea/*
+out/*
+jkind-api/jkind-api.jar
+
+!build.xml

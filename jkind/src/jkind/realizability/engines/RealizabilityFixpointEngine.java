@@ -390,7 +390,6 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         if (settings.scratch) {
             aesolver.scratch.println("; Constraints for existential part of the formula");
         }
-//        [G12, G21, G16, G17, G24, G8, g3, G9, G7]
 
 
         for (VarDecl vd : Util.getVarDecls(spec.node)) {

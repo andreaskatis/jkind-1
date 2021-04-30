@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_jkind-common" default="compile.module.jkind-common">
+  <dirname property="module.jkind-common.basedir" file="${ant.file.module_jkind-common}"/>
+  
+  
+  <property name="compiler.args.jkind-common" value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
+  
+  <property name="jkind-common.output.dir" value="${module.jkind-common.basedir}/../out/production/jkind-common"/>
+  <property name="jkind-common.testoutput.dir" value="${module.jkind-common.basedir}/../out/test/jkind-common"/>
+  
+  <path id="jkind-common.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="jkind-common.module.production.classpath">
+    <fileset dir="${basedir}/jkind-common/dependencies">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  <path id="jkind-common.runtime.production.module.classpath">
+    <pathelement location="${jkind-common.output.dir}"/>
+    <fileset dir="${basedir}/jkind-common/dependencies">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  <path id="jkind-common.module.classpath">
+    <pathelement location="${jkind-common.output.dir}"/>
+    <fileset dir="${basedir}/jkind-common/dependencies">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  <path id="jkind-common.runtime.module.classpath">
+    <pathelement location="${jkind-common.testoutput.dir}"/>
+    <pathelement location="${jkind-common.output.dir}"/>
+    <fileset dir="${basedir}/jkind-common/dependencies">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.jkind-common">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.jkind-common">
+    <patternset refid="excluded.from.module.jkind-common"/>
+  </patternset>
+  
+  <path id="jkind-common.module.sourcepath">
+    <dirset dir="${module.jkind-common.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.jkind-common" depends="compile.module.jkind-common.production,compile.module.jkind-common.tests" description="Compile module jkind-common"/>
+  
+  <target name="compile.module.jkind-common.production" description="Compile module jkind-common; production classes">
+    <mkdir dir="${jkind-common.output.dir}"/>
+    <javac destdir="${jkind-common.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
+      <compilerarg line="${compiler.args.jkind-common}"/>
+      <bootclasspath refid="jkind-common.module.bootclasspath"/>
+      <classpath refid="jkind-common.module.production.classpath"/>
+      <src refid="jkind-common.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.jkind-common"/>
+    </javac>
+    
+    <copy todir="${jkind-common.output.dir}">
+      <fileset dir="${module.jkind-common.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.jkind-common.tests" depends="compile.module.jkind-common.production" description="compile module jkind-common; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.jkind-common" description="cleanup module">
+    <delete dir="${jkind-common.output.dir}"/>
+    <delete dir="${jkind-common.testoutput.dir}"/>
+  </target>
+</project>

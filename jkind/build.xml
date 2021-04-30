@@ -23,6 +23,7 @@
         <pathelement location="bin"/>
         <pathelement location="dependencies/commons-cli-1.2.jar"/>
         <pathelement location="dependencies/smtinterpol.jar"/>
+        <pathelement location="dependencies/guava-29.0-jre.jar"/>
         <path refid="jkind-common.classpath"/>
     </path>
     <path id="run.JKind Lustre ANTLR4.classpath">
