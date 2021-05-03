@@ -80,15 +80,10 @@
       <zipfileset dir="${jkind-common.output.dir}"/>
       <zipfileset dir="${jkind.output.dir}"/>
       <zipfileset src="${basedir}/jkind-common/dependencies/jxl.jar"/>
-      <zipfileset src="${basedir}/jkind-common/dependencies/antlr-runtime-4.4.jar"/>
       <zipfileset src="${basedir}/jkind-common/dependencies/antlr-4.4-complete.jar"/>
-      <zipfileset src="${basedir}/jkind-common/dependencies/antlr-runtime-4.4(1).jar"/>
-      <zipfileset src="${basedir}/jkind-common/dependencies/antlr-4.4-complete(1).jar"/>
       <zipfileset src="${basedir}/jkind/dependencies/smtinterpol.jar"/>
       <zipfileset src="${basedir}/jkind/dependencies/guava-29.0-jre.jar"/>
       <zipfileset src="${basedir}/jkind/dependencies/commons-cli-1.2.jar"/>
-      <zipfileset src="${basedir}/jkind/dependencies/guava-29.0-jre(1).jar"/>
-      <zipfileset src="${basedir}/jkind/dependencies/commons-cli-1.2(1).jar"/>
     </jar>
     <copy file="${temp.jar.path.jkind.jar}" tofile="${artifact.temp.output.jkind}/jkind.jar"/>
   </target>
