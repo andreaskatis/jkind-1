@@ -1,8 +1,3 @@
 Manifest-Version: 1.0
 Main-Class: jkind.Main
-Class-Path: jxl.jar antlr-runtime-4.4.jar antlr-4.4-complete.jar antlr-r
- untime-4.4(1).jar antlr-4.4-complete(1).jar jxl.jar antlr-runtime-4.4.j
- ar antlr-4.4-complete.jar antlr-runtime-4.4(1).jar antlr-4.4-complete(1
- ).jar smtinterpol.jar guava-29.0-jre.jar commons-cli-1.2.jar guava-29.0
- -jre(1).jar commons-cli-1.2(1).jar
 

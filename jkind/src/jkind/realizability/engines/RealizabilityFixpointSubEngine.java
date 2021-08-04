@@ -147,6 +147,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
                     throw new StopException();
                 } else {
                     String negatedsimplified = "(assert (and " + solver.simplify("(assert (not" + result + ")", null, null) + " true))";
+//                    String negatedsimplified = "(assert (not" + result + ")";
                     ValidSubset negatedsubset = new ValidSubset(negatedsimplified);
 
                     try {
@@ -170,8 +171,10 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
                                 System.out.println("Refinement gave empty subset");
                                 if (!region.getRefinedRegion().equals("true")) {
                                     simplifiedRegions = solver.simplify(region.getRefinedRegion(), null, "(assert " + result);
+//                                    simplifiedRegions = region.getRefinedRegion() + "\n(assert "+ result;
                                 } else {
                                     simplifiedRegions = solver.simplify(null, null, "(assert " + result);
+//                                    simplifiedRegions = "(assert " + result;
                                 }
                                 //april 23 uncommented below
                                 sendUnrealizable(k);
@@ -180,12 +183,14 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
 
                                     if (negatedsubsetRegion.getRefinedRegion() != null) {
                                         simplifiedRegions = solver.simplify(region.getRefinedRegion(), null, negatedsubsetRegion.getRefinedRegion());
+//                                        simplifiedRegions = region.getRefinedRegion() + "\n" + negatedsubsetRegion.getRefinedRegion();
                                     } else {
                                         throw new StopException();
                                     }
                                 } else {
                                     if (negatedsubsetRegion.getRefinedRegion() != null) {
                                         simplifiedRegions = solver.simplify(null, null, negatedsubsetRegion.getRefinedRegion());
+//                                        simplifiedRegions = negatedsubsetRegion.getRefinedRegion();
                                     } else {
                                         throw new StopException();
                                     }
@@ -193,6 +198,7 @@ public class RealizabilityFixpointSubEngine extends RealizabilityFixpointEngine 
                                 if (blockedRegion != null && !blockedRegion.getRefinedRegion().equals("true")) {
                                     if (negatedsubsetRegion.getRefinedRegion() != null) {
                                         blockedRegion = new RefinedRegion("(assert (and " + solver.simplify(blockedRegion.getRefinedRegion(), null, negatedsubsetRegion.getRefinedRegion()) + "true))");
+//                                        blockedRegion = new RefinedRegion(blockedRegion.getRefinedRegion() + "\n" + negatedsubsetRegion.getRefinedRegion());
                                     } else {
                                         throw new StopException();
                                     }

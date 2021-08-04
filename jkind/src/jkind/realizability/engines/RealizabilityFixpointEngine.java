@@ -241,6 +241,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 }
             } else {
                 String negatedsimplified = "(assert (and " + solver.simplify("(assert (not" + result + ")", null, null) + " true))";
+//                String negatedsimplified = "(assert (not" + result + ")";
                 ValidSubset negatedsubset = new ValidSubset(negatedsimplified);
 //                if (settings.fixpoint_T) {
 //                    refineRegion(k, negatedsubset, true);
@@ -286,20 +287,25 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 }
             } else {
                 if (region != null) {
+                    simplified = region.getRefinedRegion();
                     if (negate) {
                         simplified = "(assert (and\n" + solver.simplify(region.getRefinedRegion(),
                                 "(assert (not" + result + ")", null) + " true))";
+//                        simplified = simplified + "\n(assert (not" + result + ")";
                     } else {
                         simplified = "(assert (and\n" + solver.simplify(region.getRefinedRegion(),
                                 "(assert " + result, null) + " true))";
+//                        simplified = simplified + "\n(assert " + result + ")";
                     }
                 } else {
                     if (negate) {
                         simplified = "(assert (and\n" + solver.simplify(null,
                                 "(assert (not" + result + ")", null) + " true))";
+//                        simplified = "(assert (not" + result + ")";
                     } else {
                         simplified = "(assert (and\n" + solver.simplify(null,
                                 "(assert " + result, null) + " true))";
+//                        simplified = "(assert " + result;
                     }
                 }
 

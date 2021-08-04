@@ -17,7 +17,6 @@
         <jarDirectory url="file://$MODULE_DIR$/dependencies" recursive="false" />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="jkind-common" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -28,5 +27,6 @@
         <jarDirectory url="file://$MODULE_DIR$/../jkind-common/dependencies" recursive="false" />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="jkind-common" />
   </component>
 </module>
