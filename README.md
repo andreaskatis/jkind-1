@@ -52,8 +52,8 @@ In addition, use the -timeout argument to limit the time for the enumeration, e.
 [1] E. Ghassabani, M. W. Whalen, and A. Gacek. Efficient generation of all minimal inductive validity cores. 2017 Formal Methods in Computer Aided Design (FMCAD), pages 31–38, 2017.
 [2] J. Bendik, E. Ghassabani, M. Whalen, and I. Cerna. Online enumeration of all minimal inductive validity cores. In International Conference on Software Engineering and Formal Methods, pages 189–204. Springer, 2018.
 
-JRealizability
-=====
+Realizability Checking (JRealizability)
+--------------
 
 This is a forked repository of the <a href="https://github.com/agacek/jkind">JKind</a> model checker, with increased support for realizability checking and synthesis of reactive implementations.
 
