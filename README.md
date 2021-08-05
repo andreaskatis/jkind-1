@@ -55,7 +55,7 @@ In addition, use the -timeout argument to limit the time for the enumeration, e.
 Realizability Checking (JRealizability)
 --------------
 
-This is a forked repository of the <a href="https://github.com/agacek/jkind">JKind</a> model checker, with increased support for realizability checking and synthesis of reactive implementations.
+This is a forked repository of the <a href="https://github.com/agacek/jkind">JKind</a> model checker, with increased support for realizability checking and synthesis of reactive implementations[3][4].
 
 Use the <a href="https://github.com/andrewkatis/jkind-1/releases">releases</a> page to download a pre-built binary.
 
@@ -70,6 +70,10 @@ JKind requires Lustre programs as input. For realizability checking, you should 
 - `-fixpoint` Enable the fixpoint engine instead of k-induction for realizability checking / synthesis
 - `-compact` Attempt to synthesize a more compact implementation. Enables `-synthesis` by default.
 - `-allinclusive` Attempt to synthesize an implementation that covers all possible cases. Particularly useful when the contract contains properties in disjunctive / implicative form. Enables `-synthesis` by default.
-- `-nondet` Synthesize an implementation that supports nondeterministic behavior. <a href="https://github.com/andrewkatis/fuzzersynthesis">For this option you NEED a modified version of AE-VAL</a>. Enables `-synthesis` by default.
+- `-nondet` Synthesize an implementation that supports nondeterministic behavior [5]. <a href="https://github.com/andrewkatis/fuzzersynthesis">For this option you NEED a modified version of AE-VAL</a>. Enables `-synthesis` by default.
 - `-diagnose`Diagnose unrealizable contracts by computing all minimal conflicts. A set of potential diagnoses is also provided.
 - `-json`Generate realizability report in JSON format.
+
+[3] Gacek, Andrew, Andreas Katis, Michael W. Whalen, John Backes, and Darren Cofer. "Towards realizability checking of contracts using theories." In NASA Formal Methods Symposium, pp. 173-187. Springer, Cham, 2015.
+[4] Katis, Andreas, Grigory Fedyukovich, Huajun Guo, Andrew Gacek, John Backes, Arie Gurfinkel, and Michael W. Whalen. "Validity-guided synthesis of reactive systems from assume-guarantee contracts." In International Conference on Tools and Algorithms for the Construction and Analysis of Systems, pp. 176-193. Springer, Cham, 2018.
+[5] Katis, Andreas, Grigory Fedyukovich, Jeffrey Chen, David Greve, Sanjai Rayadurgam, and Michael W. Whalen. "Synthesis of infinite-state systems with random behavior." In 2020 35th IEEE/ACM International Conference on Automated Software Engineering (ASE), pp. 250-261. IEEE, 2020.
