@@ -55,7 +55,7 @@ In addition, use the -timeout argument to limit the time for the enumeration, e.
 JRealizability
 =====
 
-Forked repository of the <a href="https://github.com/agacek/jkind">JKind</a> model checker, with added support for realizability checking and synthesis of reactive implementations. May or may not be up-to-date with the latest version of JKind.
+This is a forked repository of the <a href="https://github.com/agacek/jkind">JKind</a> model checker, with increased support for realizability checking and synthesis of reactive implementations.
 
 Use the <a href="https://github.com/andrewkatis/jkind-1/releases">releases</a> page to download a pre-built binary.
 
@@ -71,3 +71,5 @@ JKind requires Lustre programs as input. For realizability checking, you should 
 - `-compact` Attempt to synthesize a more compact implementation. Enables `-synthesis` by default.
 - `-allinclusive` Attempt to synthesize an implementation that covers all possible cases. Particularly useful when the contract contains properties in disjunctive / implicative form. Enables `-synthesis` by default.
 - `-nondet` Synthesize an implementation that supports nondeterministic behavior. <a href="https://github.com/andrewkatis/fuzzersynthesis">For this option you NEED a modified version of AE-VAL</a>. Enables `-synthesis` by default.
+- `-diagnose`Diagnose unrealizable contracts by computing all minimal conflicts. A set of potential diagnoses is also provided.
+- `-json`Generate realizability report in JSON format.
