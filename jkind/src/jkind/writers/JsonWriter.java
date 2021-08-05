@@ -1,7 +1,7 @@
 package jkind.writers;
 
-import jkind.interval.BoolInterval;
-import jkind.interval.NumericInterval;
+import jkind.engines.ivcs.AllIVCs;
+
 import jkind.lustre.Expr;
 import jkind.lustre.Node;
 import jkind.lustre.Type;
@@ -48,8 +48,8 @@ public class JsonWriter extends Writer{
     }
 
     @Override
-    public void writeValid(List<String> props, String source, int k, double runtime,
-                           List<Expr> invariants, Set<String> ivc) {
+    public void writeValid(List<String> props, String source, int k, double proofTime, double runtime,
+                           List<Expr> invariants, Set<String> ivc, List<AllIVCs> allIvcs, boolean mivcTimedOut) {
         for (String prop : props) {
             writeValid(source, k, runtime);
         }
@@ -266,7 +266,7 @@ public class JsonWriter extends Writer{
         out.print("\"type\": \"" + type + "\",");
         for (int i = 0; i < k; i++) {
             Value value = signal.getValue(i);
-            if (!Util.isArbitrary(value)) {
+            if (value != null) {
                 String element;
                 if (value instanceof RealValue) {
                     RealValue rv = (RealValue) value;
@@ -291,15 +291,7 @@ public class JsonWriter extends Writer{
     private String formatValue(Value value) {
         if (value instanceof BooleanValue) {
             BooleanValue bv = (BooleanValue) value;
-            return bv.value ? "true" : "false";
-        }
-        if (value instanceof NumericInterval) {
-            NumericInterval ni = (NumericInterval) value;
-            return "<Interval low=\"" + ni.getLow() + "\" high=\"" + ni.getHigh() + "\"/>";
-        }
-        if (value instanceof BoolInterval) {
-            BoolInterval bi = (BoolInterval) value;
-            return bi.isTrue() ? "true" : "false";
+            return bv.value ? "1" : "0";
         } else {
             return value.toString();
         }

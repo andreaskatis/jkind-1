@@ -11,20 +11,12 @@ public class DependencySet implements Iterable<Dependency> {
 		return set.add(dep);
 	}
 
-	public boolean add(String var) {
-		return add(new Dependency(var));
-	}
-
 	public boolean addAll(DependencySet other) {
 		return set.addAll(other.set);
 	}
 
 	public boolean contains(Dependency dep) {
 		return set.contains(dep);
-	}
-
-	public boolean contains(String var) {
-		return contains(new Dependency(var));
 	}
 
 	public boolean isEmpty() {

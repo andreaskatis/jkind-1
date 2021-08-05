@@ -1,14 +1,8 @@
 package jkind.solvers;
 
-<<<<<<< HEAD
 import jkind.lustre.IdExpr;
 import jkind.lustre.values.Value;
 import jkind.lustre.visitors.Evaluator;
-=======
-import jkind.analysis.evaluation.Evaluator;
-import jkind.lustre.IdExpr;
-import jkind.lustre.values.Value;
->>>>>>> initializing repor
 import jkind.util.StreamIndex;
 
 public class ModelEvaluator extends Evaluator {

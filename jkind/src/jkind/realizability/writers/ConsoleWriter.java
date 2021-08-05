@@ -118,7 +118,8 @@ public class ConsoleWriter extends Writer {
 
 	private void writeLine() {
 		System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-
+    }
+    
     @Override
     public void writeFixpointRealizable(int k, double runtime) {
         writeLine();

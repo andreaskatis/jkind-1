@@ -23,7 +23,6 @@ import jkind.realizability.writers.*;
 import jkind.realizability.writers.Writer;
 import jkind.results.Counterexample;
 import jkind.results.layout.RealizabilityNodeLayout;
-import jkind.slicing.ModelSlicer;
 import jkind.solvers.Model;
 import jkind.translation.Specification;
 import jkind.util.CounterexampleExtractor;
@@ -279,9 +278,9 @@ public class RealizabilityDirector {
 //                            for (Map.Entry<List<String>, Model> e : um.models.entrySet()) {
 //                                Model sliced = slice(e.getValue(), e.getKey());
                                 List<String> splitProps = Arrays.asList(props.substring(1, props.length() - 1).split(", "));
-                                Model sliced = slice(um.models.get(splitProps), splitProps);
+                                // Model sliced = slice(um.models.get(splitProps), splitProps);
 //                                Counterexample cex = extractCounterexample(um.cexLengths.get(e.getKey()), sliced);
-                                Counterexample cex = extractCounterexample(um.cexLengths.get(splitProps), sliced);
+                                Counterexample cex = extractCounterexample(um.cexLengths.get(splitProps), um.models.get(splitProps));
                                 cexs.add(cex);
                             }
                             if (settings.json) {
@@ -295,8 +294,8 @@ public class RealizabilityDirector {
 					if (settings.solver == JRealizabilitySolverOption.AEVAL) {
 						writer.writeFixpointUnrealizable(um.k, um.properties, runtime);
 					} else {
-						Model sliced = slice(um.model, um.properties);
-						Counterexample cex = extractCounterexample(um.k, sliced);
+						// Model sliced = slice(um.model, um.properties);
+						Counterexample cex = extractCounterexample(um.k, um.model);
 						writer.writeUnrealizable(cex, um.properties, runtime);
 					}
 				}
@@ -322,13 +321,6 @@ public class RealizabilityDirector {
 
 	private double getRuntime(long startTime) {
 		return (System.currentTimeMillis() - startTime) / 1000.0;
-	}
-
-	private Model slice(Model model, List<String> properties) {
-		if (properties.isEmpty()) {
-			return model;
-		}
-		return ModelSlicer.slice(model, spec.dependencyMap.get(properties));
 	}
 
 	private Counterexample convertExtendCounterexample() {

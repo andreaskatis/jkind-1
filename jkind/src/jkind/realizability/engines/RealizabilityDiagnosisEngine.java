@@ -5,6 +5,7 @@ import com.google.common.collect.Sets;
 import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.lustre.Node;
+import jkind.lustre.Program;
 import jkind.lustre.builders.NodeBuilder;
 import jkind.realizability.engines.messages.RealizableMessage;
 import jkind.realizability.engines.messages.UnknownMessage;
@@ -52,7 +53,9 @@ public class RealizabilityDiagnosisEngine extends RealizabilityEngine {
                     properties.removeAll(hittingSet);
                     Node node = new NodeBuilder(spec.node).clearProperties().addProperties(properties).build();
                     Node slicedNode = LustreSlicer.slice(node, spec.dependencyMap);
-                    Specification slicedSpec = new Specification(slicedNode);
+                    Program slicedProgram = new Program(slicedNode);
+                    // Specification slicedSpec = new Specification(slicedNode);
+                    Specification slicedSpec = new Specification(slicedProgram);
                     if (realizableMap.containsKey(properties.toString())) {
                         if (realizableMap.get(properties.toString()).equals("REALIZABLE")) {
                             List<String> label = new ArrayList<>();
@@ -122,7 +125,8 @@ public class RealizabilityDiagnosisEngine extends RealizabilityEngine {
                     List<String> conflList = (List<String>) confl.getValue();
                     Node conflNode = new NodeBuilder(spec.node).clearProperties().addProperties(conflList).build();
                     Node slicedNode = LustreSlicer.slice(conflNode, spec.dependencyMap);
-                    Specification slicedSpec = new Specification(slicedNode);
+                    Program slicedProgram = new Program(slicedNode);
+                    Specification slicedSpec = new Specification(slicedProgram);
                     JRealizabilitySettings newSettings = new JRealizabilitySettings();
                     newSettings.diagnose = true;
                     registerPartitionProcess(newSettings, slicedSpec);
@@ -152,7 +156,8 @@ public class RealizabilityDiagnosisEngine extends RealizabilityEngine {
             List<String> conflList = (List<String>) confl.getValue();
             Node conflNode = new NodeBuilder(spec.node).clearProperties().addProperties(conflList).build();
             Node slicedNode = LustreSlicer.slice(conflNode, spec.dependencyMap);
-            Specification slicedSpec = new Specification(slicedNode);
+            Program slicedProgram = new Program(slicedNode);
+            Specification slicedSpec = new Specification(slicedProgram);
             JRealizabilitySettings newSettings = new JRealizabilitySettings();
             newSettings.filename = settings.filename;
             newSettings.diagnose = true;
@@ -292,7 +297,8 @@ public class RealizabilityDiagnosisEngine extends RealizabilityEngine {
             if (!realizableMap.containsKey(partID)) {
                 Node partNode = new NodeBuilder(spec.node).clearProperties().addProperties(partition).build();
                 Node slicedPart = LustreSlicer.slice(partNode, spec.dependencyMap);
-                Specification slicedSpec = new Specification(slicedPart);
+                Program slicedProgram = new Program(slicedPart);
+                Specification slicedSpec = new Specification(slicedProgram);
 //                JRealizabilitySettings tSettings = new JRealizabilitySettings();
 //                tSettings.fixpoint = this.settings.fixpoint;
 //                tSettings.diagnose = this.settings.diagnose;
@@ -336,7 +342,8 @@ public class RealizabilityDiagnosisEngine extends RealizabilityEngine {
         }
 
         for (Node complNode : complements) {
-                Specification complSpec = new Specification(complNode);
+                Program complProgram = new Program(complNode);
+                Specification complSpec = new Specification(complProgram);
                 if(!realizableMap.containsKey(complSpec.node.properties.toString())) {
                     registerPartitionProcess(this.settings, complSpec);
                 } else if (realizableMap.get(complSpec.node.properties.toString()).equals("UNREALIZABLE") &&
@@ -388,7 +395,8 @@ public class RealizabilityDiagnosisEngine extends RealizabilityEngine {
                 if (entry.getKey().size() > 1) {
                     Node partitionNode = new NodeBuilder(this.spec.node).clearProperties().addProperties(entry.getKey()).build();
                     Node slicedPartitionNode = LustreSlicer.slice(partitionNode, this.spec.dependencyMap);
-                    Specification partitionSpec = new Specification(slicedPartitionNode);
+                    Program slicedPartitionProgram = new Program(slicedPartitionNode);
+                    Specification partitionSpec = new Specification(slicedPartitionProgram);
                     if (minconflicts.containsKey(partitionSpec.node.properties.toString())) {
                         minConflicts.add(partitionSpec.node.properties);
                     } else {
@@ -412,7 +420,8 @@ public class RealizabilityDiagnosisEngine extends RealizabilityEngine {
             for (Map.Entry<List<String>, String> entry : unrealMap.entrySet()) {
                     Node partitionNode = new NodeBuilder(spec.node).clearProperties().addProperties(entry.getKey()).build();
                     Node slicedPartitionNode = LustreSlicer.slice(partitionNode, spec.dependencyMap);
-                    Specification partitionSpec = new Specification(slicedPartitionNode);
+                    Program slicedPartitionProgram = new Program(slicedPartitionNode);
+                    Specification partitionSpec = new Specification(slicedPartitionProgram);
                     if (minconflicts.containsKey(partitionSpec.node.properties.toString())) {
                         minConflicts.add(partitionSpec.node.properties);
                     } else {
