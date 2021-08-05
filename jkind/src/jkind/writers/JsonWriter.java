@@ -291,7 +291,7 @@ public class JsonWriter extends Writer{
     private String formatValue(Value value) {
         if (value instanceof BooleanValue) {
             BooleanValue bv = (BooleanValue) value;
-            return bv.value ? "1" : "0";
+            return bv.value ? "true" : "false";
         } else {
             return value.toString();
         }
