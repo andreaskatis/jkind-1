@@ -62,7 +62,7 @@ Use the <a href="https://github.com/andrewkatis/jkind-1/releases">releases</a> p
 If you would like to translate synthesized implementations into C/Lustre, you can use the <a href="https://github.com/andrewkatis/SMTLib2C">SMTLIB2C</a> translation tool.
 
 Usage
-=====
+-----
 JKind requires Lustre programs as input. For realizability checking, you should provide specification in the form of an Assume-Guarantee contract. You can find example contracts under the `testing/realizability` folder, as well as in our <a href="https://github.com/andrewkatis/synthesis-benchmarks">benchmark collection</a>. Use `jrealizability` for a list of command options. The following options are of most interest:
 
 - `-solver` sets the underlying solver to use for realizability checking using the k-induction engine. Supported solvers : Microsoft Z3, <a href="https://github.com/grigoryfedyukovich/aeval">AE-VAL</a> (Z3 not supported for fixpoint engine or synthesis tasks. For nondeterministic synthesis, see `nondet` option).
