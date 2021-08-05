@@ -1,6 +1,5 @@
-// Generated from ../../jkind/src/jkind/solvers/smtlib2/SmtLib2.g4 by ANTLR 4.4
+// Generated from /home/akatis/git/jkindtemp/jkind-1/jkind/src/jkind/solvers/smtlib2/SmtLib2.g4 by ANTLR 4.4
 package jkind.solvers.smtlib2;
-
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -9,6 +8,18 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  * {@link SmtLib2Parser}.
  */
 public interface SmtLib2Listener extends ParseTreeListener {
+	/**
+	 * Enter a parse tree produced by the {@code letBody}
+	 * labeled alternative in {@link SmtLib2Parser#body}.
+	 * @param ctx the parse tree
+	 */
+	void enterLetBody(@NotNull SmtLib2Parser.LetBodyContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code letBody}
+	 * labeled alternative in {@link SmtLib2Parser#body}.
+	 * @param ctx the parse tree
+	 */
+	void exitLetBody(@NotNull SmtLib2Parser.LetBodyContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SmtLib2Parser#symbol}.
 	 * @param ctx the parse tree
@@ -61,6 +72,16 @@ public interface SmtLib2Listener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFn(@NotNull SmtLib2Parser.FnContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SmtLib2Parser#binding}.
+	 * @param ctx the parse tree
+	 */
+	void enterBinding(@NotNull SmtLib2Parser.BindingContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SmtLib2Parser#binding}.
+	 * @param ctx the parse tree
+	 */
+	void exitBinding(@NotNull SmtLib2Parser.BindingContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link SmtLib2Parser#model}.
 	 * @param ctx the parse tree

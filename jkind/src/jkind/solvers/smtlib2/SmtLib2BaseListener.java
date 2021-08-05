@@ -1,4 +1,4 @@
-// Generated from ../../jkind/src/jkind/solvers/smtlib2/SmtLib2.g4 by ANTLR 4.4
+// Generated from /home/akatis/git/jkindtemp/jkind-1/jkind/src/jkind/solvers/smtlib2/SmtLib2.g4 by ANTLR 4.4
 package jkind.solvers.smtlib2;
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -12,6 +12,18 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  * of the available methods.
  */
 public class SmtLib2BaseListener implements SmtLib2Listener {
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLetBody(@NotNull SmtLib2Parser.LetBodyContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLetBody(@NotNull SmtLib2Parser.LetBodyContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -72,6 +84,18 @@ public class SmtLib2BaseListener implements SmtLib2Listener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFn(@NotNull SmtLib2Parser.FnContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBinding(@NotNull SmtLib2Parser.BindingContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBinding(@NotNull SmtLib2Parser.BindingContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
