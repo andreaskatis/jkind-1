@@ -23,7 +23,7 @@ public class JRealizability {
 			realizabilitySpecificChecks(program);
 
 			program = Translate.translate(program);
-			Specification spec = new Specification(program);
+			Specification spec = new Specification(program, true);
 			int exitCode = new RealizabilityDirector(settings, spec).run();
 			System.exit(exitCode); // Kills all threads
 		} catch (Throwable t) {
