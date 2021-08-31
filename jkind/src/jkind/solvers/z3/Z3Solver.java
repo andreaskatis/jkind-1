@@ -230,7 +230,8 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 			query = new Cons("forall", outputs, query);
 		}
 		assertSexp(query);
-		send(new Cons("check-sat"));
+//		send(new Cons("check-sat"));
+		send(new Cons("check-sat-using", new Cons("or-else", new Symbol("default"), new Symbol("smt"))));
 		String status = readFromSolver();
 		if (isSat(status)) {
 			send("(get-model)");
