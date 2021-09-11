@@ -1,6 +1,7 @@
 package jkind.aeval;
 
 
+import jkind.sexp.Sexp;
 import jkind.solvers.Model;
 
 public class InvalidResult extends AevalResult {
@@ -19,6 +20,6 @@ public class InvalidResult extends AevalResult {
 
     public InvalidResult() { this(null); }
 
-    public String getValidSubset() { return subset.getValidSubset(); }
+    public Sexp getValidSubset() { return subset.getValidSubset(); }
     public Model getModel() { return model; }
 }

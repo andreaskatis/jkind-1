@@ -48,7 +48,6 @@ public abstract class AevalProcess {
         List<String> command = new ArrayList<>();
         command.add(getPath());
         if (generateSkolem) {
-//            command.add("--debug");
             command.add("--skol");
         }
         if (nondet) {

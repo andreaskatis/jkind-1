@@ -128,7 +128,6 @@ public abstract class ProcessBasedSolver extends Solver {
 			scratch.close();
 			scratch = null;
 		}
-
 		removeShutdownHook();
 	}
 

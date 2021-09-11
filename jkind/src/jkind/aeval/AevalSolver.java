@@ -119,12 +119,12 @@ public class AevalSolver extends AevalProcess{
         }
     }
 
-    public void sendBlockedRegionSPart(String str) {
+    public void sendBlockedRegionSPart(Sexp sexp) {
         if(scratch !=null) {
-            scratch.println(str);
+            scratch.println(sexp.toString());
         }
         try {
-            toSPart.append(str);
+            toSPart.append(sexp.toString());
             toSPart.newLine();
             toSPart.flush();
         } catch (IOException e) {
@@ -133,12 +133,12 @@ public class AevalSolver extends AevalProcess{
         }
     }
 
-    public void sendBlockedRegionTPart(String str) {
+    public void sendBlockedRegionTPart(Sexp sexp) {
         if(scratch !=null) {
-            scratch.println(str);
+            scratch.println(sexp.toString());
         }
         try {
-            toTPart.append(str);
+            toTPart.append(sexp.toString());
             toTPart.newLine();
             toTPart.flush();
         } catch (IOException e) {
@@ -147,13 +147,13 @@ public class AevalSolver extends AevalProcess{
         }
     }
 
-    public void sendSubsetTPart(String str) {
+    public void sendSubsetTPart(Sexp sexp) {
         if(scratch !=null) {
-            scratch.println(str);
+            scratch.println(sexp.toString());
         }
 
         try {
-            toTPart.append(str);
+            toTPart.append(sexp.toString());
             toTPart.newLine();
             toTPart.flush();
         } catch (IOException e) {
@@ -161,7 +161,6 @@ public class AevalSolver extends AevalProcess{
                     + "probably due to internal JKind error", e);
         }
     }
-
 
     public Symbol type(Type type) {
         return new Symbol(capitalize(Util.getName(type)));
@@ -223,10 +222,11 @@ public class AevalSolver extends AevalProcess{
         } else if (status.contains("Result: invalid")){
             if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations") ||
                 status.contains("(assert false)")) {
-                result = new InvalidResult(new ValidSubset("Empty"));
+                result = new InvalidResult(new ValidSubset(new Symbol("false")));
             } else {
                 String[] extracted = status.split("assert");
-                ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+                String clauses = extracted[extracted.length - 1].substring(0, extracted[extracted.length - 1].length() -2);
+                ValidSubset subset = new ValidSubset(new Cons("and", new Symbol(clauses)));
                 result = new InvalidResult(subset);
             }
         } else {
@@ -246,13 +246,13 @@ public class AevalSolver extends AevalProcess{
         } else if (status.contains("Result: invalid")){
                 if (status.contains("WARNING: Trivial valid subset (equal to False) due to 0 iterations") ||
                         status.contains("(assert false)")) {
-                    result = new InvalidResult(new ValidSubset("Empty"));
+                    result = new InvalidResult(new ValidSubset(new Symbol("false")));
                 } else {
                     String[] extracted = status.split("assert");
-                    ValidSubset subset = new ValidSubset(extracted[extracted.length - 1]);
+                    String clauses = extracted[extracted.length - 1].substring(0, extracted[extracted.length - 1].length() -2);
+                    ValidSubset subset = new ValidSubset(new Cons("and", new Symbol(clauses)));
                     result = new InvalidResult(subset);
                 }
-            //}
         } else {
             result = new UnknownResult();
         }

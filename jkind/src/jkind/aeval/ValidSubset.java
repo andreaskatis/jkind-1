@@ -1,11 +1,20 @@
 package jkind.aeval;
+import jkind.sexp.Sexp;
 
 public class ValidSubset {
-    protected String subset;
+    protected Sexp subset;
 
-    public ValidSubset(String subset) {
+    public ValidSubset(Sexp subset) {
         this.subset = subset;
     }
 
-    public String getValidSubset() { return subset; }
+    public Sexp getValidSubset() { return subset; }
+
+    //    protected String subset;
+//
+//    public ValidSubset(String subset) {
+//        this.subset = subset;
+//    }
+//
+//    public String getValidSubset() { return subset; }
 }

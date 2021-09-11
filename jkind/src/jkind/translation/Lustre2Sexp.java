@@ -309,7 +309,8 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 	}
 
 	public static Sexp getConjunctedAssertions(Node node) {
-		Lustre2Sexp visitor = new Lustre2Sexp(-1);
+//		Lustre2Sexp visitor = new Lustre2Sexp(-1);
+		Lustre2Sexp visitor = new Lustre2Sexp(0);
 		List<Sexp> conjuncts = new ArrayList<>();
 
 		for (Expr assertion : node.assertions) {

@@ -1,15 +1,18 @@
 package jkind.realizability.engines;
 
+import jkind.JKindException;
 import jkind.JRealizabilitySettings;
 import jkind.aeval.*;
 import jkind.engines.StopException;
 import jkind.lustre.*;
 import jkind.lustre.builders.NodeBuilder;
+import jkind.realizability.JRealizabilitySolverOption;
 import jkind.realizability.engines.fixpoint.RefinedRegion;
 import jkind.realizability.engines.messages.InconsistentMessage;
 import jkind.realizability.engines.messages.RealizableMessage;
 import jkind.realizability.engines.messages.UnknownMessage;
 import jkind.realizability.engines.messages.UnrealizableMessage;
+import jkind.sexp.Cons;
 import jkind.sexp.Sexp;
 import jkind.sexp.Symbol;
 import jkind.slicing.LustreSlicer;
@@ -34,12 +37,14 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                                    RealizabilityDirector director) {
         super("fixpoint", spec, settings, director);
         this.skolems = new ArrayList<>();
+        this.region = new RefinedRegion(new Symbol("true"));
     }
 
     public RealizabilityFixpointEngine(Specification spec, JRealizabilitySettings settings,
                                        RealizabilityDirector director, String name) {
         super(name, spec, settings, director);
         this.skolems = new ArrayList<>();
+        this.region = new RefinedRegion(new Symbol("true"));
     }
 
     @Override
@@ -53,7 +58,13 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                     if (k == 0) {
                         checkConsistency(k);
                     }
-                    checkRealizable(k);
+                    if (settings.solver == JRealizabilitySolverOption.AEVAL) {
+                        checkRealizable(k);
+                    } else {
+                        checkRealizableWithQE(k);
+                    }
+
+
                 }
 //            }
         } catch (StopException se) {
@@ -210,10 +221,115 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     //     }
     // }
 
+    //If the QE result R is such that T /\ not R is unsat, then R only contains simplified constraints related to assumptions.
+    //This can occur in cases where an assumption is the output value of a Lustre node N.
+    //Essentially, QE computs an R that is defined over input variables, eliminating the variables that correspond to node N's input and output
+    // (in a similar way to how inlining the node would work).
+    //One way to skip this query would be to assume that T is true, but that seems to have a negative performance impact
+    //on bigger contracts.
+
+    private boolean checkAgainstAssumptions(Sexp qeResult, Sexp transition) {
+        Result queryResult = solver.query(new Cons("or", new Cons("not", transition), qeResult));
+        return (queryResult instanceof UnsatResult);
+    }
+
+    private void synthesizeImplementation() {
+        aesolver = new AevalSolver(settings.filename, name, aevalscratch);
+        createQueryVariables(aesolver, region);
+        AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
+                StreamIndex.conjoinEncodings(spec.node.properties, 2), settings.synthesis, settings.nondet,
+                settings.compact, settings.allinclusive);
+        if (aeresult instanceof ValidResult) {
+            if (settings.synthesis) {
+                director.fixpointImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
+            }
+        } else {
+            throw new JKindException("Synthesis step failed");
+        }
+    }
+
+    private void checkRealizableWithQE(int k) {
+        Sexp trueRegion = region.getRefinedRegion();
+        Sexp trueRegionNext = region == null ? new Symbol("true"):
+                new Cons("and", new Symbol(convertOutputsToNextStep(trueRegion.toString(), 0,
+                getOffsetVarDecls(-1, getRealizabilityOutputVarDecls()), false)));
+
+        Sexp simpTrans = solver.simplify(getInductiveTransition(0));
+        Sexp query = new Cons("=>", trueRegion,
+                new Cons("exists", getRealizabilityOutputs(0),
+                        new Cons("and", simpTrans, StreamIndex.conjoinEncodings(spec.node.properties, 0), trueRegionNext)));
+
+        Sexp qeResult = solver.qeQuery(query, false);
+
+        if (qeResult.toString().equals("false")) {
+            if (settings.diagnose) {
+                setResult(k,"UNREALIZABLE", null);
+            } else {
+                sendUnrealizable(k);
+            }
+        } else if (qeResult.toString().equals("true") || checkAgainstAssumptions(qeResult, simpTrans)) {
+            if (settings.synthesis) {
+                synthesizeImplementation();
+            }
+            if (settings.diagnose) {
+                setResult(k,"REALIZABLE", null);
+            } else {
+                if (settings.synthesis) {
+                    synthesizeImplementation();
+                }
+                sendRealizable(k);
+            }
+        } else {
+            //refine
+            List<VarDecl> vars = new ArrayList<>();
+            vars.addAll(getRealizabilityInputVarDecls());
+            vars.addAll(getRealizabilityOutputVarDecls());
+
+            Sexp refinementQuery = new Cons("=>", trueRegion,
+                    new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
+                            new Cons("and", getAssertions(), trueRegion, solver.simplify(new Cons("not", qeResult)))));
+            Sexp refinementResult = solver.qeQuery(refinementQuery,true);
+
+            if (solver.simplify(refinementResult).toString().equals("true")) {
+                if (settings.diagnose) {
+                    setResult(k,"UNREALIZABLE", null);
+                } else {
+                    sendUnrealizable(k);
+                }
+            } else {
+                Sexp negatedRefRes = solver.simplify(new Cons("not", refinementResult));
+                Result isFixpoint = solver.query(new Cons("=>", trueRegion, solver.simplify(new Cons("and", trueRegion, negatedRefRes))));
+                if (isFixpoint instanceof UnsatResult) {
+                    if (solver.initialStatesQuery(getTransition(0, true),
+                            StreamIndex.conjoinEncodings(spec.node.properties, 0),
+                            negatedRefRes,
+                            new Symbol(convertOutputsToNextStep(negatedRefRes.toString(), 0, getOffsetVarDecls(-1, getRealizabilityOutputVarDecls()), false)))) {
+                        if (settings.diagnose) {
+                            setResult(k,"REALIZABLE", null);
+                        } else {
+                            if (settings.synthesis) {
+                                synthesizeImplementation();
+                            }
+                            sendRealizable(k + 1);
+                        }
+                    } else {
+                        if (settings.diagnose) {
+                            setResult(k,"UNREALIZABLE", null);
+                        } else {
+                            sendUnrealizable(k);
+                        }
+                    }
+                } else {
+                    region = new RefinedRegion(solver.simplify(new Cons("and", trueRegion, negatedRefRes)));
+                }
+            }
+        }
+    }
+
     private void checkRealizable(int k) {
         aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
         aecomment("; Frame = " + (k));
-        createQueryVariables(aesolver, region, k);
+        createQueryVariables(aesolver, region);
         AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
             StreamIndex.conjoinEncodings(spec.node.properties, 2), settings.synthesis, settings.nondet,
                 settings.compact, settings.allinclusive);
@@ -221,33 +337,32 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             if (settings.synthesis) {
                 director.fixpointImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
             }
-            if (settings.diagnose) {
-                setResult(k,"REALIZABLE", null);
-            } else {
-                if (checkInitialStates()) {
+            if (checkInitialStates()) {
+                if (settings.diagnose) {
+                    setResult(k,"REALIZABLE", null);
+                } else {
                     sendRealizable(k);
+                }
+            } else {
+                if (settings.diagnose) {
+                    setResult(k,"UNREALIZABLE", null);
                 } else {
                     sendUnrealizable(k);
                 }
             }
             throw new StopException();
         } else if (aeresult instanceof InvalidResult) {
-            String result = ((InvalidResult) aeresult).getValidSubset();
-            if (result.equals("Empty")) {
+            Sexp result = ((InvalidResult) aeresult).getValidSubset();
+            if (result.toString().equals("Empty")) {
                 if (settings.diagnose) {
                     setResult(k,"UNREALIZABLE", null);
                 } else {
                     sendUnrealizable(k);
                 }
             } else {
-                String negatedsimplified = "(assert (and " + solver.simplify("(assert (not" + result + ")", null, null) + " true))";
-//                String negatedsimplified = "(assert (not" + result + ")";
+                Sexp negatedsimplified = solver.simplify(new Cons("not", result));
                 ValidSubset negatedsubset = new ValidSubset(negatedsimplified);
-//                if (settings.fixpoint_T) {
-//                    refineRegion(k, negatedsubset, true);
-//                } else {
-                    refineRegion(k, negatedsubset, true);
-//                }
+                refineRegion(k, negatedsubset);
             }
         } else if (aeresult instanceof UnknownResult) {
             throw new StopException();
@@ -259,13 +374,14 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         if (region != null) {
             return solver.initialStatesQuery(getAevalTransition(0, true),
                     StreamIndex.conjoinEncodings(spec.node.properties, 2), region.getRefinedRegion(),
-                    convertOutputsToNextStep(region.getRefinedRegion(), -1, getOffsetVarDecls(-1, getRealizabilityOutputVarDecls()), false));
+                    new Symbol(convertOutputsToNextStep(
+                            region.getRefinedRegion().toString(),-1, getOffsetVarDecls(-1, getRealizabilityOutputVarDecls()), false)));
         }
         return true;
     }
 
-    private void refineRegion(int k, ValidSubset subset, boolean negate) {
-        String simplified;
+    private void refineRegion(int k, ValidSubset subset) {
+        Sexp simplified;
         aesolver = new AevalSolver(settings.filename, name + "subset" + k, aevalscratch);
         aecomment(";Refinement = " + k);
         createSubQueryVariablesAndAssertions(aesolver, subset, k);
@@ -278,37 +394,15 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             }
             throw new StopException();
         } else if (aeresult instanceof InvalidResult) {
-            String result = ((InvalidResult) aeresult).getValidSubset();
-            if (result.equals("Empty")) {
+            Sexp result = ((InvalidResult) aeresult).getValidSubset();
+            if (result.toString().equals("false")) {
                 if (settings.diagnose) {
                     setResult(k,"UNREALIZABLE", null);
                 } else {
                     sendUnrealizable(k);
                 }
             } else {
-                if (region != null) {
-                    simplified = region.getRefinedRegion();
-                    if (negate) {
-                        simplified = "(assert (and\n" + solver.simplify(region.getRefinedRegion(),
-                                "(assert (not" + result + ")", null) + " true))";
-//                        simplified = simplified + "\n(assert (not" + result + ")";
-                    } else {
-                        simplified = "(assert (and\n" + solver.simplify(region.getRefinedRegion(),
-                                "(assert " + result, null) + " true))";
-//                        simplified = simplified + "\n(assert " + result + ")";
-                    }
-                } else {
-                    if (negate) {
-                        simplified = "(assert (and\n" + solver.simplify(null,
-                                "(assert (not" + result + ")", null) + " true))";
-//                        simplified = "(assert (not" + result + ")";
-                    } else {
-                        simplified = "(assert (and\n" + solver.simplify(null,
-                                "(assert " + result, null) + " true))";
-//                        simplified = "(assert " + result;
-                    }
-                }
-
+                simplified = solver.simplify(new Cons("and", region.getRefinedRegion(), new Cons("not", result)));
                 region = new RefinedRegion(simplified);
             }
         } else {
@@ -321,8 +415,6 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     }
 
     protected void createSubQueryVariablesAndAssertions(AevalSolver aesolver, ValidSubset subset, int k) {
-
-//        aesolver.defineTVar(spec.getRefinementFixpointTransitionRelation(), true);
         aesolver.defineTVar(spec.getFixpointTransitionRelation(), true);
 
         if (settings.scratch) {
@@ -380,7 +472,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         }
 
         if (region !=null) {
-            aesolver.sendBlockedRegionSPart(region.getRefinedRegion());
+            aesolver.assertSPart(region.getRefinedRegion());
         }
 
 
@@ -404,17 +496,10 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 aesolver.assertTPart(constraint.accept(new Lustre2Sexp(0)), true);
             }
         }
-
-        aesolver.sendSubsetTPart(subset.getValidSubset());
-
-        //Aug. 9 2020 : Disabling this assertion because of wrong result on Infusion_manager for FRET
-//        if (region != null) {
-//            aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(region.getRefinedRegion(), -1,
-//                    preoutvars, true));
-//        }
+        aesolver.assertTPart(subset.getValidSubset(), true);
     }
 
-    protected void createQueryVariables(AevalSolver aesolver, RefinedRegion region, int k) {
+    protected void createQueryVariables(AevalSolver aesolver, RefinedRegion region) {
         if (settings.scratch) {
             aesolver.scratch.println("; Transition relation");
         }
@@ -496,14 +581,8 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         }
 
         if (region != null) {
-            aesolver.sendBlockedRegionSPart(region.getRefinedRegion());
+            aesolver.assertSPart(region.getRefinedRegion());
         }
-
-        //Aug. 9 2020 : Disabling this assertion because of wrong result on Infusion_manager for FRET
-//        if (region != null) {
-//            aesolver.sendBlockedRegionSPart(convertOutputsToNextStep(region.getRefinedRegion(), -1,
-//                    preoutvars, true));
-//        }
 
         if (settings.scratch) {
             aesolver.scratch.println("; Constraints for existential part of the formula");
@@ -522,14 +601,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         }
 
         if (region !=null) {
-                aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(region.getRefinedRegion(), -1,
-                        getOffsetVarDecls(-1, getRealizabilityOutputVarDecls()), false));
+            aesolver.assertTPart(new Symbol(convertOutputsToNextStep(region.getRefinedRegion().toString(), -1,
+                    getOffsetVarDecls(-1, getRealizabilityOutputVarDecls()), false)), true);
         }
-//        if (settings.fixpoint_T) {
-//            if (preCondition != null && !preCondition.equals("true")) {
-//                aesolver.sendBlockedRegionTPart(convertOutputsToNextStep(preCondition, 0, getOffsetVarDecls(0, getRealizabilityOutputVarDecls()), false));
-//            }
-//        }
     }
 
     protected String convertOutputsToNextStep(String region, int k, List<VarDecl> offsetVarDecls, boolean lhs) {

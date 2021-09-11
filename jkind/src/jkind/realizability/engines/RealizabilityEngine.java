@@ -85,11 +85,11 @@ public abstract class RealizabilityEngine implements Runnable {
 	}
 
 	protected void initializeSolver() {
-		solver = new Z3Solver(getScratchBase(), LinearChecker.isLinear(spec.node));
+//		solver = new Z3Solver(getScratchBase(), LinearChecker.isLinear(spec.node));
+		solver = new Z3Solver(getScratchBase(), false);
 		solver.initialize();
 		solver.declare(spec.functions);
 		solver.define(spec.getTransitionRelation());
-//        solver.define(spec.getRefinementFixpointTransitionRelation());
 
         if(settings.fixpoint) {
             solver.define(new VarDecl(INIT.str, NamedType.BOOL));
@@ -165,7 +165,6 @@ public abstract class RealizabilityEngine implements Runnable {
 		aesolver.defineSVar(spec.getTransitionRelation());
         //The following does not allow to solve realizable but non well-separated contracts.
 		aesolver.defineTVar(spec.getTransitionRelation(), false);
-//        aesolver.defineTVar(spec.getRefinementFixpointTransitionRelation(), false);
 		if (settings.scratch) {
 			aesolver.scratch.println("; Universally quantified variables");
 		}
@@ -252,8 +251,6 @@ public abstract class RealizabilityEngine implements Runnable {
         for (Sexp c : conjuncts) {
 			equalities.add(new Cons("=", c, c));
 		}
-        //test 11/5/19
-//        equalities.add(new Cons("=", INIT, INIT));
 		return SexpUtil.conjoin(equalities);
 	}
 
@@ -326,10 +323,6 @@ public abstract class RealizabilityEngine implements Runnable {
         } else {
             args.addAll(getSymbols(getAevalOffsetVarDecls(k, Util.getVarDecls(spec.node), getRealizabilityInputVarDecls(), getRealizabilityOutputVarDecls())));
         }
-//		args.addAll(getSymbols(getOffsetVarDecls(k,
-//				getRealizabilityInputVarDecls())));
-//		args.addAll(getSymbols(getOffsetVarDecls(k+2,
-//				getRealizabilityOutputVarDecls())));
 		return new Cons(spec.getTransitionRelation().getName(), args);
 	}
 
@@ -388,6 +381,17 @@ public abstract class RealizabilityEngine implements Runnable {
 		return all;
 	}
 
+	protected Sexp varDeclsToRefinementQuantifierArguments(List<VarDecl> varDecls, int k) {
+		List<Sexp> args = new ArrayList<>();
+		args.add(new Cons("%init", new Symbol("Bool")));
+		for (VarDecl vd : varDecls) {
+			Symbol name = new StreamIndex(vd.id, k).getEncoded();
+			Symbol type = solver.type(vd.type);
+			args.add(new Cons(name, type));
+		}
+		return new Cons(args);
+	}
+
 	protected Sexp varDeclsToQuantifierArguments(List<VarDecl> varDecls, int k) {
 		List<Sexp> args = new ArrayList<>();
 		for (VarDecl vd : varDecls) {
@@ -407,7 +411,7 @@ public abstract class RealizabilityEngine implements Runnable {
 	}
 
 	private PrintWriter getaevalScratch( ) {
-		if (settings.scratch && (settings.solver == JRealizabilitySolverOption.AEVAL)) {
+		if (settings.scratch && (settings.solver == JRealizabilitySolverOption.AEVAL || settings.synthesis)) {
 
 			String filename = settings.filename + ".aeval" + "." + name + ".smt2";
 			try {

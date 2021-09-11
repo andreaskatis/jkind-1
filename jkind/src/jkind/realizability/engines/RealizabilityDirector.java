@@ -291,7 +291,7 @@ public class RealizabilityDirector {
                             }
                         }
 				} else {
-					if (settings.solver == JRealizabilitySolverOption.AEVAL) {
+					if (settings.fixpoint) {
 						writer.writeFixpointUnrealizable(um.k, um.properties, runtime);
 					} else {
 						// Model sliced = slice(um.model, um.properties);

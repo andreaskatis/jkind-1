@@ -56,7 +56,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		options.addOption(FIXPOINT, false, "use fixpoint algorithm for realizability/synthesis");
         options.addOption(COMPACT, false, "Attempt to synthesize a more compact implementation");
         options.addOption(ALLINCLUSIVE, false, "Attempt to synthesize an all-inclusive implementation (for contracts with disjunctive/implicative properties)");
-        options.addOption(SOLVER, true, "SMT solver for k-induction realizability checking. Current options : z3, aeval");
+        options.addOption(SOLVER, true, "SMT solver for realizability checking. Current options : z3, aeval");
         options.addOption(NONDET, false, "synthesize nondeterministic implementation (default engine : k-induction, use with -fixpoint for fixpoint-based synthesis)");
 		options.addOption(DIAGNOSE, false, "diagnose specification in terms of unrealizability");
         return options;
@@ -80,7 +80,6 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		ensureExclusive(line, EXCEL, XML);
 		ensureExclusive(line, EXCEL, JSON);
 		ensureExclusive(line, XML, JSON);
-        ensureExclusive(line, FIXPOINT, SOLVER);
         ensureExclusive(line, DIAGNOSE, REDUCE);
 
 		if (line.hasOption(EXCEL)) {
@@ -122,7 +121,6 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 
 		if (line.hasOption(FIXPOINT)) {
 			settings.fixpoint = true;
-            settings.solver = JRealizabilitySolverOption.AEVAL;
         }
 
         if (line.hasOption(COMPACT)) {
@@ -149,7 +147,9 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 
         if (line.hasOption(SOLVER)) {
             settings.solver = getSolverOption(line.getOptionValue(SOLVER));
-        }
+        } else {
+			settings.solver = JRealizabilitySolverOption.Z3;
+		}
 	}
 
     private void printDetectedSolvers() {
