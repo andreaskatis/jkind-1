@@ -68,6 +68,7 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 			push();
 			send(new Cons("assert", new Cons("not", sexp)));
 			send(new Cons("check-sat"));
+//			send(new Cons("check-sat-using qfnra-nlsat"));
 		}
 
 		try {
@@ -226,7 +227,10 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 		assertSexp(formula);
 		send(new Cons("apply", new Cons("par-or",
 				new Symbol("qe2"), new Cons("then", new Symbol("qe-light"), new Symbol("qe")))));
+//				new Symbol("qe2"), new Cons("then", new Symbol("qe-light"), new Cons("!", new Symbol("qe"), new Symbol(":qe-nonlinear true"))))));
 //		send(new Cons("apply", new Symbol("qe2")));
+//		send(new Cons("apply", new Cons("!", new Symbol("qe"), new Symbol(":qe-nonlinear true"))));
+//		send(new Cons("apply", new Cons("then", new Symbol("qe-light"), new Symbol("qe"))));
 		String result = readFromSolver();
 		pop();
 		String regexString = Pattern.quote("(goal\n  ") + "(?s)(.*?)" + Pattern.quote(":");

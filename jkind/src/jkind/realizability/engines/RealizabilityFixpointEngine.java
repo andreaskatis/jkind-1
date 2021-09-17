@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 public class RealizabilityFixpointEngine extends RealizabilityEngine {
     private AevalSolver aesolver;
     private RefinedRegion region;
+    private Sexp simpTrans;
     private ArrayList<String> skolems;
     private String preCondition;
 
@@ -231,6 +232,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     private boolean checkAgainstAssumptions(Sexp qeResult, Sexp transition) {
         Result queryResult = solver.query(new Cons("or", new Cons("not", transition), qeResult));
         return (queryResult instanceof UnsatResult);
+//        return false;
     }
 
     private void synthesizeImplementation() {
@@ -254,10 +256,19 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 new Cons("and", new Symbol(convertOutputsToNextStep(trueRegion.toString(), 0,
                 getOffsetVarDecls(-1, getRealizabilityOutputVarDecls()), false)));
 
-        Sexp simpTrans = solver.simplify(getInductiveTransition(0));
-        Sexp query = new Cons("=>", trueRegion,
-                new Cons("exists", getRealizabilityOutputs(0),
-                        new Cons("and", simpTrans, StreamIndex.conjoinEncodings(spec.node.properties, 0), trueRegionNext)));
+        if (k == 0) {
+            simpTrans = solver.simplify(getInductiveTransition(0));
+//            simpTrans = getInductiveTransition(0);
+        }
+        Sexp query = new Cons("and", simpTrans, StreamIndex.conjoinEncodings(spec.node.properties, 0), trueRegionNext);
+        if (getRealizabilityOutputs(0) != null) {
+            query = new Cons("exists", getRealizabilityOutputs(0), query);
+        }
+        query = new Cons("=>", trueRegion, query);
+
+//        Sexp query = new Cons("=>", trueRegion,
+//                new Cons("exists", getRealizabilityOutputs(0),
+//                        new Cons("and", simpTrans, StreamIndex.conjoinEncodings(spec.node.properties, 0), trueRegionNext)));
 
         Sexp qeResult = solver.qeQuery(query, false);
 
@@ -287,10 +298,15 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
             Sexp refinementQuery = new Cons("=>", trueRegion,
                     new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
-                            new Cons("and", getAssertions(), trueRegion, solver.simplify(new Cons("not", qeResult)))));
+                            new Cons("and", getAssertions(), simpTrans, trueRegion, solver.simplify(new Cons("not", qeResult)))));
+//            Sexp refinementQuery = new Cons("=>", trueRegion,
+//                    new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
+//                            new Cons("and", getAssertions(), trueRegion, new Cons("not", qeResult))));
+
             Sexp refinementResult = solver.qeQuery(refinementQuery,true);
 
             if (solver.simplify(refinementResult).toString().equals("true")) {
+//            if (refinementResult.toString().equals("true")) {
                 if (settings.diagnose) {
                     setResult(k,"UNREALIZABLE", null);
                 } else {
@@ -298,7 +314,9 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 }
             } else {
                 Sexp negatedRefRes = solver.simplify(new Cons("not", refinementResult));
+//                Sexp negatedRefRes = new Cons("not", refinementResult);
                 Result isFixpoint = solver.query(new Cons("=>", trueRegion, solver.simplify(new Cons("and", trueRegion, negatedRefRes))));
+//                Result isFixpoint = solver.query(new Cons("=>", trueRegion, new Cons("and", trueRegion, negatedRefRes)));
                 if (isFixpoint instanceof UnsatResult) {
                     if (solver.initialStatesQuery(getTransition(0, true),
                             StreamIndex.conjoinEncodings(spec.node.properties, 0),
@@ -321,6 +339,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                     }
                 } else {
                     region = new RefinedRegion(solver.simplify(new Cons("and", trueRegion, negatedRefRes)));
+//                    region = new RefinedRegion(new Cons("and", trueRegion, negatedRefRes));
                 }
             }
         }
@@ -361,6 +380,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 }
             } else {
                 Sexp negatedsimplified = solver.simplify(new Cons("not", result));
+//                Sexp negatedsimplified = new Cons("not", result);
                 ValidSubset negatedsubset = new ValidSubset(negatedsimplified);
                 refineRegion(k, negatedsubset);
             }
@@ -403,6 +423,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 }
             } else {
                 simplified = solver.simplify(new Cons("and", region.getRefinedRegion(), new Cons("not", result)));
+//                simplified = new Cons("and", region.getRefinedRegion(), new Cons("not", result));
                 region = new RefinedRegion(simplified);
             }
         } else {

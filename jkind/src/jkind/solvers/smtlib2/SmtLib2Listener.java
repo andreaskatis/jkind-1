@@ -1,4 +1,4 @@
-// Generated from /home/akatis/git/jkindtemp/jkind-1/jkind/src/jkind/solvers/smtlib2/SmtLib2.g4 by ANTLR 4.4
+// Generated from /home/akatis/git/jkind-1/jkind/src/jkind/solvers/smtlib2/SmtLib2.g4 by ANTLR 4.4
 package jkind.solvers.smtlib2;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;

@@ -1,4 +1,4 @@
-// Generated from /home/akatis/git/jkindtemp/jkind-1/jkind/src/jkind/solvers/smtlib2/SmtLib2.g4 by ANTLR 4.4
+// Generated from /home/akatis/git/jkind-1/jkind/src/jkind/solvers/smtlib2/SmtLib2.g4 by ANTLR 4.4
 package jkind.solvers.smtlib2;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -84,7 +84,7 @@ public class SmtLib2Lexer extends Lexer {
 		"\13\"\3#\6#\u00d8\n#\r#\16#\u00d9\3#\3#\3$\3$\2\2%\3\3\5\4\7\5\t\6\13"+
 		"\7\r\b\17\t\21\n\23\13\25\f\27\r\31\16\33\17\35\20\37\21!\22#\23%\24\'"+
 		"\25)\26+\27-\30/\31\61\32\63\33\65\34\67\359\36;\2=\2?\37A C!E\"G#\3\2"+
-		"\5\3\2\62;\t\2##%\'\60\60B^`ac|\u0080\u0080\5\2\13\f\16\17\"\"\u00e3\2"+
+		"\5\3\2\62;\t\2##%\'\60\61B^`ac|\u0080\u0080\5\2\13\f\16\17\"\"\u00e3\2"+
 		"\3\3\2\2\2\2\5\3\2\2\2\2\7\3\2\2\2\2\t\3\2\2\2\2\13\3\2\2\2\2\r\3\2\2"+
 		"\2\2\17\3\2\2\2\2\21\3\2\2\2\2\23\3\2\2\2\2\25\3\2\2\2\2\27\3\2\2\2\2"+
 		"\31\3\2\2\2\2\33\3\2\2\2\2\35\3\2\2\2\2\37\3\2\2\2\2!\3\2\2\2\2#\3\2\2"+
