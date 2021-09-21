@@ -77,16 +77,17 @@ public class Lustre2Sexp implements ExprVisitor<Sexp> {
 			conjuncts.add(assertion.accept(visitor));
 		}
 
-		Sexp conj = SexpUtil.conjoin(conjuncts);
-		List<Sexp> bigconj = new ArrayList<>();
-		bigconj.add(new Cons("=>", INIT, conj));
-		bigconj.add(new Cons("=>", new Cons("not", INIT), conj));
+//		Sexp conj = SexpUtil.conjoin(conjuncts);
+//		List<Sexp> bigconj = new ArrayList<>();
+//		bigconj.add(new Cons("=>", INIT, conj));
+//		bigconj.add(new Cons("=>", new Cons("not", INIT), conj));
 
 		List<VarDecl> inputs = new ArrayList<>();
 		inputs.add(new VarDecl(INIT.str, NamedType.BOOL));
 		inputs.addAll(visitor.pre(Util.getVarDecls(node)));
 		inputs.addAll(visitor.curr(Util.getVarDecls(node)));
-		return new Relation(Relation.T, inputs, SexpUtil.conjoin(bigconj));
+//		return new Relation(Relation.T, inputs, SexpUtil.conjoin(bigconj));
+		return new Relation(Relation.T, inputs, SexpUtil.conjoin(conjuncts));
 	}
 
 	public static Relation constructFixpointTransitionRelation(Node node) {

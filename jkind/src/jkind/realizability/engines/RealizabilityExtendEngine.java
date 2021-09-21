@@ -145,6 +145,18 @@ public class RealizabilityExtendEngine extends RealizabilityEngine {
 				if (settings.diagnose) {
 					setResult(k,"REALIZABLE", null);
 				} else {
+					if (settings.synthesis) {
+						aesolver = new AevalSolver(settings.filename, name, aevalscratch);
+						aecomment("; K = " + k);
+						createAevalVariables(aesolver, k, name);
+						aesolver.assertSPart(getInductiveTransition(k));
+						AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(k),
+								StreamIndex.conjoinEncodings(spec.node.properties, k + 2), settings.synthesis, settings.nondet,
+								settings.compact, settings.allinclusive);
+						if (aeresult instanceof ValidResult) {
+							director.extendImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
+						}
+					}
 					sendRealizable(k);
 				}
 				throw new StopException();

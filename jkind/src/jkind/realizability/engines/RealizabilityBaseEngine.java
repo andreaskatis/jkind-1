@@ -112,6 +112,18 @@ public class RealizabilityBaseEngine extends RealizabilityEngine {
 			Result result = solver.realizabilityQuery(getRealizabilityOutputs(k),
 					getTransition(k, k == 0), StreamIndex.conjoinEncodings(spec.node.properties, k));
 			if (result instanceof UnsatResult) {
+				if (settings.synthesis) {
+					aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
+					aecomment("; K = " + (k + 1));
+					createAevalVariables(aesolver, k, name);
+					aesolver.assertSPart(getTransition(k, k == 0));
+					AevalResult aeresult = aesolver.realizabilityQuery(getAevalTransition(k, k == 0),
+							StreamIndex.conjoinEncodings(spec.node.properties, k + 2), settings.synthesis, settings.nondet,
+							settings.compact, settings.allinclusive);
+					if (aeresult instanceof ValidResult) {
+						director.baseImplementation.add(new SkolemFunction(((ValidResult) aeresult).getSkolem()));
+					}
+				}
 				sendBaseStep(k);
 			}
 
