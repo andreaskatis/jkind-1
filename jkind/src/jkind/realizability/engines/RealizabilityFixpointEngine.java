@@ -55,7 +55,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 //                factorizeandcheckRealizable();
 //            } else {
                 for (int k = 0; k < settings.n; k++) {
-                    comment("K = " + (k + 1));
+                    comment("K = " + k);
                     if (k == 0) {
                         checkConsistency(k);
                     }
@@ -222,18 +222,19 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
     //     }
     // }
 
-    //If the QE result R is such that T /\ not R is unsat, then R only contains simplified constraints related to assumptions.
+    //If the QE result R is such that `T => R` is unsat, then R only contains constraints that come as a result of simplifying the original assumptions.
     //This can occur in cases where an assumption is the output value of a Lustre node N.
-    //Essentially, QE computs an R that is defined over input variables, eliminating the variables that correspond to node N's input and output
+    //Essentially, QE computes an R that is defined over input variables, eliminating the variables that correspond to node N's input and output
     // (in a similar way to how inlining the node would work).
+
     //One way to skip this query would be to assume that T is true, but that seems to have a negative performance impact
     //on bigger contracts.
 
-    private boolean checkAgainstAssumptions(Sexp qeResult, Sexp transition) {
-        Result queryResult = solver.query(new Cons("or", new Cons("not", transition), qeResult));
-        return (queryResult instanceof UnsatResult);
+//    private boolean checkAgainstAssumptions(Sexp qeResult, Sexp transition) {
+//        Result queryResult = solver.query(new Cons("or", new Cons("not", transition), qeResult));
+//        return (queryResult instanceof UnsatResult);
 //        return false;
-    }
+//    }
 
     private void synthesizeImplementation() {
         aesolver = new AevalSolver(settings.filename, name, aevalscratch);
@@ -264,24 +265,23 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         if (getRealizabilityOutputs(0) != null) {
             query = new Cons("exists", getRealizabilityOutputs(0), query);
         }
-        query = new Cons("=>", trueRegion, query);
+        query = new Cons("=>", (k == 0 ? new Cons("and", simpTrans, trueRegion) : trueRegion), query);
 
 //        Sexp query = new Cons("=>", trueRegion,
 //                new Cons("exists", getRealizabilityOutputs(0),
 //                        new Cons("and", simpTrans, StreamIndex.conjoinEncodings(spec.node.properties, 0), trueRegionNext)));
 
         Sexp qeResult = solver.qeQuery(query, false);
-
+        Sexp negatedQeResult = solver.simplify(new Cons("not", qeResult));
+//        Sexp qeResult = solver.simplify(new Cons("and", simpTrans, new Cons("not", solver.qeQuery(query, false))));
         if (qeResult.toString().equals("false")) {
             if (settings.diagnose) {
                 setResult(k,"UNREALIZABLE", null);
             } else {
                 sendUnrealizable(k);
+                throw new StopException();
             }
-        } else if (qeResult.toString().equals("true") || checkAgainstAssumptions(qeResult, simpTrans)) {
-            if (settings.synthesis) {
-                synthesizeImplementation();
-            }
+        } else if (qeResult.toString().equals("true") || negatedQeResult.toString().equals("false")) {
             if (settings.diagnose) {
                 setResult(k,"REALIZABLE", null);
             } else {
@@ -289,6 +289,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                     synthesizeImplementation();
                 }
                 sendRealizable(k);
+                throw new StopException();
             }
         } else {
             //refine
@@ -296,9 +297,18 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             vars.addAll(getRealizabilityInputVarDecls());
             vars.addAll(getRealizabilityOutputVarDecls());
 
+
+//            Sexp refinementQuery = new Cons("=>", trueRegion,
+//                    new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
+//                            new Cons("and", getAssertions(), simpTrans, trueRegion, negatedQeResult)));
+
             Sexp refinementQuery = new Cons("=>", trueRegion,
                     new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
-                            new Cons("and", getAssertions(), simpTrans, trueRegion, solver.simplify(new Cons("not", qeResult)))));
+                            new Cons("and", simpTrans, negatedQeResult)));
+
+//            Sexp refinementQuery = new Cons("=>", trueRegion,
+//                    new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
+//                            new Cons("and", getAssertions(), new Symbol("true"), trueRegion, qeResult)));
 //            Sexp refinementQuery = new Cons("=>", trueRegion,
 //                    new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
 //                            new Cons("and", getAssertions(), trueRegion, new Cons("not", qeResult))));
@@ -311,11 +321,13 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                     setResult(k,"UNREALIZABLE", null);
                 } else {
                     sendUnrealizable(k);
+                    throw new StopException();
                 }
             } else {
                 Sexp negatedRefRes = solver.simplify(new Cons("not", refinementResult));
 //                Sexp negatedRefRes = new Cons("not", refinementResult);
-                Result isFixpoint = solver.query(new Cons("=>", trueRegion, solver.simplify(new Cons("and", trueRegion, negatedRefRes))));
+//                Result isFixpoint = solver.query(new Cons("=>", trueRegion, solver.simplify(new Cons("and", trueRegion, negatedRefRes))));
+                Result isFixpoint = solver.query(new Cons("=>", trueRegion, negatedRefRes));
 //                Result isFixpoint = solver.query(new Cons("=>", trueRegion, new Cons("and", trueRegion, negatedRefRes)));
                 if (isFixpoint instanceof UnsatResult) {
                     if (solver.initialStatesQuery(getTransition(0, true),
@@ -329,20 +341,24 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                                 synthesizeImplementation();
                             }
                             sendRealizable(k + 1);
+                            throw new StopException();
                         }
                     } else {
                         if (settings.diagnose) {
                             setResult(k,"UNREALIZABLE", null);
                         } else {
                             sendUnrealizable(k);
+                            throw new StopException();
                         }
                     }
                 } else {
-                    region = new RefinedRegion(solver.simplify(new Cons("and", trueRegion, negatedRefRes)));
+//                    region = new RefinedRegion(solver.simplify(new Cons("and", trueRegion, negatedRefRes)));
+                    region = new RefinedRegion(negatedRefRes);
 //                    region = new RefinedRegion(new Cons("and", trueRegion, negatedRefRes));
                 }
             }
         }
+
     }
 
     private void checkRealizable(int k) {

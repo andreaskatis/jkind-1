@@ -233,7 +233,7 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 //		send(new Cons("apply", new Cons("then", new Symbol("qe-light"), new Symbol("qe"))));
 		String result = readFromSolver();
 		pop();
-		String regexString = Pattern.quote("(goal\n  ") + "(?s)(.*?)" + Pattern.quote(":");
+		String regexString = Pattern.quote("(goal\n  ") + "(?s)(.*?)" + "(\\n\\s\\s)?" + Pattern.quote(":");
 		Pattern pattern = Pattern.compile(regexString);
 		Matcher matcher = pattern.matcher(result);
 		if (matcher.find()) {
@@ -342,11 +342,13 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 		send(new Cons("apply", new Symbol("ctx-solver-simplify")));
 		String result = readFromSolver();
 		pop();
-		String regexString = Pattern.quote("(goal\n  ") + "(?s)(.*?)" + Pattern.quote(":");
+		String regexString = Pattern.quote("(goal\n  ") + "(?s)(.*?)" + "(\\n\\s\\s)?" + Pattern.quote(":");
 		Pattern pattern = Pattern.compile(regexString);
 		Matcher matcher = pattern.matcher(result);
+
 		if (matcher.find()) {
 			String simplified = matcher.group(1);
+
 			return simplified.equals("") ? new Symbol("true") :
 					(simplified.equals("false") ? new Symbol("false") :
 							//adding "true" below because AE-VAL's version of Z3 doesn't do well with unary expressions over "and"
