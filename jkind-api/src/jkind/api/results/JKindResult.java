@@ -1,5 +1,7 @@
 package jkind.api.results;
 
+import static java.util.stream.Collectors.toList;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -58,6 +60,19 @@ public class JKindResult extends AnalysisResult implements PropertyChangeListene
 	 * 
 	 * @param name
 	 *            Name of the results
+	 * @param renaming
+	 *            Renaming to apply to properties
+	 */
+	public JKindResult(String name, Renaming renaming) {
+		super(name);
+		this.renaming = renaming;
+	}
+
+	/**
+	 * Construct a JKindResult to hold the results of a run of JKind
+	 * 
+	 * @param name
+	 *            Name of the results
 	 * @param properties
 	 *            Property names to track (pre-renaming)
 	 * @param renaming
@@ -79,20 +94,29 @@ public class JKindResult extends AnalysisResult implements PropertyChangeListene
 	 * @param invertStatus
 	 *            True if the status of the property of the same index in
 	 *            properties should be inverted
-	 * @param renaming
-	 *            Renaming to apply to properties
 	 */
-	public JKindResult(String name, List<String> properties, List<Boolean> invertStatus,
-			Renaming renaming) {
+	public JKindResult(String name, List<String> properties, List<Boolean> invertStatus) {
 		super(name);
-		this.renaming = renaming;
 		addProperties(properties, invertStatus);
 	}
 
-	private void addProperties(List<String> properties) {
-		for (String property : properties) {
-			addProperty(property);
-		}
+	/**
+	 * Construct a JKindResult to hold the results of a run of JKind
+	 * 
+	 * @param name
+	 *            Name of the results
+	 * @param properties
+	 *            Property names to track (pre-renaming)
+	 * @param invertStatus
+	 *            True if the status of the property of the same index in
+	 *            properties should be inverted
+	 * @param renaming
+	 *            Renaming to apply to properties
+	 */
+	public JKindResult(String name, List<String> properties, List<Boolean> invertStatus, Renaming renaming) {
+		super(name);
+		this.renaming = renaming;
+		addProperties(properties, invertStatus);
 	}
 
 	private void addProperties(List<String> properties, List<Boolean> invertStatus) {
@@ -126,8 +150,7 @@ public class JKindResult extends AnalysisResult implements PropertyChangeListene
 		PropertyResult propertyResult = new PropertyResult(property, renaming, invertStatus);
 		propertyResults.add(propertyResult);
 		propertyResult.setParent(this);
-		pcs.fireIndexedPropertyChange("propertyResults", propertyResults.size() - 1, null,
-				propertyResult);
+		pcs.fireIndexedPropertyChange("propertyResults", propertyResults.size() - 1, null, propertyResult);
 		addStatus(propertyResult.getStatus());
 		propertyResult.addPropertyChangeListener(this);
 		return propertyResult;
@@ -143,6 +166,42 @@ public class JKindResult extends AnalysisResult implements PropertyChangeListene
 	 */
 	public PropertyResult addProperty(String property) {
 		return addProperty(property, false);
+	}
+
+	/**
+	 * Add a property to track (with inverted status)
+	 * 
+	 * @param property
+	 *            Property to be tracked (pre-renaming)
+	 * @return The PropertyResult object which will store the results of the
+	 *         property
+	 */
+	public PropertyResult addInvertedProperty(String property) {
+		return addProperty(property, true);
+	}
+
+	/**
+	 * Add a new properties to track
+	 * 
+	 * @param properties
+	 *            Properties to be tracked (pre-renaming)
+	 * @return List of the PropertyResult objects which will store the results
+	 *         of the properties
+	 */
+	public List<PropertyResult> addProperties(List<String> properties) {
+		return properties.stream().map(this::addProperty).collect(toList());
+	}
+
+	/**
+	 * Add a new properties to track (with inverted status)
+	 * 
+	 * @param properties
+	 *            Properties to be tracked (pre-renaming)
+	 * @return List of the PropertyResult objects which will store the results
+	 *         of the properties
+	 */
+	public List<PropertyResult> addInvertedProperties(List<String> properties) {
+		return properties.stream().map(this::addInvertedProperty).collect(toList());
 	}
 
 	private void addStatus(Status other) {
@@ -272,6 +331,17 @@ public class JKindResult extends AnalysisResult implements PropertyChangeListene
 		toExcel(file, new SingletonLayout("Signals"));
 	}
 
+	/**
+	 * Discard details such as counterexamples and IVCs to save space
+	 */
+	public void discardDetails() {
+		for (PropertyResult pr : propertyResults) {
+			if (pr.getProperty() != null) {
+				pr.getProperty().discardDetails();
+			}
+		}
+	}
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		// Status updates from immediate children are noted and propagated
@@ -281,8 +351,7 @@ public class JKindResult extends AnalysisResult implements PropertyChangeListene
 			pcs.firePropertyChange("status", evt.getOldValue(), evt.getNewValue());
 		}
 
-		if ("multiStatus".equals(evt.getPropertyName())
-				&& propertyResults.contains(evt.getSource())) {
+		if ("multiStatus".equals(evt.getPropertyName()) && propertyResults.contains(evt.getSource())) {
 			multiStatus.remove((MultiStatus) evt.getOldValue());
 			multiStatus.add((MultiStatus) evt.getNewValue());
 			pcs.firePropertyChange("multiStatus", evt.getOldValue(), evt.getNewValue());

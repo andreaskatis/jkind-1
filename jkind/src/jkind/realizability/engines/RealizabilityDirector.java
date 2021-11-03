@@ -221,10 +221,10 @@ public class RealizabilityDirector {
 	}
 
 	private void printHeader() {
-		Output.println("==========================================");
-		Output.println("  JRealizability " + Main.VERSION);
-		Output.println("==========================================");
-		Output.println();
+		System.out.println("==========================================");
+		System.out.println("  JRealizability " + Main.getVersion());
+		System.out.println("==========================================");
+		System.out.println();
 	}
 
 	private void startThreads() {
