@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="jdiagnosis" default="all">
-  
-  
+<project name="jkind" default="all">
+
+<!-- run the ant timestamp task -->
+<tstamp/>
+
 <!--  <property file="build.properties"/>-->
   <!-- Uncomment the following property if no tests compilation is needed -->
   <!-- 
@@ -9,7 +11,7 @@
    -->
   
   <!-- Compiler options -->
-  
+  <property name="version" value="4.4.5"/>
   <property name="compiler.debug" value="on"/>
   <property name="compiler.generate.no.warnings" value="off"/>
   <property name="compiler.args" value=""/>
@@ -52,6 +54,12 @@
     <exclude name="**/?*.aj"/>
   </patternset>
   
+  <!-- Manifest -->
+  <manifest file="${basedir}/jkind/src/META-INF/MANIFEST.MF">
+    <attribute name="Main-Class" value="jkind.Main"/>
+    <attribute name="Implementation-Version" value="${version}-${DSTAMP}${TSTAMP}"/>
+  </manifest>
+
   <!-- Modules -->
   
   <import file="${basedir}/jkind-common/module_jkind-common.xml"/>
