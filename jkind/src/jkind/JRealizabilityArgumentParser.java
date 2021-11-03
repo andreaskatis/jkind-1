@@ -70,6 +70,11 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 
 	@Override
 	protected void parseCommandLine(CommandLine line) {
+        if (line.hasOption(VERSION)) {
+            Output.println(name + " " + Main.getVersion());
+            printDetectedSolvers();
+            System.exit(0);
+        }
 		super.parseCommandLine(line);
 
 		ensureExclusive(line, EXCEL, XML);

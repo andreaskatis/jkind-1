@@ -43,22 +43,22 @@ allprojects {
         }
     }
 
-    publishing {
-        repositories {
-            maven {
-                if (jkind_version_base.matches("([0-9]+\\.[0-9]+\\.[0-9]+)")) {
-                    url "s3://ca-trustedsystems-dev-us-east-1/mvn/releases/"
-                } else if (jkind_version_base.matches("([0-9]+\\.[0-9]+\\.[0-9]+)-SNAPSHOT")) {
-                    url "s3://ca-trustedsystems-dev-us-east-1/mvn/snapshots/"
-                } else {
-                    url "s3://ca-trustedsystems-dev-us-east-1/mvn/staging/"
-                }
-                authentication {
-                    awsIm(AwsImAuthentication)
-                }
-            }
-        }
-    }
+    // publishing {
+    //     repositories {
+    //         maven {
+    //             if (jkind_version_base.matches("([0-9]+\\.[0-9]+\\.[0-9]+)")) {
+    //                 url "s3://ca-trustedsystems-dev-us-east-1/mvn/releases/"
+    //             } else if (jkind_version_base.matches("([0-9]+\\.[0-9]+\\.[0-9]+)-SNAPSHOT")) {
+    //                 url "s3://ca-trustedsystems-dev-us-east-1/mvn/snapshots/"
+    //             } else {
+    //                 url "s3://ca-trustedsystems-dev-us-east-1/mvn/staging/"
+    //             }
+    //             authentication {
+    //                 awsIm(AwsImAuthentication)
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 project(':jkind') {
@@ -69,7 +69,7 @@ project(':jkind') {
     }
 
     dependencies {
-        implementation files('dependencies/commons-cli-1.2.jar', 'dependencies/smtinterpol.jar')
+        implementation files('dependencies/guava-29.0-jre.jar','dependencies/commons-cli-1.2.jar', 'dependencies/smtinterpol.jar')
     }
 
     sourceSets {
