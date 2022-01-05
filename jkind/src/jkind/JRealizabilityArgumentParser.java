@@ -4,6 +4,7 @@ import jkind.aeval.AevalSolver;
 import jkind.engines.SolverUtil;
 import jkind.lustre.Node;
 import jkind.lustre.builders.NodeBuilder;
+import jkind.SolverOption;
 import jkind.realizability.JRealizabilitySolverOption;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -153,20 +154,24 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 	}
 
     private void printDetectedSolvers() {
-        String detected = Arrays.stream(SolverOption.values()).filter(this::solverIsAvailable)
+        String detected = Arrays.stream(JRealizabilitySolverOption.values()).filter(this::solverIsAvailable)
                 .map(Object::toString).collect(joining(", "));
         System.out.println("Detected solvers: " + detected);
     }
 
-    private boolean solverIsAvailable(SolverOption solverOption) {
+    private boolean solverIsAvailable(JRealizabilitySolverOption solverOption) {
         try {
             switch (solverOption) {
                 case AEVAL:
                     AevalSolver ae = new AevalSolver(null, null, null);
                     break;
-                default:
+                case Z3:
                     Node emptyNode = new NodeBuilder("empty").build();
-                    SolverUtil.getSolver(solverOption, null, emptyNode);
+                    SolverUtil.getSolver(SolverOption.Z3, null, emptyNode);
+                    break;                    
+                // default:
+                //     Node emptyNode = new NodeBuilder("empty").build();
+                //     SolverUtil.getSolver(solverOption, null, emptyNode);
             }
         } catch (JKindException e) {
             return false;
