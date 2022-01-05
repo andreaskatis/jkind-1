@@ -2,5 +2,5 @@ Manifest-Version: 1.0
 Ant-Version: Apache Ant 1.10.7
 Created-By: 11.0.11+9-Ubuntu-0ubuntu2.20.04 (Ubuntu)
 Main-Class: jkind.Main
-Implementation-Version: 4.4.5-202111031402
+Implementation-Version: 4.4.5-202201051208
 

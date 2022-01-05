@@ -1,6 +1,6 @@
 import java.text.SimpleDateFormat;
 
-def jkind_version_base = '4.4.5-SNAPSHOT'
+def jkind_version_base = '4.5.1'
 
 def buildTime() {
     def df = new SimpleDateFormat("yyyyMMddHHmm");
@@ -95,7 +95,17 @@ project(':jkind') {
         from sourceSets.main.allSource
 
         dependsOn configurations.runtimeClasspath
-        from { configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) } }
+        from (configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }) {
+            exclude '.api_description'
+            exclude '.options'
+            exclude 'about.html'
+            exclude 'plugin.properties'
+            exclude 'plugin.xml'
+            exclude 'META-INF/MANIFEST.MF'
+            exclude 'META-INF/*.SF'
+            exclude 'META-INF/*.DSA'
+            exclude 'META-INF/*.RSA'
+        }
     }
 
     publishing {
@@ -110,7 +120,16 @@ project(':jkind') {
 }
 
 project(':jkind-api') {
-    sourceSets {
+    repositories {
+        mavenCentral()
+    }
+
+     dependencies {
+        implementation 'org.eclipse.platform:org.eclipse.equinox.common:3.14.0'
+        implementation 'org.eclipse.platform:org.eclipse.core.runtime:3.20.0'
+    }
+
+     sourceSets {
         main {
             java {
                 srcDirs += ['src']
@@ -131,6 +150,21 @@ project(':jkind-api') {
                 'Implementation-Version': jkind_version
         }
         from sourceSets.main.allSource
+
+        dependsOn configurations.runtimeClasspath
+        from (configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }) {
+            exclude '.api_description'
+            exclude '.options'
+            exclude 'about.html'
+            exclude 'plugin.properties'
+            exclude 'plugin.xml'
+            exclude 'META-INF/MANIFEST.MF'
+            exclude 'META-INF/*.SF'
+            exclude 'META-INF/*.DSA'
+            exclude 'META-INF/*.RSA'
+        }
+
+        duplicatesStrategy = 'warn'
     }
 
     publishing {
