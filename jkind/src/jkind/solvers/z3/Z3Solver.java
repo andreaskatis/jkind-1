@@ -46,6 +46,7 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 		setOption("produce-unsat-cores", true);
 		setOption("smt.core.minimize", true);
 		setOption("sat.core.minimize", true);
+
 		// The following option can be added
 		// when the reported bugs in Z3 resurfaces:
 		// https://github.com/Z3Prover/z3/issues/158
@@ -226,11 +227,14 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 		//send(";\n;" + (isRef ? "---- Refinement step ----" : "---- Main step ----") + "\n;");
 		assertSexp(formula);
 		send(new Cons("apply", new Cons("par-or",
-				new Symbol("qe2"), new Cons("then", new Symbol("qe-light"), new Symbol("qe")))));
+				new Symbol("qe2"), new Cons("then", new Symbol("qe-light"), new Symbol("qe2")), new Cons("then", new Symbol("qe-light"), new Symbol("qe")))));		
+//		send(new Cons("apply", new Cons("par-or",
+//				new Symbol("qe2"), new Cons("then", new Symbol("qe-light"), new Symbol("qe")))));
 //				new Symbol("qe2"), new Cons("then", new Symbol("qe-light"), new Cons("!", new Symbol("qe"), new Symbol(":qe-nonlinear true"))))));
 //		send(new Cons("apply", new Symbol("qe2")));
 //		send(new Cons("apply", new Cons("!", new Symbol("qe"), new Symbol(":qe-nonlinear true"))));
-//		send(new Cons("apply", new Cons("then", new Symbol("qe-light"), new Symbol("qe"))));
+		// send(new Cons("apply", new Cons("then", new Symbol("qe-light"), new Symbol("qe"))));
+//		send(new Cons("apply", new Cons("then", new Symbol("qe-light"), new Symbol("qe2"))));
 		String result = readFromSolver();
 		pop();
 		String regexString = Pattern.quote("(goal\n  ") + "(?s)(.*?)" + "(\\n\\s\\s)?" + Pattern.quote(":");
