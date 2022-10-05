@@ -69,6 +69,7 @@ JKind requires Lustre programs as input. For realizability checking, you should 
 - `-synthesis` Given a realizable contract, use this option to synthesize an implementation in the form of a Skolem function in SMT-LIB 2.0 format. Default engine : k-induction
 - `-fixpoint` Enable the fixpoint engine instead of k-induction for realizability checking / synthesis
 - `-compact` Attempt to synthesize a more compact implementation. Enables `-synthesis` by default.
+- `-aevalopt` Use optimized quantifier elimination option in AEVAL queries. Relevant only when using the '-solver aeval' option.
 - `-allinclusive` Attempt to synthesize an implementation that covers all possible cases. Particularly useful when the contract contains properties in disjunctive / implicative form. Enables `-synthesis` by default.
 - `-nondet` Synthesize an implementation that supports nondeterministic behavior [5]. <a href="https://github.com/andrewkatis/fuzzersynthesis">For this option you NEED a modified version of AE-VAL</a>. Enables `-synthesis` by default.
 - `-diagnose`Diagnose unrealizable contracts by computing all minimal conflicts. A set of potential diagnoses is also provided.

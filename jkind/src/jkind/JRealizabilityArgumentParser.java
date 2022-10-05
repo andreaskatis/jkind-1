@@ -26,6 +26,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 	private static final String SYNTHESIS = "synthesis";
 	private static final String FIXPOINT = "fixpoint";
     private static final String COMPACT = "compact";
+	private static final String AEVALOPT = "aevalopt";
     private static final String ALLINCLUSIVE = "allinclusive";
     private static final String SOLVER = "solver";
     private static final String NONDET = "nondet";
@@ -56,6 +57,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		options.addOption(SYNTHESIS, false, "synthesize implementation from realizable contract (default engine : k-induction, use with -fixpoint for fixpoint-based synthesis)");
 		options.addOption(FIXPOINT, false, "use fixpoint algorithm for realizability/synthesis");
         options.addOption(COMPACT, false, "Attempt to synthesize a more compact implementation");
+		options.addOption(AEVALOPT, false, "Use optimized quantifier elimination option in AEVAL queries. Relevant only when using the '-solver aeval' option.");
         options.addOption(ALLINCLUSIVE, false, "Attempt to synthesize an all-inclusive implementation (for contracts with disjunctive/implicative properties)");
         options.addOption(SOLVER, true, "SMT solver for realizability checking. Current options : z3, aeval");
         options.addOption(NONDET, false, "synthesize nondeterministic implementation (default engine : k-induction, use with -fixpoint for fixpoint-based synthesis)");
@@ -127,19 +129,20 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
         if (line.hasOption(COMPACT)) {
             settings.synthesis = true;
             settings.compact = true;
-            settings.solver = JRealizabilitySolverOption.AEVAL;
         }
+
+		if (line.hasOption(AEVALOPT)) {
+			settings.aevalopt = true;
+		}
 
         if (line.hasOption(ALLINCLUSIVE)) {
             settings.synthesis = true;
             settings.allinclusive = true;
-            settings.solver = JRealizabilitySolverOption.AEVAL;
         }
 
         if (line.hasOption(NONDET)) {
             settings.synthesis = true;
             settings.nondet = true;
-            settings.solver = JRealizabilitySolverOption.AEVAL;
         }
 
         if (line.hasOption(DIAGNOSE)) {

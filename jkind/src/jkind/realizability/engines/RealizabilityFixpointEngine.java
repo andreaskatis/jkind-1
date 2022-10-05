@@ -240,7 +240,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         aesolver = new AevalSolver(settings.filename, name, aevalscratch);
         createQueryVariables(aesolver, region);
         AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
-                StreamIndex.conjoinEncodings(spec.node.properties, 2), settings.synthesis, settings.nondet,
+                StreamIndex.conjoinEncodings(spec.node.properties, 2), settings.synthesis, settings.aevalopt, settings.nondet,
                 settings.compact, settings.allinclusive);
         if (aeresult instanceof ValidResult) {
             if (settings.synthesis) {
@@ -365,11 +365,16 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         aesolver = new AevalSolver(settings.filename, name + k, aevalscratch);
         aecomment("; Frame = " + (k));
         createQueryVariables(aesolver, region);
+
         AevalResult aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
-            StreamIndex.conjoinEncodings(spec.node.properties, 2), settings.synthesis, settings.nondet,
+                StreamIndex.conjoinEncodings(spec.node.properties, 2), false, settings.aevalopt, settings.nondet,
                 settings.compact, settings.allinclusive);
+
         if (aeresult instanceof ValidResult) {
             if (settings.synthesis) {
+                aeresult = aesolver.realizabilityQuery(getAevalInductiveTransition(0),
+                        StreamIndex.conjoinEncodings(spec.node.properties, 2), true, false, settings.nondet,
+                        settings.compact, settings.allinclusive);
                 director.fixpointImplementation = new SkolemFunction(((ValidResult) aeresult).getSkolem());
             }
             if (checkInitialStates()) {
@@ -421,7 +426,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
         aesolver = new AevalSolver(settings.filename, name + "subset" + k, aevalscratch);
         aecomment(";Refinement = " + k);
         createSubQueryVariablesAndAssertions(aesolver, subset, k);
-        AevalResult aeresult = aesolver.refinementQuery();
+        AevalResult aeresult = aesolver.refinementQuery(settings.aevalopt);
         if (aeresult instanceof ValidResult) {
             if (settings.diagnose) {
                 setResult(k,"UNREALIZABLE", null);

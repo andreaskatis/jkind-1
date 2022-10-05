@@ -199,7 +199,7 @@ public class AevalSolver extends AevalProcess{
         return new Cons(args);
     }
 
-    public AevalResult realizabilityQuery(Sexp transition, Sexp properties, boolean generateSkolem,
+    public AevalResult realizabilityQuery(Sexp transition, Sexp properties, boolean generateSkolem, boolean aevalOpt,
                                           boolean nondet, boolean compaction, boolean allinclusive) {
         AevalResult result;
 
@@ -209,7 +209,7 @@ public class AevalSolver extends AevalProcess{
             scratch.println("; Assertion for Transition Relation - existential part of the formula");
         }
         sendTPart(query, true);
-        callAeval(check, generateSkolem, nondet, compaction, allinclusive);
+        callAeval(check, generateSkolem, aevalOpt, nondet, compaction, allinclusive);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             if (status.contains("WARNING: Skolem can be arbitrary\n")) {
@@ -235,9 +235,9 @@ public class AevalSolver extends AevalProcess{
         return result;
     }
 
-    public AevalResult refinementQuery() {
+    public AevalResult refinementQuery(boolean aevalOpt) {
         AevalResult result;
-        callAeval(check, false, false, false, false);
+        callAeval(check, false, aevalOpt, false, false, false);
         String status = readFromAeval();
         if (status.contains("Result: valid")) {
             String[] extracted = status.split("extracted skolem:");

@@ -14,6 +14,7 @@ public class JRealizabilitySettings extends Settings {
 	public boolean synthesis = false;
 	public boolean fixpoint = false;
     public boolean compact = false;
+	public boolean aevalopt = false;
     public boolean allinclusive = false;
     public JRealizabilitySolverOption solver = JRealizabilitySolverOption.Z3;
     public boolean nondet = false;
