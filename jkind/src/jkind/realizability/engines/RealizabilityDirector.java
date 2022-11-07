@@ -265,8 +265,7 @@ public class RealizabilityDirector {
 				k = rm.k;
                 if(settings.fixpoint) {
 					if (rm.model != null) {
-//						Counterexample cex = extractCounterexample(rm.k, rm.model);
-						int traceLength = settings.traceLength > -1 ? settings.traceLength : rm.k;
+						int traceLength = settings.traceLength > -1 ? settings.traceLength : (rm.k == 0 ? rm.k + 1 : rm.k);
 						Counterexample cex = extractCounterexample(traceLength, rm.model);
 						writer.writeFixpointRealizable(cex, rm.k, runtime);
 					} else {
