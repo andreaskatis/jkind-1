@@ -50,7 +50,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		options.addOption(EXCEL, false, "generate results in Excel format");
 		options.addOption(EXTEND_CEX, false, "report extend counterexample");
 		options.addOption(N, true, "number of iterations (default 200)");
-		options.addOption(TRACELENGTH, true, "Example trace length for realizable results (invokes '-fixpoint' option)");
+		options.addOption(TRACELENGTH, true, "Example trace length for realizable results (enables '-fixpoint' option). Setting to '0' does not produce a trace.");
 		options.addOption(REDUCE, false, "reduce conflicting properties in case of unrealizable");
 		options.addOption(SCRATCH, false, "produce files for debugging purposes");
 		options.addOption(TIMEOUT, true, "maximum runtime in seconds (default 100)");

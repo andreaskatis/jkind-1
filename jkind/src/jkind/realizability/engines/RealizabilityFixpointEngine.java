@@ -282,11 +282,17 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             if (settings.diagnose) {
                 setResult(k,"REALIZABLE", null);
             } else {
+
                 if (settings.synthesis) {
                     synthesizeImplementation();
                 }
-                Model model = extractTrace(trueRegion, k);
-                sendRealizable(k, model);
+
+                if (settings.traceLength == 0) {
+                    sendRealizable(k);
+                } else {
+                    Model model = extractTrace(trueRegion, k);
+                    sendRealizable(k, model);
+                }
                 throw new StopException();
             }
         } else {
@@ -322,8 +328,13 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                             if (settings.synthesis) {
                                 synthesizeImplementation();
                             }
-                            Model model = extractTrace(trueRegion, k);
-                            sendRealizable(k + 1, model);
+
+                            if (settings.traceLength == 0) {
+                                sendRealizable(k + 1);
+                            } else {
+                                Model model = extractTrace(trueRegion, k + 1);
+                                sendRealizable(k + 1, model);
+                            }
                             throw new StopException();
                         }
                     } else {
