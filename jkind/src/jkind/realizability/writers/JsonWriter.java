@@ -95,6 +95,11 @@ public class JsonWriter extends Writer {
     }
 
     @Override
+    public void writeFixpointRealizable(Counterexample cex, int k, double runtime) {
+        internal.writeValid(cex, "fixpoint", k, runtime);
+        summaryWriter.writeFixpointRealizable(cex, k, runtime);
+    }
+    @Override
     public void writeFixpointUnrealizable(int k, List<String> conflicts, double runtime) {
         //internal.writeInvalid(Util.REALIZABLE, "base", cex, conflicts, runtime);
         summaryWriter.writeFixpointUnrealizable(k, conflicts, runtime);

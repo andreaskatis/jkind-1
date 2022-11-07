@@ -128,6 +128,16 @@ public class ConsoleWriter extends Writer {
         System.out.println();
     }
 
+	public void writeFixpointRealizable(Counterexample cex, int k, double runtime) {
+		writeLine();
+		System.out.println("REALIZABLE || REFINEMENTS = " + k + " || Time = " + Util.secondsToTime(runtime));
+		if (layout != null) {
+			System.out.println(cex.toString(layout));
+		}
+		writeLine();
+		System.out.println();
+	}
+
     @Override
     public void writeFixpointUnrealizable(int k, List<String> conflicts, double runtime) {
         writeLine();

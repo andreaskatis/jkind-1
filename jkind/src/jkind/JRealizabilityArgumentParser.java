@@ -18,6 +18,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 	private static final String EXCEL = "excel";
 	private static final String EXTEND_CEX = "extend_cex";
 	private static final String N = "n";
+	private static final String TRACELENGTH = "tracelength";
 	private static final String REDUCE = "reduce";
 	private static final String SCRATCH = "scratch";
 	private static final String TIMEOUT = "timeout";
@@ -49,6 +50,7 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 		options.addOption(EXCEL, false, "generate results in Excel format");
 		options.addOption(EXTEND_CEX, false, "report extend counterexample");
 		options.addOption(N, true, "number of iterations (default 200)");
+		options.addOption(TRACELENGTH, true, "Example trace length for realizable results (invokes '-fixpoint' option)");
 		options.addOption(REDUCE, false, "reduce conflicting properties in case of unrealizable");
 		options.addOption(SCRATCH, false, "produce files for debugging purposes");
 		options.addOption(TIMEOUT, true, "maximum runtime in seconds (default 100)");
@@ -95,6 +97,11 @@ public class JRealizabilityArgumentParser extends ArgumentParser {
 
 		if (line.hasOption(N)) {
 			settings.n = parseNonnegativeInt(line.getOptionValue(N));
+		}
+
+		if (line.hasOption(TRACELENGTH)) {
+			settings.traceLength = parseNonnegativeInt(line.getOptionValue(TRACELENGTH));
+			settings.fixpoint = true;
 		}
 		
 		if (line.hasOption(REDUCE)) {

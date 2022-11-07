@@ -96,7 +96,6 @@ public abstract class RealizabilityEngine implements Runnable {
             List<VarDecl> dummyoutvars = getOffsetVarDecls(0, getRealizabilityOutputVarDecls());
             List<VarDecl> preinvars = getOffsetVarDecls(-1, getRealizabilityInputVarDecls());
             List<VarDecl> currinvars = getOffsetVarDecls(0, getRealizabilityInputVarDecls());
-            List<VarDecl> skolemvars = getOffsetVarDecls(2, getRealizabilityOutputVarDecls());
 
             for (VarDecl vd : dummyoutvars) {
                 solver.define(vd);
@@ -116,9 +115,12 @@ public abstract class RealizabilityEngine implements Runnable {
                 solver.define(in);
             }
 
-            for (VarDecl in : skolemvars) {
-                solver.define(in);
-            }
+			if (settings.synthesis || settings.solver == JRealizabilitySolverOption.AEVAL) {
+				List<VarDecl> skolemvars = getOffsetVarDecls(2, getRealizabilityOutputVarDecls());
+				for (VarDecl in : skolemvars) {
+					solver.define(in);
+				}
+			}
         }
 	}
 

@@ -55,6 +55,7 @@ public class JsonWriter extends Writer{
         }
     }
 
+
     public void writeValid(String source, int k, double runtime) {
         out.println("    \"Runtime\": {");
         out.println("        \"unit\": \"sec\",");
@@ -67,6 +68,23 @@ public class JsonWriter extends Writer{
         out.println("    \"K\": \"" + k + "\"");
         out.flush();
     }
+
+
+    public void writeValid(Counterexample cex, String source, int k, double runtime) {
+        out.println("    \"Runtime\": {");
+        out.println("        \"unit\": \"sec\",");
+        out.println("        \"value\": \"" + runtime + "\"");
+        out.println("    },");
+        out.println("    \"Answer\": {");
+        out.println("        \"source\": \"" + source + "\",");
+        out.println("        \"text\": \"realizable\"");
+        out.println("    },");
+        out.println("    \"K\": \"" + k + "\",");
+        writeCounterexample(cex);
+        out.flush();
+    }
+
+
 
     private String escape(Expr invariant) {
         return invariant.toString().replace("<", "&lt;").replace(">", "&gt;");

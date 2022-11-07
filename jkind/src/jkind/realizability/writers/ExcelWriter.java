@@ -87,6 +87,11 @@ public class ExcelWriter extends Writer {
         summaryWriter.writeFixpointRealizable(k, runtime);
     }
 
+	@Override
+	public void writeFixpointRealizable(Counterexample cex, int k, double runtime) {
+		summaryWriter.writeFixpointRealizable(cex, k, runtime);
+	}
+
     @Override
     public void writeFixpointUnrealizable(int k, List<String> conflicts, double runtime) {
         //internal.writeInvalid(Util.REALIZABLE, "base", k, conflicts, runtime);

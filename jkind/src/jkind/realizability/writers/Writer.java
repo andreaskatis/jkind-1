@@ -33,5 +33,7 @@ public abstract class Writer {
 
     public abstract void writeFixpointRealizable(int k, double runtime);
 
+	public abstract void writeFixpointRealizable(Counterexample cex, int k, double runtime);
+
     public abstract void writeFixpointUnrealizable(int k, List<String> conflicts, double runtime);
 }

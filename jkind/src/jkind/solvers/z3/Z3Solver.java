@@ -344,6 +344,8 @@ public class Z3Solver extends SmtLib2Solver implements MaxSatSolver {
 		push();
 		assertSexp(formula);
 		send(new Cons("apply", new Symbol("ctx-solver-simplify")));
+		//Line below seems to lead to inconsistent results (e.g. contracts sometimes realizable, sometimes not)
+//		send(new Cons("apply", new Cons("par-or", new Symbol("ctx-solver-simplify"), new Symbol("simplify"))));
 		String result = readFromSolver();
 		pop();
 		String regexString = Pattern.quote("(goal\n  ") + "(?s)(.*?)" + "(\\n\\s\\s)?" + Pattern.quote(":");

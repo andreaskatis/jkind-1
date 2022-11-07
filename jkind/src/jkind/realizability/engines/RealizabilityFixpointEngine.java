@@ -18,6 +18,7 @@ import jkind.sexp.Symbol;
 import jkind.slicing.LustreSlicer;
 import jkind.solvers.Model;
 import jkind.solvers.Result;
+import jkind.solvers.SatResult;
 import jkind.solvers.UnsatResult;
 import jkind.translation.Lustre2Sexp;
 import jkind.translation.Specification;
@@ -259,21 +260,17 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
         if (k == 0) {
             simpTrans = solver.simplify(getInductiveTransition(0));
-//            simpTrans = getInductiveTransition(0);
         }
+
         Sexp query = new Cons("and", simpTrans, StreamIndex.conjoinEncodings(spec.node.properties, 0), trueRegionNext);
         if (getRealizabilityOutputs(0) != null) {
             query = new Cons("exists", getRealizabilityOutputs(0), query);
         }
         query = new Cons("=>", (k == 0 ? new Cons("and", simpTrans, trueRegion) : trueRegion), query);
 
-//        Sexp query = new Cons("=>", trueRegion,
-//                new Cons("exists", getRealizabilityOutputs(0),
-//                        new Cons("and", simpTrans, StreamIndex.conjoinEncodings(spec.node.properties, 0), trueRegionNext)));
-
         Sexp qeResult = solver.qeQuery(query, false);
         Sexp negatedQeResult = solver.simplify(new Cons("not", qeResult));
-//        Sexp qeResult = solver.simplify(new Cons("and", simpTrans, new Cons("not", solver.qeQuery(query, false))));
+
         if (qeResult.toString().equals("false")) {
             if (settings.diagnose) {
                 setResult(k,"UNREALIZABLE", null);
@@ -288,7 +285,8 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 if (settings.synthesis) {
                     synthesizeImplementation();
                 }
-                sendRealizable(k);
+                Model model = extractTrace(trueRegion, k);
+                sendRealizable(k, model);
                 throw new StopException();
             }
         } else {
@@ -297,26 +295,13 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
             vars.addAll(getRealizabilityInputVarDecls());
             vars.addAll(getRealizabilityOutputVarDecls());
 
-
-//            Sexp refinementQuery = new Cons("=>", trueRegion,
-//                    new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
-//                            new Cons("and", getAssertions(), simpTrans, trueRegion, negatedQeResult)));
-
             Sexp refinementQuery = new Cons("=>", trueRegion,
                     new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
                             new Cons("and", simpTrans, negatedQeResult)));
 
-//            Sexp refinementQuery = new Cons("=>", trueRegion,
-//                    new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
-//                            new Cons("and", getAssertions(), new Symbol("true"), trueRegion, qeResult)));
-//            Sexp refinementQuery = new Cons("=>", trueRegion,
-//                    new Cons("exists", varDeclsToRefinementQuantifierArguments(vars, 0),
-//                            new Cons("and", getAssertions(), trueRegion, new Cons("not", qeResult))));
-
             Sexp refinementResult = solver.qeQuery(refinementQuery,true);
 
             if (solver.simplify(refinementResult).toString().equals("true")) {
-//            if (refinementResult.toString().equals("true")) {
                 if (settings.diagnose) {
                     setResult(k,"UNREALIZABLE", null);
                 } else {
@@ -325,10 +310,7 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 }
             } else {
                 Sexp negatedRefRes = solver.simplify(new Cons("not", refinementResult));
-//                Sexp negatedRefRes = new Cons("not", refinementResult);
-//                Result isFixpoint = solver.query(new Cons("=>", trueRegion, solver.simplify(new Cons("and", trueRegion, negatedRefRes))));
                 Result isFixpoint = solver.query(new Cons("=>", trueRegion, negatedRefRes));
-//                Result isFixpoint = solver.query(new Cons("=>", trueRegion, new Cons("and", trueRegion, negatedRefRes)));
                 if (isFixpoint instanceof UnsatResult) {
                     if (solver.initialStatesQuery(getTransition(0, true),
                             StreamIndex.conjoinEncodings(spec.node.properties, 0),
@@ -340,7 +322,8 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                             if (settings.synthesis) {
                                 synthesizeImplementation();
                             }
-                            sendRealizable(k + 1);
+                            Model model = extractTrace(trueRegion, k);
+                            sendRealizable(k + 1, model);
                             throw new StopException();
                         }
                     } else {
@@ -352,13 +335,50 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                         }
                     }
                 } else {
-//                    region = new RefinedRegion(solver.simplify(new Cons("and", trueRegion, negatedRefRes)));
                     region = new RefinedRegion(negatedRefRes);
-//                    region = new RefinedRegion(new Cons("and", trueRegion, negatedRefRes));
                 }
             }
         }
 
+    }
+
+    private Model extractTrace(Sexp trueRegion, int k) {
+        List<Symbol> regions = new ArrayList<>();
+        List<Symbol> transitions = new ArrayList<>();
+        List<Symbol> properties = new ArrayList<>();
+        List<VarDecl> varDecls = new ArrayList<>();
+
+        int traceLength = settings.traceLength > -1 ? settings.traceLength : k;
+
+        solver.push();
+
+        regions.add(new Symbol(trueRegion.toString()));
+        transitions.add(new Symbol(getTransition(0, true).toString()));
+        properties.add(new Symbol(StreamIndex.conjoinEncodings(spec.node.properties, 0).toString()));
+
+        for (int i = 1; i < traceLength; i++){
+            varDecls.addAll(getOffsetVarDecls(i, getRealizabilityInputVarDecls()));
+            varDecls.addAll(getOffsetVarDecls(i, getRealizabilityOutputVarDecls()));
+            String converted = trueRegion.toString();
+            converted = converted.replaceAll("\\$~1", "\\$"+i);
+            regions.add(new Symbol("(and " + converted + ")"));
+            transitions.add(new Symbol(getTransition(i, false).toString()));
+            properties.add(new Symbol(StreamIndex.conjoinEncodings(spec.node.properties, i).toString()));
+        }
+
+        for (VarDecl in : varDecls) {
+            solver.define(in);
+        }
+
+        List<Symbol> allSexps = new ArrayList<>();
+        allSexps.addAll(transitions);
+        allSexps.addAll(properties);
+        allSexps.addAll(regions);
+
+        Result result = solver.checkSat(allSexps, true, false);
+        Model model = ((SatResult) result).getModel();
+        solver.pop();
+        return model;
     }
 
     private void checkRealizable(int k) {
@@ -401,7 +421,6 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 }
             } else {
                 Sexp negatedsimplified = solver.simplify(new Cons("not", result));
-//                Sexp negatedsimplified = new Cons("not", result);
                 ValidSubset negatedsubset = new ValidSubset(negatedsimplified);
                 refineRegion(k, negatedsubset);
             }
@@ -444,7 +463,6 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
                 }
             } else {
                 simplified = solver.simplify(new Cons("and", region.getRefinedRegion(), new Cons("not", result)));
-//                simplified = new Cons("and", region.getRefinedRegion(), new Cons("not", result));
                 region = new RefinedRegion(simplified);
             }
         } else {
@@ -677,6 +695,11 @@ public class RealizabilityFixpointEngine extends RealizabilityEngine {
 
     private void sendRealizable(int k) {
         RealizableMessage rm = new RealizableMessage(k);
+        director.incoming.add(rm);
+    }
+
+    private void sendRealizable(int k, Model model) {
+        RealizableMessage rm = new RealizableMessage(k, model);
         director.incoming.add(rm);
     }
 
