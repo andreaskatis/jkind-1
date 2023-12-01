@@ -234,15 +234,15 @@ public class JsonWriter extends Writer{
     }
 
     private void writeUnknown(String prop, int trueFor, Counterexample cex, double runtime) {
-        out.println("  <Property name=\"" + prop + "\">");
-        out.println("    <Runtime unit=\"sec\">" + runtime + "</Runtime>");
-        out.println("    <Answer>unknown</Answer>");
-        out.println("    <TrueFor>" + trueFor + "</TrueFor>");
-        if (cex != null) {
-            out.println("    <K>" + cex.getLength() + "</K>");
-            writeCounterexample(cex);
-        }
-        out.println("  </Property>");
+        out.flush();
+        out.println("    \"Runtime\": {");
+        out.println("        \"unit\": \"sec\",");
+        out.println("        \"value\": \"" + runtime + "\"");
+        out.println("    },");
+        out.println("    \"Answer\": {");
+        out.println("        \"text\": \"unknown\"");
+        out.println("    },");
+        out.println("    \"K\": \"" + trueFor + "\"");
         out.flush();
     }
 
